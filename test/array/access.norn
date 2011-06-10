@@ -1,0 +1,31 @@
+def main(): Void
+
+	name: [7]Char
+
+	name[0] = 'M'
+	name[1] = 'i'
+	name[2] = 'c'
+	name[3] = 'h'
+	name[4] = 'a'
+	name[5] = 'e'
+	name[6] = 'l'
+
+	for i: Int = 0, i < 7, i=i+1 in 
+		print(name[i])
+	end
+
+	print('\n')
+
+	numbers: [10]Int
+	
+	for i: Int = 0, i < 10, i=i+1 in
+		numbers[i] = i
+	end
+
+	for i: Int = 0, i < 10, i=i+1 in
+		println(numbers[i])
+	end
+
+	print('\n')
+
+end

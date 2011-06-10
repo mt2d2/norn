@@ -1,0 +1,9 @@
+struct Test
+	i: Int
+	b: Boolean
+end
+
+def main(): Void
+	tester: Test = 8
+	println("Hi")
+end

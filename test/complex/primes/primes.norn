@@ -1,0 +1,19 @@
+def isPrime(number: Int): Boolean
+	if number < 2 then return false end
+
+	for i: Int = 2, (i*i) <= number, i=i+1 in
+		if (number % i) = 0 then
+			return false
+		end
+	end
+	
+	return true
+end
+
+def main(): Void
+	for i: Int = 0, i < 100000, i=i+1 in
+		if isPrime(i) then
+			println(i)
+		end
+	end
+end

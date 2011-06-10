@@ -1,0 +1,7 @@
+def main(): Void
+	b: Boolean = true
+	println(b)
+	
+	b: Boolean = false
+	println(b)
+end

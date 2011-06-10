@@ -1,0 +1,8 @@
+def main(): Void
+	for i: Int = 0, i < 10, i=i+1 in
+		print(i) 
+		print(' ')
+	end
+	
+	println("")
+end

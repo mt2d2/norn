@@ -1,0 +1,7 @@
+def insertion_sort(x: IntAry): IntAry
+	return x
+end
+
+def main(): Void
+	insertion_sort()
+end

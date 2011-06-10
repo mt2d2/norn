@@ -1,0 +1,11 @@
+def test(x: Int): Int
+	if x < 2 then
+		1
+	else
+		1 + test(x-1)
+	end
+end
+
+def main(): Void
+	test(4096)
+end

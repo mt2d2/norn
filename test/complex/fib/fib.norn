@@ -1,0 +1,11 @@
+def jit fib(n: Int): Int
+	if n < 3 then
+		1
+	else
+		fib(n + -1) + fib(n + -2)
+	end
+end
+
+def jit main(): Void
+	println(fib(30))
+end

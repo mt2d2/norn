@@ -1,0 +1,12 @@
+def test(x: Int): Int
+	if x < 9 then
+		x - 1 + 1
+	else
+		2
+	end
+end
+    
+def main(): Void
+	println(test(8))
+	println(test(10))
+end

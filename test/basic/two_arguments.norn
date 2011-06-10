@@ -1,0 +1,8 @@
+def main(): Void
+	tester(4, 8)
+end
+
+def tester(x: Int, y: Int): Void
+	print("x=") println(x)
+	print("y=") println(y)
+end

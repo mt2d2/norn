@@ -1,0 +1,13 @@
+* fill in readme
+* rewrite lexer/parser
+	* seriously clean up Parser::parse() to fix up that two pass nonsense
+	* fix style (camelCase, z.B.)
+	* allow multiple statements in if
+* decouple lexer from main and parser
+* mismatch between types = ERRORS!
+* add returns, check to see if matches right type?
+* match only specified types, error for unspecified type
+* finish up rough jit
+* move away from common.h, use exceptions
+
+* jump targets should be labels, resolve final position in pass removing lbl opcode

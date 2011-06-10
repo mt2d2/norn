@@ -1,0 +1,22 @@
+def jit maths(): Int
+	return (-10 + (2 + 2) * 20)
+end
+
+def jit jit_test(m: Int, t: Int): Int
+	ret: Int = 0 
+	
+	for i: Int = 0, i < 10000000, i=i+1 in
+		ret = ret + m + t + maths()
+	end
+	
+	return ret
+end
+
+def jit jit_float_test(): Float
+	return 8.4 + 8
+end
+
+def jit main(): Void
+	println(jit_test(4, 4))
+	println(jit_float_test())
+end

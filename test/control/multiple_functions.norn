@@ -1,0 +1,15 @@
+def test(): Int
+	michael()
+end	
+
+def asdfasdf(): Int
+	5
+end
+	
+def michael(): Int
+	3 + asdfasdf()
+end
+
+def main(): Void
+	test()
+end

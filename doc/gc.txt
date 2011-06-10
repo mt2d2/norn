@@ -1,0 +1,26 @@
+Memory management in norn is currently handled by the Boehm-Demers-Weiser
+garbage collector. For each block that is entered (i.e., each CALL bytecode
+that is executed) a new block of memory is allocated by GC_malloc(). This 
+memory is guarded by a pointer during execution of the block and by a bookmark
+as the call stack goes deeper. As each bookmark is freed, a reference to the 
+allocated memory is destroyed, allowing the collector to reclaim the resources.
+
+At least, that's the general idea. Having no experience with any memory manage-
+ment like this, it's difficult to say whether or not this is actually working
+or even a good idea. For example, why not just allocate memory for each block
+entered and free it regardless when encountering RTRN, the end of the block?
+Suggestions are, of course, very welcome.
+
+The current collector I use is libgc 7.1 and is usually linked as a shared
+library with -lgc. It can be tuned depending on the use case. For example, to
+tune the collector for a large heap and no thread support (norn doesn't have
+any threading yet) use:
+	./configure --disable-gcj-support --disable-java-finalization --enable-cplusplus --enable-large-config --disable-libtool-lock --disable-depencdency-tracking --disable-threads
+	
+Links to the Boehm-Demers-Weiser GC and other items of interest:
+	http://www.hpl.hp.com/personal/Hans_Boehm/gc/
+	http://dekorte.com/projects/opensource/libgarbagecollector/
+
+The GC can only scan program variables and objects allocated with the GC.
+http://www.hpl.hp.com/personal/Hans_Boehm/gc/gcinterface.html
+http://www.iecc.com/gclist/GC-algorithms.html
