@@ -36,7 +36,6 @@ public:
 	void absolute_jumps();
 
 	// optimizations
-	void calculate_int_fold(Instruction instr, std::list<Instruction>& calc_stack, std::list<Instruction>& outputs);
 	void fold_constants();
 	void store_load_elimination();
 	void inline_calls();
@@ -52,6 +51,11 @@ public:
 	native_ptr native;
 
 private:
+	void calculate_int_fold(Instruction instr, std::list<Instruction>& calc_stack, std::list<Instruction>& outputs);
+	void calculate_float_fold(Instruction instr, std::list<Instruction>& calc_stack, std::list<Instruction>& outputs);
+	void fold_ints();
+	void fold_floats();
+	
 	std::string name;
 	bool needs_jit;
 	std::vector<Instruction> instructions;

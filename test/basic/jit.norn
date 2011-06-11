@@ -12,8 +12,12 @@ def jit jit_test(m: Int, t: Int): Int
 	return ret
 end
 
+def jit float_maths(): Float
+	return 4.0 + 4.0
+end
+
 def jit jit_float_test(): Float
-	return 8.4 + 8
+	return 8.4 + float_maths()
 end
 
 def jit main(): Void

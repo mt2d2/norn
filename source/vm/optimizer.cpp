@@ -33,6 +33,8 @@ Constant folding in source/vm/optimizer.cpp was heavily influenced by Objeck
 
 #include "block.h"
 
+#include <cmath> // fmod
+
 void Block::store_load_elimination()
 {
 	int line_number = 0;
@@ -103,7 +105,52 @@ void Block::calculate_int_fold(Instruction instr, std::list<Instruction>& calc_s
 	}
 }
 
-void Block::fold_constants()
+void Block::calculate_float_fold(Instruction instr, std::list<Instruction>& calc_stack, std::list<Instruction>& outputs)
+{
+	if(calc_stack.size() == 1) 
+	{
+		outputs.push_back(calc_stack.front());
+		calc_stack.pop_front();
+		outputs.push_back(instr);
+	} 
+	else if(calc_stack.size() > 1) 
+	{
+		Instruction& left = calc_stack.front();
+		calc_stack.pop_front();
+
+		Instruction& right = calc_stack.front();
+		calc_stack.pop_front();
+
+		switch (instr.op) 
+		{
+			case ADD_FLOAT:
+				calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d + right.arg.d));
+				break;
+
+			case SUB_FLOAT:
+				calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d - right.arg.d));
+				break;
+
+			case MUL_FLOAT:
+				calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d * right.arg.d));
+				break;
+
+			case DIV_FLOAT:
+				calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d / right.arg.d));
+				break;
+
+			case MOD_FLOAT:
+				calc_stack.push_front(Instruction(LIT_FLOAT, fmod(left.arg.d, right.arg.d)));
+				break;
+		}
+	} 
+	else 
+	{
+		outputs.push_back(instr);
+	}
+}
+
+void Block::fold_ints()
 {
 	std::list<Instruction> outputs;
 	std::list<Instruction> calc_stack;
@@ -147,6 +194,58 @@ void Block::fold_constants()
 	instructions.clear();
 	for (std::list<Instruction>::iterator i = outputs.begin(); i != outputs.end(); ++i)
 		instructions.push_back(*i);
+}
+
+void Block::fold_floats()
+{
+	std::list<Instruction> outputs;
+	std::list<Instruction> calc_stack;
+	
+	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
+	{
+		switch (i->op)
+		{
+			case LIT_FLOAT:
+				calc_stack.push_front(*i);
+				break;
+
+			case ADD_FLOAT:
+			case SUB_FLOAT:
+			case MUL_FLOAT:
+			case DIV_FLOAT:
+			case MOD_FLOAT:
+				calculate_float_fold(*i, calc_stack, outputs);
+				break;
+
+			default:
+				// add back in reverse order
+				while(!calc_stack.empty()) 
+				{
+					outputs.push_back(calc_stack.back());
+					calc_stack.pop_back();
+				}
+				
+				outputs.push_back(*i);
+				break;
+		}
+	}
+
+	// order matters...
+	while (!calc_stack.empty())
+	{
+		outputs.push_back(calc_stack.back());
+		calc_stack.pop_back();
+	}
+	
+	instructions.clear();
+	for (std::list<Instruction>::iterator i = outputs.begin(); i != outputs.end(); ++i)
+		instructions.push_back(*i);
+}
+
+void Block::fold_constants()
+{
+	fold_ints();
+	fold_floats();
 }
 
 void Block::inline_calls()
