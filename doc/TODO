@@ -9,5 +9,3 @@
 * match only specified types, error for unspecified type
 * finish up rough jit
 * move away from common.h, use exceptions
-
-* jump targets should be labels, resolve final position in pass removing lbl opcode
