@@ -124,19 +124,70 @@ void cpuid(uint32_t in, CpuId* out) ASMJIT_NOTHROW
 #endif // compiler
 }
 
-struct VendorInfo
+struct CpuVendorInfo
 {
   uint32_t id;
   char text[12];
 };
 
-static const VendorInfo vendorInfo[] = 
+static const CpuVendorInfo cpuVendorInfo[] = 
 {
-  { CPU_VENDOR_INTEL, { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'I', 'n', 't', 'e', 'l' } },
-  { CPU_VENDOR_AMD  , { 'A', 'M', 'D', 'i', 's', 'b', 'e', 't', 't', 'e', 'r', '!' } },
-  { CPU_VENDOR_AMD  , { 'A', 'u', 't', 'h', 'e', 'n', 't', 'i', 'c', 'A', 'M', 'D' } },
-  { CPU_VENDOR_VIA  , { 'V', 'I', 'A', '\0','V', 'I', 'A', '\0','V', 'I', 'A', '\0'} }
+  { CPU_VENDOR_INTEL    , { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'I', 'n', 't', 'e', 'l' } },
+
+  { CPU_VENDOR_AMD      , { 'A', 'u', 't', 'h', 'e', 'n', 't', 'i', 'c', 'A', 'M', 'D' } },
+  { CPU_VENDOR_AMD      , { 'A', 'M', 'D', 'i', 's', 'b', 'e', 't', 't', 'e', 'r', '!' } },
+
+  { CPU_VENDOR_NSM      , { 'G', 'e', 'o', 'd', 'e', ' ', 'b', 'y', ' ', 'N', 'S', 'C' } },
+  { CPU_VENDOR_NSM      , { 'C', 'y', 'r', 'i', 'x', 'I', 'n', 's', 't', 'e', 'a', 'd' } },
+
+  { CPU_VENDOR_TRANSMETA, { 'G', 'e', 'n', 'u', 'i', 'n', 'e', 'T', 'M', 'x', '8', '6' } },
+  { CPU_VENDOR_TRANSMETA, { 'T', 'r', 'a', 'n', 's', 'm', 'e', 't', 'a', 'C', 'P', 'U' } },
+
+  { CPU_VENDOR_VIA      , { 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0 , 'V', 'I', 'A',  0  } },
+  { CPU_VENDOR_VIA      , { 'C', 'e', 'n', 't', 'a', 'u', 'r', 'H', 'a', 'u', 'l', 's' } }
 };
+
+static inline bool cpuVencorEq(const CpuVendorInfo& info, const char* vendorString)
+{
+  const uint32_t* a = reinterpret_cast<const uint32_t*>(info.text);
+  const uint32_t* b = reinterpret_cast<const uint32_t*>(vendorString);
+
+  return (a[0] == b[0]) &
+         (a[1] == b[1]) &
+         (a[2] == b[2]) ;
+}
+
+static inline void simplifyBrandString(char* s)
+{
+  // Always clear the current character in the buffer. This ensures that there
+  // is no garbage after the string NULL terminator.
+  char* d = s;
+
+  char prev = 0;
+  char curr = s[0];
+  s[0] = '\0';
+
+  for (;;)
+  {
+    if (curr == 0) break;
+
+    if (curr == ' ')
+    {
+      if (prev == '@') goto _Skip;
+      if (s[1] == ' ' || s[1] == '@') goto _Skip;
+    }
+
+    d[0] = curr;
+    d++;
+    prev = curr;
+
+_Skip:
+    curr = *++s;
+    s[0] = '\0';
+  }
+
+  d[0] = '\0';
+}
 
 void detectCpuInfo(CpuInfo* i) ASMJIT_NOTHROW
 {
@@ -160,9 +211,9 @@ void detectCpuInfo(CpuInfo* i) ASMJIT_NOTHROW
 
   for (a = 0; a < 3; a++)
   {
-    if (memcmp(i->vendor, vendorInfo[a].text, 12) == 0)
+    if (cpuVencorEq(cpuVendorInfo[a], i->vendor))
     {
-      i->vendorId = vendorInfo[a].id;
+      i->vendorId = cpuVendorInfo[a].id;
       break;
     }
   }
@@ -189,6 +240,7 @@ void detectCpuInfo(CpuInfo* i) ASMJIT_NOTHROW
   i->x86ExtendedInfo.apicPhysicalId       = ((out.ebx >> 24) & 0xFF);
 
   if (out.ecx & 0x00000001U) i->features |= CPU_FEATURE_SSE3;
+  if (out.ecx & 0x00000002U) i->features |= CPU_FEATURE_PCLMULDQ;
   if (out.ecx & 0x00000008U) i->features |= CPU_FEATURE_MONITOR_MWAIT;
   if (out.ecx & 0x00000200U) i->features |= CPU_FEATURE_SSSE3;
   if (out.ecx & 0x00002000U) i->features |= CPU_FEATURE_CMPXCHG16B;
@@ -196,6 +248,7 @@ void detectCpuInfo(CpuInfo* i) ASMJIT_NOTHROW
   if (out.ecx & 0x00100000U) i->features |= CPU_FEATURE_SSE4_2;
   if (out.ecx & 0x00400000U) i->features |= CPU_FEATURE_MOVBE;
   if (out.ecx & 0x00800000U) i->features |= CPU_FEATURE_POPCNT;
+  if (out.ecx & 0x10000000U) i->features |= CPU_FEATURE_AVX;
 
   if (out.edx & 0x00000010U) i->features |= CPU_FEATURE_RDTSC;
   if (out.edx & 0x00000100U) i->features |= CPU_FEATURE_CMPXCHG8B;
@@ -231,8 +284,11 @@ void detectCpuInfo(CpuInfo* i) ASMJIT_NOTHROW
   cpuid(0x80000000, &out);
 
   uint32_t exIds = out.eax;
+  if (exIds > 0x80000004) exIds = 0x80000004;
 
-  for (a = 0x80000001; a < exIds && a <= (0x80000001); a++)
+  uint32_t* brand = reinterpret_cast<uint32_t*>(i->brand);
+
+  for (a = 0x80000001; a <= exIds; a++)
   {
     cpuid(a, &out);
 
@@ -244,7 +300,6 @@ void detectCpuInfo(CpuInfo* i) ASMJIT_NOTHROW
         if (out.ecx & 0x00000040U) i->features |= CPU_FEATURE_SSE4_A;
         if (out.ecx & 0x00000080U) i->features |= CPU_FEATURE_MSSE;
         if (out.ecx & 0x00000100U) i->features |= CPU_FEATURE_PREFETCH;
-        if (out.ecx & 0x00000800U) i->features |= CPU_FEATURE_SSE5;
 
         if (out.edx & 0x00100000U) i->features |= CPU_FEATURE_EXECUTE_DISABLE_BIT;
         if (out.edx & 0x00200000U) i->features |= CPU_FEATURE_FFXSR;
@@ -253,12 +308,25 @@ void detectCpuInfo(CpuInfo* i) ASMJIT_NOTHROW
         if (out.edx & 0x20000000U) i->features |= CPU_FEATURE_64_BIT;
         if (out.edx & 0x40000000U) i->features |= CPU_FEATURE_3DNOW_EXT | CPU_FEATURE_MMX_EXT;
         if (out.edx & 0x80000000U) i->features |= CPU_FEATURE_3DNOW;
-
         break;
 
-      // Additional features can be detected in the future.
+      case 0x80000002:
+      case 0x80000003:
+      case 0x80000004:
+        *brand++ = out.eax;
+        *brand++ = out.ebx;
+        *brand++ = out.ecx;
+        *brand++ = out.edx;
+        break;
+
+      default:
+        // Additional features can be detected in the future.
+        break;
     }
   }
+
+  // Simplify the brand string (remove unnecessary spaces to make it printable).
+  simplifyBrandString(i->brand);
 
 #endif // ASMJIT_X86 || ASMJIT_X64
 }
