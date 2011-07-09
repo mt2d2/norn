@@ -31,7 +31,7 @@ const Type& TypeFactory::get(Primative key)
 			return *t;
 
 	raise_error("couldn't find type by primative key, shouldn't happen!");
-	return Type();
+	return types[0];
 }
 
 const Type& TypeFactory::get(const std::string& key)
@@ -41,5 +41,5 @@ const Type& TypeFactory::get(const std::string& key)
 			return *t;
 
 	raise_error("couldn't find type by string key: " + key);
-	return Type();
+	return types[0];
 }
