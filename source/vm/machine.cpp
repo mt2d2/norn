@@ -116,40 +116,40 @@ void Machine::execute()
 			push<long>(pop<int>() | pop<int>());
 			NEXT
 		OP(LE_INT)
-			push<long>(pop<int>() < pop<int>());
+			push<bool>(pop<int>() < pop<int>());
 			NEXT
 		OP(LE_FLOAT)
-			push<double>(pop<double>() < pop<double>());
+			push<bool>(pop<double>() < pop<double>());
 			NEXT
 		OP(LEQ_INT)
-			push<long>(pop<int>() <= pop<int>());
+			push<bool>(pop<int>() <= pop<int>());
 			NEXT
 		OP(LEQ_FLOAT)
-			push<double>(pop<double>() <= pop<double>());
+			push<bool>(pop<double>() <= pop<double>());
 			NEXT
 		OP(GE_INT)
-			push<long>(pop<int>() > pop<int>());
+			push<bool>(pop<int>() > pop<int>());
 			NEXT
 		OP(GE_FLOAT)
-			push<long>(pop<double>() > pop<double>());
+			push<bool>(pop<double>() > pop<double>());
 			NEXT
 		OP(GEQ_INT)
-			push<long>(pop<int>() >= pop<int>());
+			push<bool>(pop<int>() >= pop<int>());
 			NEXT
 		OP(GEQ_FLOAT)
-			push<double>(pop<double>() >= pop<double>());
+			push<bool>(pop<double>() >= pop<double>());
 			NEXT
 		OP(EQ_INT)
-			push<long>(pop<int>() == pop<int>());
+			push<bool>(pop<int>() == pop<int>());
 			NEXT
 		OP(EQ_FLOAT)
-			push<double>(pop<double>() == pop<double>());
+			push<bool>(pop<double>() == pop<double>());
 			NEXT
 		OP(NEQ_INT)
-			push<long>(pop<int>() != pop<int>());
+			push<bool>(pop<int>() != pop<int>());
 			NEXT
 		OP(NEQ_FLOAT)
-			push<double>(pop<double>() != pop<double>());
+			push<bool>(pop<double>() != pop<double>());
 			NEXT
 		OP(TJMP)
 			if (pop<bool>())
