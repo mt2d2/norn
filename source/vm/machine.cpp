@@ -23,14 +23,14 @@ Machine::Machine(const Program& program, bool debug) :
 	block(NULL),
 	instr(NULL),
 	manager(Memory()),
-	memory(manager.new_root_array<long>(program.get_memory_slots() * STACK_SIZE /* TODO, growing array? */)),
 	ip(0),
 	ipc(0),
 	debug(debug),
-	frames(manager.new_root_array<Frame>(STACK_SIZE)),
-	frames_start(frames),
-	stack(manager.new_root_array<long>(STACK_SIZE)),
-	stack_start(stack)
+	stack(NULL),
+	stack_start(NULL),	
+	frames(NULL),
+	frames_start(NULL),
+	memory(NULL)
 {
 }
 
@@ -43,8 +43,14 @@ void Machine::execute()
 	program.repair_disp_table(disp_table);
 #endif
 		
+	this->stack = reinterpret_cast<long*>(alloca(sizeof(long) * STACK_SIZE));
+	this->stack_start = this->stack;
+	this->frames = reinterpret_cast<Frame*>(alloca(sizeof(Frame) * STACK_SIZE));
+	this->frames_start = this->frames;
+	this->memory = reinterpret_cast<long*>(alloca(sizeof(long) * STACK_SIZE * this->program.get_memory_slots()));
+		
 	block = this->program.get_block_ptr(this->program.get_block_id("main"));
-	
+
 	if (block->native)
 	{
 		block->native(&stack, &memory);

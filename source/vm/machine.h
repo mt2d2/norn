@@ -36,15 +36,16 @@ private:
 	Block* block;
 	Instruction* instr;
 	Memory manager;
-	long* memory;
 	int ip;
 	int ipc;
 	bool debug;
 
-	Frame* frames;
-	Frame* frames_start;
 	long* stack;
 	long* stack_start;
+	Frame* frames;
+	Frame* frames_start;
+	long* memory;
+	
 };
 
 template<typename T>
