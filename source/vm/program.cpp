@@ -49,7 +49,7 @@ int Program::add_string(std::string string)
 	return ret;
 }
 
-std::string Program::get_string(int key)
+std::string Program::get_string(int key) const
 {
 	return strings[key];
 }

@@ -268,7 +268,7 @@ void CallExprAST::emit_bytecode(BuildContext& out)
 		(*i)->emit_bytecode(out);
 
 	Block* callee = out.get_program().get_block_ptr(block_id);
-	if (callee->native || callee->get_needs_jit())
+	if (!out.get_nojit() && (callee->native || callee->get_needs_jit()))
 		out.get_block()->add_instruction(Instruction(CALL_NATIVE, reinterpret_cast<Variant*>(callee)));
 	else
 		out.get_block()->add_instruction(Instruction(CALL, reinterpret_cast<Variant*>(callee)));

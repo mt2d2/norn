@@ -1,4 +1,5 @@
 #include "machine.h"
+#include <alloca.h>
 #include <cmath> // fmod
 #include <cstdio> // printf
 
@@ -18,7 +19,7 @@
 // TODO test perf of switch root_arrays to vectors, would make a lot simpler!
 // TODO refactor Opcode so reapir_disp_table isn't needed
 // TODO reference things by frame, push inital frame for main, too
-Machine::Machine(const Program& program, bool debug) :
+Machine::Machine(const Program& program, bool debug, bool nojit) :
 	program(program),
 	block(NULL),
 	instr(NULL),
@@ -26,6 +27,7 @@ Machine::Machine(const Program& program, bool debug) :
 	ip(0),
 	ipc(0),
 	debug(debug),
+	nojit(nojit),
 	stack(NULL),
 	stack_start(NULL),	
 	frames(NULL),
@@ -36,7 +38,8 @@ Machine::Machine(const Program& program, bool debug) :
 
 void Machine::execute()
 {
-	this->program.jit();
+	if (!this->nojit)
+		this->program.jit();
 	
 #if COMPUTED_GOTO
 #	include "goto.h"
@@ -51,7 +54,7 @@ void Machine::execute()
 		
 	block = this->program.get_block_ptr(this->program.get_block_id("main"));
 
-	if (block->native)
+	if (!this->nojit && block->native)
 	{
 		block->native(&stack, &memory);
 		goto cleanup;

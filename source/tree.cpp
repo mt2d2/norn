@@ -1,12 +1,13 @@
 #include "tree.h"
 
-BuildContext::BuildContext() : 
+BuildContext::BuildContext(bool nojit) : 
 	program(Program()),
 	working_block(NULL),
 	memory_ids(std::map<std::string, int>()),
 	block_types(std::map<std::string, Type>()),
 	variable_types(std::map<std::string, Type>()),
-	seed(0)
+	seed(0),
+	nojit(nojit)
 {
 }
 
@@ -76,6 +77,11 @@ bool BuildContext::variable_exists(const std::string& key)
 int BuildContext::get_and_increment_seed()
 {
 	return this->seed++;
+}
+
+bool BuildContext::get_nojit() const
+{
+	return this->nojit;
 }
 
 std::string CallExprAST::callee_signature(BuildContext& out)

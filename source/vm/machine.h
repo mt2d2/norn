@@ -17,7 +17,7 @@
 class Machine
 {
 public:
-	Machine(const Program& program, bool debug=false);
+	Machine(const Program& program, bool debug=false, bool nojit=false);
 	void execute();
 
 private:
@@ -34,11 +34,12 @@ private:
 
 	Program program;
 	Block* block;
-	Instruction* instr;
+	const Instruction* instr;
 	Memory manager;
 	int ip;
 	int ipc;
 	bool debug;
+	bool nojit;
 
 	long* stack;
 	long* stack_start;

@@ -24,9 +24,9 @@ void TypeFactory::install(const Type& new_type)
 		types.push_back(new_type);
 }
 
-const Type& TypeFactory::get(Primative key)
+const Type& TypeFactory::get(Primative key) const
 {
-	for (std::vector<Type>::iterator t = types.begin(); t != types.end(); ++t)
+	for (std::vector<Type>::const_iterator t = types.begin(); t != types.end(); ++t)
 		if (t->get_primative() == key)
 			return *t;
 
@@ -34,9 +34,9 @@ const Type& TypeFactory::get(Primative key)
 	return types[0];
 }
 
-const Type& TypeFactory::get(const std::string& key)
+const Type& TypeFactory::get(const std::string& key) const
 {
-	for (std::vector<Type>::iterator t = types.begin(); t != types.end(); ++t)
+	for (std::vector<Type>::const_iterator t = types.begin(); t != types.end(); ++t)
 		if (t->get_name() == key)
 			return *t;
 

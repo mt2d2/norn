@@ -8,11 +8,11 @@ class Program
 public:
 	Program();
 	void clean_up();
-	Block* get_block_ptr(int key);
+	Block* get_block_ptr(int key) const;
 	void add_block(Block* block);
 	int get_block_id(const std::string& key);
 	int add_string(std::string string);
-	std::string get_string(int key);
+	std::string get_string(int key) const;
 	void calculate_memory_slots();
 	void set_memory_slots(int memory_slots);
 	int get_memory_slots() const;
@@ -48,7 +48,7 @@ private:
 	}
 };
 
-inline Block* Program::get_block_ptr(int key)
+inline Block* Program::get_block_ptr(int key) const
 {
     return blocks[key];
 }

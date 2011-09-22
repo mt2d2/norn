@@ -18,9 +18,9 @@ public:
 	Block(const std::string& name);
 	~Block();
 	std::string get_name() const;
-	Instruction* get_instruction(int index);
-	std::vector<Instruction>& get_instructions();
-	int get_size();
+	const Instruction* get_instruction(int index) const;
+	const std::vector<Instruction>& get_instructions() const;
+	int get_size() const;
 	void add_instruction(const Instruction& instr);
 	void calculate_memory_slots();
 	void set_memory_slots(int memory_slots);
@@ -28,7 +28,7 @@ public:
 	{
 		return this->memory_slots;
 	}
-	bool get_needs_jit();
+	bool get_needs_jit() const;
 	void set_needs_jit(bool needs_jit);
 
 	// TODO, rename, repairs
@@ -72,7 +72,7 @@ private:
 	}
 };
 
-inline Instruction* Block::get_instruction(int index)
+inline const Instruction* Block::get_instruction(int index) const
 {
     return &this->instructions[index];
 }

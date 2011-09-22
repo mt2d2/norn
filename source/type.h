@@ -30,10 +30,10 @@ public:
 	// complex constructor
 	Type(const std::string& name, int size, std::vector<Type> members) : name(name), size(size), primative(COMPLEX), members(members) { }
 
-	const std::string& get_name() { return name; }
-	int get_size() { return size; }
-	bool is_primative() { return (primative != COMPLEX); }
-	Primative get_primative() { return primative; }
+	const std::string& get_name() const { return name; }
+	int get_size() const { return size; }
+	bool is_primative() const { return (primative != COMPLEX); }
+	Primative get_primative() const { return primative; }
 	bool operator==(const Type& other) const { return (this->name == other.name); }
 	bool operator!=(const Type& other) const { return !(this->name == other.name); }
 	
@@ -49,8 +49,8 @@ class TypeFactory
 public:
 	TypeFactory();
 	void install(const Type& new_type);
-	const Type& get(Primative key);
-	const Type& get(const std::string& key);
+	const Type& get(Primative key) const;
+	const Type& get(const std::string& key) const;
 
 private:
 	std::vector<Type> types;

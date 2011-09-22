@@ -56,9 +56,9 @@ void Block::jit(std::vector<Block*>& blocks)
 		std::map<int, Label>::iterator label_position = label_positions.find(instr_count);
 		if (label_position != label_positions.end())
 			c.bind(label_position->second);
-
+		
 		++instr_count;
-
+		
 		switch (instr->op)
 		{
 			case LIT_INT:

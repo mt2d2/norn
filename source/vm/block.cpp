@@ -23,12 +23,12 @@ std::string Block::get_name() const
     return this->name;
 }
 
-std::vector<Instruction>& Block::get_instructions()
+const std::vector<Instruction>& Block::get_instructions() const
 {
 	return this->instructions;
 }
 
-int Block::get_size()
+int Block::get_size() const
 {
 	return this->instructions.size();
 }
@@ -87,7 +87,7 @@ void Block::set_memory_slots(int memory_slots)
 	this->memory_slots = memory_slots;
 }
 
-bool Block::get_needs_jit()
+bool Block::get_needs_jit() const
 {
 	return this->needs_jit;
 }
