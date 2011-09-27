@@ -27,7 +27,7 @@ enum Token
 	tok_eof = -358,
 
 	// commands
-	tok_def, tok_end,
+	tok_def, tok_end, tok_struct,
 
 	// primary
 	tok_identifier, tok_type, tok_number, tok_char, tok_string, tok_bool,

@@ -52,6 +52,8 @@ void VariableExprAST::emit_bytecode(BuildContext& out)
 				break;
 			case ARY:
 			case CHAR_ARY:
+			case INT_ARY:
+			case FLOAT_ARY:
 				opcode = LOAD_ARY;
 				break;
 			case VOID:
@@ -120,7 +122,7 @@ void VariableAssignExprAST::emit_bytecode(BuildContext& out)
 
 void emit_cast(BuildContext& out, ExprAST* left, ExprAST* right)
 {
-	if (left->type == type_factory.get(VOID))
+	if (left->type == TypeFactory::get_instance().get(VOID))
 	{
 		if (VariableExprAST* var = dynamic_cast<VariableExprAST*>(left))
 			left->type = out.get_variable_type(var->name);
@@ -130,7 +132,7 @@ void emit_cast(BuildContext& out, ExprAST* left, ExprAST* right)
 			raise_error("unknown cast on left");
 	}
 
-	if (right->type == type_factory.get(VOID))
+	if (right->type == TypeFactory::get_instance().get(VOID))
 	{
 		if (VariableExprAST* var = dynamic_cast<VariableExprAST*>(right))
 			right->type = out.get_variable_type(var->name);
@@ -141,11 +143,11 @@ void emit_cast(BuildContext& out, ExprAST* left, ExprAST* right)
     }
 
 	right->emit_bytecode(out);
-	if (right->type == type_factory.get(INT) && left->type == type_factory.get(FLOAT))
+	if (right->type == TypeFactory::get_instance().get(INT) && left->type == TypeFactory::get_instance().get(FLOAT))
 		out.get_block()->add_instruction(Instruction(I2F));
 	
 	left->emit_bytecode(out);
-	if (left->type == type_factory.get(INT) && right->type == type_factory.get(FLOAT))
+	if (left->type == TypeFactory::get_instance().get(INT) && right->type == TypeFactory::get_instance().get(FLOAT))
 		out.get_block()->add_instruction(Instruction(I2F));
 }
 
@@ -153,8 +155,8 @@ void BinaryExprAST::emit_bytecode(BuildContext& out)
 {
     emit_cast(out, left, right);
 
-	if (right->type == type_factory.get(FLOAT) || left->type == type_factory.get(FLOAT))
-		this->type = type_factory.get(FLOAT);
+	if (right->type == TypeFactory::get_instance().get(FLOAT) || left->type == TypeFactory::get_instance().get(FLOAT))
+		this->type = TypeFactory::get_instance().get(FLOAT);
 
 	switch (type.get_primative())
 	{
@@ -199,6 +201,12 @@ void BinaryExprAST::emit_bytecode(BuildContext& out)
 					break;
 				case 'g':
 					out.get_block()->add_instruction(Instruction(GEQ_INT));
+					break;
+				case 'a':
+					out.get_block()->add_instruction(Instruction(LOGICAL_AND));
+					break;
+				case 'o':
+					out.get_block()->add_instruction(Instruction(LOGICAL_OR));
 					break;
     		}
     		break;
@@ -300,6 +308,8 @@ void PrototypeAST::emit_bytecode(BuildContext& out)
 					break;
 				case ARY:
 				case CHAR_ARY:
+				case INT_ARY:
+				case FLOAT_ARY:
 					opcode = STORE_ARY;
 					break;
 				case VOID:
@@ -420,6 +430,19 @@ void ArrayIndexAssignExprAST::emit_bytecode(BuildContext& out)
 {
 	value->emit_bytecode(out);
 
+	if (value->type == TypeFactory::get_instance().get(VOID))
+	{
+		Type var_type = out.get_variable_type(this->name);
+		if (var_type == TypeFactory::get_instance().get("CharAry"))
+			var_type = TypeFactory::get_instance().get("Char");
+		else if (var_type == TypeFactory::get_instance().get("IntAry"))
+			var_type = TypeFactory::get_instance().get("Int");	
+		else if (var_type == TypeFactory::get_instance().get("FloatAry"))
+			var_type = TypeFactory::get_instance().get("Float");	
+
+		value->type = var_type;
+	}
+
 	if (value->type.is_primative())
 	{
 		Opcode opcode;
@@ -437,6 +460,8 @@ void ArrayIndexAssignExprAST::emit_bytecode(BuildContext& out)
 				break;
 			case ARY:
 			case CHAR_ARY:
+			case INT_ARY:
+			case FLOAT_ARY:
 				raise_error("array access for 'Ary' unimplemented");
 				break;
 			case VOID:
@@ -457,6 +482,12 @@ void ArrayIndexAssignExprAST::emit_bytecode(BuildContext& out)
 void ArrayIndexAccessExprAST::emit_bytecode(BuildContext& out)
 {
 	Type var_type = out.get_variable_type(this->name);
+	if (var_type == TypeFactory::get_instance().get("CharAry"))
+		var_type = TypeFactory::get_instance().get("Char");
+	else if (var_type == TypeFactory::get_instance().get("IntAry"))
+		var_type = TypeFactory::get_instance().get("Int");	
+	else if (var_type == TypeFactory::get_instance().get("FloatAry"))
+		var_type = TypeFactory::get_instance().get("Float");	
 
 	if (var_type.is_primative())
 	{

@@ -293,6 +293,13 @@ void Machine::execute()
 		OP(LBL)
 			raise_error("fatal label encounter in virtual machine");
 			NEXT
+
+		OP(LOGICAL_AND)
+			push<bool>(pop<bool>() && pop<bool>());
+			NEXT
+		OP(LOGICAL_OR)
+			push<bool>(pop<bool>() || pop<bool>());
+			NEXT
 	END_DISPATCH
 	
 	cleanup:

@@ -22,15 +22,15 @@ private:
 	ExprAST* ParseVMBuiltinExpr();
 	ExprAST* ParseBinOpRHS(int ExprPrec, ExprAST* LHS);
 	ExprAST* ParseExpression();
-	PrototypeAST* ParsePrototype();
-	FunctionAST* ParseDefinition();
 	ExprAST* ParseIfExpr();
 	ExprAST* ParseForExpr();
 	ExprAST* ParseWhileExpr();
 	ExprAST* ParseReturnExpr();
 	ExprAST* ParseBoolExpr();
-	void HandleExtern();
-	void HandleTopLevelExpression(ProgramAST& out);
+	PrototypeAST* ParsePrototype();
+	FunctionAST* ParseDefinition();
+	StructAST* ParseStruct();
+	void HandleStruct(ProgramAST& out);
 	void HandleDefinition(ProgramAST& out);
 
 	/// Error* - These are little helper functions for error handling.
@@ -38,6 +38,12 @@ private:
 	{
 		std::cerr << "Syntax error: " << str << " at line " << lex.get_line() << std::endl;
 	    return (ExprAST*)NULL;
+	}
+
+	StructAST* ErrorS(const char* str) 
+	{ 
+	    Error(str);
+	    return (StructAST*)NULL;
 	}
 
 	PrototypeAST* ErrorP(const char* str) 

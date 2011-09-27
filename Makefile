@@ -16,7 +16,7 @@ INC=
 # PGO: use -fprofile-generate, run then -fprofile-use; in both
 # Other: -fomit-frame-pointer -pipe -march=core2 -g -fast -stdlib=libc++
 CFLAGS=-Wall -pipe -g -O3
-LDFLAGS=
+LDFLAGS=-rdynamic
 
 all: ${SRC} ${EXE}
 

@@ -1,4 +1,5 @@
 #include "block.h"
+#include "common.h"
 
 #include <algorithm>
 

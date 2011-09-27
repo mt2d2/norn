@@ -3,7 +3,6 @@
 
 #include "instruction.h"
 #include "variant.h"
-#include "../type.h"
 
 #include <iostream>
 #include <string>

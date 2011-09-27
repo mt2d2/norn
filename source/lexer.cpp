@@ -48,6 +48,20 @@ int Lexer::get_token()
 		return tok_vm_builtin;
 	}
 
+	if (current == '&' && source[pos+1] == '&')
+	{
+		pos += 2;
+		current = source[pos];
+		return 'a';
+	}
+
+	if (current == '|' && source[pos+1] == '|')
+	{
+		pos += 2;
+		current = source[pos];
+		return 'o';
+	}
+
 	if (current == '<' && source[pos+1] == '=')
 	{
 		pos += 2;
@@ -120,6 +134,8 @@ int Lexer::get_token()
             return tok_def;
 		else if (this->identifier == "end")
 			return tok_end;
+		else if (this->identifier == "struct")
+			return tok_struct;
 		else if (this->identifier == "if")
 			return tok_if;
 		else if (this->identifier == "then")

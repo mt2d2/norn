@@ -4,6 +4,8 @@ Parser::Parser(std::istream& stream) : stream(stream), lex(Lexer(stream)), CurTo
 {
 	// Install standard binary operators.
 	// 1 is lowest precedence.
+	BinopPrecedence['o'] = 5;
+	BinopPrecedence['a'] = 5; 
 	BinopPrecedence['<'] = 10;
 	BinopPrecedence['l'] = 10;
 	BinopPrecedence['>'] = 10;
@@ -15,7 +17,7 @@ Parser::Parser(std::istream& stream) : stream(stream), lex(Lexer(stream)), CurTo
 	BinopPrecedence['%'] = 40;
 	BinopPrecedence['*'] = 40;
 	BinopPrecedence['&'] = 40;
-	BinopPrecedence['|'] = 40;  // highest.
+	BinopPrecedence['|'] = 40; // highest.
 }
 
 int Parser::getNextToken()
@@ -96,7 +98,7 @@ ExprAST* Parser::ParseIdentifierExpr()
 	if (CurToken == '[')
 	{
 		getNextToken(); // eat [
-		ExprAST* index = ParsePrimary();
+		ExprAST* index = ParseExpression();
 		if (!index)
 			return Error("expecting primary for index  after array access\n");
 
@@ -119,7 +121,7 @@ ExprAST* Parser::ParseIdentifierExpr()
 	}
 
     if (CurToken != '(') // Simple variable ref.
-        return new VariableExprAST(IdName);
+	    return new VariableExprAST(IdName);
 
     // Call.
     getNextToken();  // eat (
@@ -515,6 +517,57 @@ ExprAST* Parser::ParseBoolExpr()
 	return ret;
 }
 
+StructAST* Parser::ParseStruct()
+{
+	getNextToken(); // eat struct
+
+	if (CurToken != tok_identifier)
+		return ErrorS("expected identifer after 'struct'");
+	
+	std::string identifier = lex.get_identifier();
+	getNextToken(); // eat identifer
+	
+
+	std::map<std::string, std::string> members;
+	while (CurToken != tok_end)
+	{
+		if (CurToken != tok_identifier)
+			return ErrorS("expected identifer before type information");
+		std::string identifier = lex.get_identifier();
+		getNextToken(); // eat identifier
+
+		if (CurToken != ':')
+			return ErrorS("expected identifer before type information");
+		getNextToken(); // eat :
+
+		if (CurToken != tok_identifier)
+			return ErrorS("expected identifer before type information");
+		std::string type = lex.get_identifier();
+		getNextToken(); // eat identifier
+
+		members[identifier] = type;
+	}	
+
+	if (CurToken != tok_end)
+		return ErrorS("expected 'end' at end of struct block");
+	getNextToken(); // eat end
+
+	return new StructAST(identifier, members);
+}
+
+void Parser::HandleStruct(ProgramAST& out)
+{
+	if (StructAST* s = ParseStruct())
+	{
+		out.add_struct(s);
+	} 
+	else 
+	{
+		// Skip token for error recovery
+		getNextToken();
+	}
+}
+
 void Parser::HandleDefinition(ProgramAST& out) 
 {
     if (FunctionAST* func = ParseDefinition()) 
@@ -532,14 +585,22 @@ BuildContext Parser::parse(BuildContext& build, int optimize)
 {
 	ProgramAST ast;
 	getNextToken();
-	while (CurToken == tok_def)
-		HandleDefinition(ast);
+	while (CurToken == tok_struct || CurToken == tok_def)
+	{
+		if (CurToken == tok_struct)
+		{
+			HandleStruct(ast);
+			ast.install_types(build);
+		}
+		else
+		{
+			HandleDefinition(ast);
+			ast.register_functions(build);
+		}
+	}
 
-	// process AST and output first draft
-	ast.register_functions(build);
 	ast.emit_bytecode(build);
 
-	// optimizations
 	if (optimize >= 1)
 	{
 		build.get_program().store_load_elimination();

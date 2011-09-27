@@ -27,5 +27,4 @@ def main(): Void
 	end
 
 	print('\n')
-
 end

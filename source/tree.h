@@ -8,9 +8,6 @@
 #include "vm/opcode.h"
 #include "type.h"
 
-// TypeFactor
-static TypeFactory type_factory;
-
 // BuildContext
 class BuildContext
 {
@@ -42,7 +39,7 @@ private:
 class ExprAST
 {
 public:
-	ExprAST() : type(type_factory.get(VOID)) { }
+	ExprAST() : type(TypeFactory::get_instance().get(VOID)) { }
 	virtual ~ExprAST() {}
 	virtual void emit_bytecode(BuildContext& out) = 0;
 	Type type;
@@ -54,7 +51,7 @@ class NumberExprAST : public ExprAST
 public:
 	NumberExprAST(double v, bool is_float) : val(v)
 	{
-		type = is_float ? type_factory.get(FLOAT) : type_factory.get(INT);
+		type = is_float ? TypeFactory::get_instance().get(FLOAT) : TypeFactory::get_instance().get(INT);
 	}
 
 	virtual void emit_bytecode(BuildContext& out);
@@ -69,7 +66,7 @@ private:
 class CharExprAST : public ExprAST
 {
 public:
-	CharExprAST(char c) : val(c) { type = type_factory.get(CHAR); }
+	CharExprAST(char c) : val(c) { type = TypeFactory::get_instance().get(CHAR); }
 	virtual void emit_bytecode(BuildContext& out);
 	virtual ~CharExprAST()
 	{
@@ -82,7 +79,7 @@ private:
 class StringExprAST : public ExprAST
 {
 public:
-	StringExprAST(std::string s) : val(s) { type = type_factory.get(CHAR_ARY); }
+	StringExprAST(std::string s) : val(s) { type = TypeFactory::get_instance().get(CHAR_ARY); }
 	virtual void emit_bytecode(BuildContext& out);
 	virtual ~StringExprAST()
 	{
@@ -95,7 +92,7 @@ private:
 class VMBuiltinExprAST : public ExprAST
 {
 public:
-	VMBuiltinExprAST(Opcode op) : op(op) { type = type_factory.get(VOID); }
+	VMBuiltinExprAST(Opcode op) : op(op) { type = TypeFactory::get_instance().get(VOID); }
 	virtual void emit_bytecode(BuildContext& out);
   	virtual ~VMBuiltinExprAST()
 	{
@@ -118,7 +115,7 @@ class VariableAssignExprAST : public ExprAST
 {
 public:
 	VariableAssignExprAST(const std::string& name, ExprAST* value) : name(name), value(value) { }
-	VariableAssignExprAST(const std::string& name, ExprAST* value, std::string type) : name(name), value(value) { this->type = type_factory.get(type); }
+	VariableAssignExprAST(const std::string& name, ExprAST* value, std::string type) : name(name), value(value) { this->type = TypeFactory::get_instance().get(type); }
 	virtual void emit_bytecode(BuildContext& out);
 	virtual ~VariableAssignExprAST() { }
 	std::string name;
@@ -136,7 +133,15 @@ public:
 class ArrayDeclarationExprAST : public ExprAST
 {
 public:
-	ArrayDeclarationExprAST(std::string id, std::string type, int size) : name(id), size(size) { this->type = type_factory.get(type); }
+	ArrayDeclarationExprAST(std::string id, std::string type, int size) : name(id), size(size) 
+	{ 
+		if (type == "Int")
+			this->type = TypeFactory::get_instance().get(INT_ARY);
+		else if (type == "Char")
+			this->type = TypeFactory::get_instance().get(CHAR_ARY);
+		else if (type == "Float")
+			this->type = TypeFactory::get_instance().get(FLOAT_ARY);
+	}
 
 	virtual void emit_bytecode(BuildContext& out);
 	virtual ~ArrayDeclarationExprAST()
@@ -169,7 +174,9 @@ private:
 class ArrayIndexAccessExprAST : public VariableExprAST
 {
 public:
-	ArrayIndexAccessExprAST(const std::string& id, ExprAST* index) :  VariableExprAST(id), index(index) { }
+	ArrayIndexAccessExprAST(const std::string& id, ExprAST* index) :  VariableExprAST(id), index(index) 
+	{ 
+	}
 	virtual void emit_bytecode(BuildContext& out);
 	virtual ~ArrayIndexAccessExprAST()
 	{
@@ -185,10 +192,10 @@ class BinaryExprAST : public ExprAST
 public:
 	BinaryExprAST(char o, ExprAST* lhs, ExprAST *rhs) : op(o), left(lhs), right(rhs)
 	{
-		if (left->type == type_factory.get(FLOAT) || right->type == type_factory.get(FLOAT))
-			this->type = type_factory.get(FLOAT);
+		if (left->type == TypeFactory::get_instance().get(FLOAT) || right->type == TypeFactory::get_instance().get(FLOAT))
+			this->type = TypeFactory::get_instance().get(FLOAT);
 		else
-			this->type = type_factory.get(INT);
+			this->type = TypeFactory::get_instance().get(INT);
 	}
 	virtual void emit_bytecode(BuildContext& out);
 	virtual ~BinaryExprAST()
@@ -207,7 +214,7 @@ private:
 class CallExprAST : public ExprAST
 {
 public:
-	CallExprAST(const std::string &c, std::vector<ExprAST*>& args) : Args(args), callee(c) { type = type_factory.get(VOID); }
+	CallExprAST(const std::string &c, std::vector<ExprAST*>& args) : Args(args), callee(c) { type = TypeFactory::get_instance().get(VOID); }
 	virtual void emit_bytecode(BuildContext& out);
 	int get_block_id(BuildContext& out, Block* block);
 	std::string callee_signature(BuildContext& out);
@@ -227,7 +234,7 @@ private:
 class IfExprAST : public ExprAST
 {
 public:
-	IfExprAST(ExprAST* c) : cond(c), then(std::vector<ExprAST*>()), otherwise(std::vector<ExprAST*>()) { type = type_factory.get(VOID); }
+	IfExprAST(ExprAST* c) : cond(c), then(std::vector<ExprAST*>()), otherwise(std::vector<ExprAST*>()) { type = TypeFactory::get_instance().get(VOID); }
 	void add_then_expression(ExprAST* e) { then.push_back(e); }
 	void add_otherwise_expression(ExprAST* e) { otherwise.push_back(e); }
 	virtual void emit_bytecode(BuildContext& out);
@@ -250,7 +257,7 @@ private:
 class ForExprAST : public ExprAST
 {
 public:
-	ForExprAST(const std::string &varname, ExprAST *start, ExprAST *end, ExprAST *step) : VarName(varname), Start(start), End(end), Step(step), body(std::vector<ExprAST*>()) { type = type_factory.get(VOID); }
+	ForExprAST(const std::string &varname, ExprAST *start, ExprAST *end, ExprAST *step) : VarName(varname), Start(start), End(end), Step(step), body(std::vector<ExprAST*>()) { type = TypeFactory::get_instance().get(VOID); }
 	void add_expression(ExprAST* e) { body.push_back(e); }
 	virtual void emit_bytecode(BuildContext& out);
 	virtual ~ForExprAST()
@@ -305,10 +312,10 @@ private:
 class PrototypeAST
 {
 public:
-	PrototypeAST(const std::string &n, const std::map<std::string, std::string> &a, const std::string& ftype, bool needs_jit) : args(std::map<std::string, Type>()), name(n), type(type_factory.get(ftype)), needs_jit(needs_jit)
+	PrototypeAST(const std::string &n, const std::map<std::string, std::string> &a, const std::string& ftype, bool needs_jit) : args(std::map<std::string, Type>()), name(n), type(TypeFactory::get_instance().get(ftype)), needs_jit(needs_jit)
 	{
 		for (std::map<std::string, std::string>::const_iterator i = a.begin(); i != a.end(); ++i)
-			args[i->first] = type_factory.get(i->second);
+			args[i->first] = TypeFactory::get_instance().get(i->second);
 
 		name = n;
 		for (std::map<std::string, Type>::iterator i = args.begin(); i != args.end(); ++i)
@@ -323,6 +330,15 @@ public:
 	std::string name;
 	Type type;
 	bool needs_jit;
+};
+
+class StructAST
+{
+public:
+	StructAST(const std::string& name, std::map<std::string, std::string> members) : name(name), members(members) { }
+
+	std::string name;
+	std::map<std::string, std::string> members;
 };
 
 /// FunctionAST - This class represents a function definition itself.
@@ -346,13 +362,16 @@ public:
 class ProgramAST
 {
 public:
-	ProgramAST() : functions(std::vector<FunctionAST*>()) { };
+	ProgramAST() : functions(std::vector<FunctionAST*>()), structs(std::vector<StructAST*>()) { };
 	virtual ~ProgramAST();
+	void add_struct(StructAST* s) { structs.push_back(s); }
 	void add_function(FunctionAST* f) { functions.push_back(f); }
+	void install_types(BuildContext& out);
 	void register_functions(BuildContext& out);
 	void emit_bytecode(BuildContext& out);
 
 private:
+	std::vector<StructAST*> structs;
 	std::vector<FunctionAST*> functions;
 };
 

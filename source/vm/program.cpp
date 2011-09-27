@@ -1,6 +1,8 @@
 #include "program.h"
 
 #include "block.h"
+#include "common.h"
+
 
 #include <cmath> // sqrt
 #include <cstring> // memcpy

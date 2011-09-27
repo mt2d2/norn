@@ -68,3 +68,6 @@ op(I2F)
 op(F2I)
 
 op(LBL)
+
+op(LOGICAL_AND)
+op(LOGICAL_OR)
