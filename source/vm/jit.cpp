@@ -2,6 +2,7 @@
 #include "common.h"
 
 #include <algorithm>
+#include <stack>
 
 #include "AsmJit/AsmJit.h"
 using namespace AsmJit;
@@ -23,7 +24,7 @@ void Block::jit(std::vector<Block*>& blocks)
 #ifndef ASMJIT_X64
 	#warning JIT is only supported for x86_64
 	return;
-#endif
+#else
 
 	Compiler c;
 	FileLogger logger(stderr);
@@ -359,7 +360,7 @@ void Block::jit(std::vector<Block*>& blocks)
 					if (callee == blocks.end())
 						raise_error("couldn't identify block for jit native call");
 
-					if (!(*callee)->get_needs_jit())
+					if ((*callee)->get_jit_type() != BASIC)
 						raise_error("all referenced functions must be jittabled");
 
 					if (!(*callee)->native && *callee != this)
@@ -377,11 +378,22 @@ void Block::jit(std::vector<Block*>& blocks)
 					else
 						ctx = c.call(imm((sysint_t)(void*)(*callee)->native));
 
-					ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<Void, long*, long*>());
+					GPVar ret(c.newGP());
+
+					ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<int64_t, long*, long*>());
 					ctx->setArgument(0, stack);
 					ctx->setArgument(1, memory);
+					ctx->setReturn(ret);
 
 					c.mov(stackTop, qword_ptr(stack));
+
+					if ((*callee)->get_jit_type() == OPTIMIZING)
+					{
+						c.add(stackTop, 8);
+						c.mov(qword_ptr(stackTop), ret);
+						c.unuse(ret);
+					}
+
 					if (this->get_memory_slots() > 0)
 						c.sub(qword_ptr(memory), 8 * this->get_memory_slots());
 				}
@@ -508,4 +520,258 @@ void Block::jit(std::vector<Block*>& blocks)
 	this->native = function_cast<native_ptr>(c.make());
 	if (!this->native)
 		raise_error("unable to create jit'd block");
+#endif // ASMJIT_X64
+}
+
+void Block::optimizing_jit(std::vector<Block*>& blocks)
+{
+#ifndef ASMJIT_X64
+	#warning JIT is only supported for x86_64
+	return;
+#else
+
+	Compiler c;
+	FileLogger logger(stderr);
+	c.setLogger(&logger);
+
+	// Tell compiler the function prototype we want. It allocates variables representing
+	// function arguments that can be accessed through Compiler or Function instance.
+	EFunction* func = c.newFunction(CALL_CONV_DEFAULT, FunctionBuilder2<int64_t, long*, long*>());
+	c.getFunction()->setHint(FUNCTION_HINT_NAKED, true);
+	c.comment(std::string("optimized jit function '" + this->get_name() + "'").c_str());
+
+	std::map<int, Label> label_positions;
+	for (std::vector<Instruction>::iterator instr = instructions.begin(); instr != instructions.end(); ++instr)
+		if (instr->op == TJMP || instr->op == FJMP || instr->op == UJMP)
+			label_positions[instr->arg.l] = c.newLabel();
+
+	std::stack<BaseVar> stack;
+	std::map<int, BaseVar> memory;
+
+	int instr_count = 0;
+	for (std::vector<Instruction>::iterator instr = instructions.begin(); instr != instructions.end(); ++instr)
+	{
+		std::map<int, Label>::iterator label_position = label_positions.find(instr_count);
+		if (label_position != label_positions.end())
+			c.bind(label_position->second);
+		
+		++instr_count;
+		
+		switch (instr->op)
+		{
+			case LIT_INT:
+				{
+					c.comment("LIT_INT");
+					GPVar tmp(c.newGP());
+					c.mov(tmp, instr->arg.l);
+
+					stack.push(tmp);
+				}
+				break;
+
+			case LOAD_INT:
+			case LOAD_CHAR:
+			case LOAD_FLOAT:
+				{
+				c.comment("LOAD_INT/CHAR/FLOAT");
+				stack.push(memory[instr->arg.l]);
+				}
+				break;
+
+			case STORE_INT:
+			case STORE_CHAR:
+			case STORE_FLOAT:
+				{
+				c.comment("STORE_INT/CHAR/FLOAT");
+				
+				GPVar tmp = static_cast<GPVar&>(stack.top()); stack.pop();
+
+				if (memory.find(instr->arg.l) != memory.end())
+					c.unuse(memory[instr->arg.l]);
+				
+				memory[instr->arg.l] = tmp;
+				}
+				break;
+
+			case LEQ_INT:
+			case LE_INT:
+			case GE_INT:
+			case GEQ_INT:
+			case EQ_INT:
+			case NEQ_INT:		
+				{
+					c.comment("CMP_INT");
+					GPVar tmp1 = static_cast<GPVar&>(stack.top()); stack.pop();
+					GPVar tmp2 = static_cast<GPVar&>(stack.top()); stack.pop();
+
+					// branch
+					Label L_LT = c.newLabel();
+				  	Label L_Exit = c.newLabel();
+
+					GPVar cond(c.newGP());
+					c.cmp(tmp2, tmp1);
+
+					switch (instr->op)
+					{
+						case LEQ_INT:
+							c.jle(L_LT);
+							break;
+						case LE_INT:
+							c.jl(L_LT);
+							break;
+						case GE_INT:
+							c.jg(L_LT);
+							break;
+						case GEQ_INT:
+							c.jge(L_LT);
+							break;
+						case EQ_INT:
+							c.je(L_LT);
+							break;
+						case NEQ_INT:
+							c.jne(L_LT);
+							break;
+					}
+
+					c.mov(cond, 0);
+					c.jmp(L_Exit);
+
+					c.bind(L_LT);
+					c.mov(cond, 1);
+					c.bind(L_Exit);
+
+					c.unuse(tmp1);
+					c.unuse(tmp2);
+
+					stack.push(cond);
+				}
+				break;
+
+			case TJMP:
+			case FJMP:
+				{
+				c.comment("FJMP/TJMP");
+				GPVar tmp = static_cast<GPVar&>(stack.top()); stack.pop();
+
+				switch (instr->op)
+				{
+					case TJMP:
+						c.cmp(tmp, 1);
+						break;
+					case FJMP:
+						c.cmp(tmp, 0);
+						break;
+				}
+
+				c.jz(label_positions[instr->arg.l]);
+				c.unuse(tmp);
+				}
+				break;
+
+			case ADD_INT:
+			case SUB_INT:
+			case MUL_INT:
+				{
+					c.comment("MATH_INT");
+					GPVar a = static_cast<GPVar&>(stack.top()); stack.pop();
+					GPVar b = static_cast<GPVar&>(stack.top()); stack.pop();
+
+					switch (instr->op) 
+					{
+						case ADD_INT:
+							c.add(a, b);
+							break;
+						case SUB_INT:
+							c.sub(a, b);
+							break;
+						case MUL_INT:
+							c.imul(a, b);
+							break;
+						default:
+							raise_error("failure");
+							break;
+					}
+
+					stack.push(a);
+					c.unuse(b);
+				}
+				break;
+
+			case UJMP:
+				c.comment("UJMP");
+				c.jmp(label_positions[instr->arg.l]);
+				break;
+
+			case CALL:
+				raise_error("'" + reinterpret_cast<Block*>(instr->arg.p)->get_name() + "' must be jit'able to be called from a jit'd function");
+				break;
+			case CALL_NATIVE:
+				{
+					std::vector<Block*>::iterator callee = std::find(blocks.begin(), blocks.end(), (Block*)instr->arg.p);
+					if (callee == blocks.end())
+						raise_error("couldn't identify block for jit native call");
+
+					if ((*callee)->get_jit_type() != OPTIMIZING)
+						raise_error("all referenced functions must be jittabled and optimizing");
+
+					if (!(*callee)->native && *callee != this)
+						(*callee)->jit(blocks);
+
+					c.comment(std::string("CALL_NATIVE '" + (*callee)->get_name() + "'").c_str());
+
+					GPVar s(c.argGP(0));
+					GPVar m(c.argGP(1));
+		
+					if (this->get_memory_slots() > 0)
+						c.add(qword_ptr(m), 8 * this->get_memory_slots());
+
+					ECall* ctx = NULL;
+					if (*callee == this)
+						ctx = c.call(func->getEntryLabel());
+					else
+						ctx = c.call(imm((sysint_t)(void*)(*callee)->native));
+
+					GPVar ret(c.newGP());
+
+					ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<int64_t, long*, long*>());
+					ctx->setArgument(0, s);
+					ctx->setArgument(1, m);
+					ctx->setReturn(ret);
+
+					if ((*callee)->get_jit_type() == OPTIMIZING)
+						stack.push(static_cast<BaseVar&>(ret));
+
+					if (this->get_memory_slots() > 0)
+						c.sub(qword_ptr(m), 8 * this->get_memory_slots());
+				}
+				break;
+
+
+			case RTRN:
+				// TODO fix floats
+				{
+					if (stack.size() >= 1)
+					{
+						BaseVar tmp = stack.top(); stack.pop();
+						c.ret(static_cast<GPVar&>(tmp));
+					}
+					else
+					{
+						c.ret();
+					}
+				}
+				break;
+
+			default:
+				raise_error("unimplemented opcode in optimizing jit");
+				break;
+		}
+	}
+
+	c.endFunction();
+
+	this->native = function_cast<native_ptr>(c.make());
+	if (!this->native)
+		raise_error("unable to create jit'd block");
+#endif // ASMJIT_X64
 }

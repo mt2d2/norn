@@ -250,22 +250,21 @@ void Block::fold_constants()
 
 void Block::inline_calls()
 {
-	int line_number = 0;
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
+	for (int i = 0; i < instructions.size(); i++)
 	{
-		++line_number;
-		if (i->op == CALL || i->op == CALL_NATIVE)
+		if (instructions[i].op == CALL || instructions[i].op == CALL_NATIVE)
 		{
-			Block* callee = reinterpret_cast<Block*>(i->arg.p);
+			Block* callee = reinterpret_cast<Block*>(instructions[i].arg.p);
 			
-			if (callee->get_size() <= 4)
+			if (callee->get_size() <= 3)
 			{
-				instructions.erase(i, i+1); // exclusive, i.e., upto				
-				instructions.insert(i, callee->get_instructions().begin(), callee->get_instructions().end()-1);		
+				//std::cout << "Inlining: " << callee->get_name() << std::endl;
+
+				instructions.erase(instructions.begin()+i, instructions.begin()+i+1);
+				instructions.insert(instructions.begin()+i, callee->get_instructions().begin(), callee->get_instructions().end()-1);		
 			}
 		}
 	}
-	
 }
 
 void Block::lit_load_add()

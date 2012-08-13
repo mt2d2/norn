@@ -304,14 +304,21 @@ PrototypeAST* Parser::ParsePrototype()
     std::string FnName = lex.get_identifier();
     getNextToken();
 
-	bool needs_jit = false;
+	JITType jit_type = NONE;
 	if (FnName == "jit")
 	{
-		needs_jit = true;
+		jit_type = BASIC;
 		
 		// now get the real identifier
 		FnName = lex.get_identifier();
 		getNextToken();	
+	} 
+	else if (FnName == "optjit")
+	{
+		jit_type = OPTIMIZING;
+
+		FnName = lex.get_identifier();
+		getNextToken();
 	}
   
     if (CurToken != '(')
@@ -359,7 +366,7 @@ PrototypeAST* Parser::ParsePrototype()
 		getNextToken();
 	}
 		
-    return new PrototypeAST(FnName, args, function_type, needs_jit);
+    return new PrototypeAST(FnName, args, function_type, jit_type);
 }
 
 FunctionAST* Parser::ParseDefinition()
@@ -605,7 +612,7 @@ BuildContext Parser::parse(BuildContext& build, int optimize)
 	{
 		build.get_program().store_load_elimination();
 		build.get_program().fold_constants();
-		//build.get_program().inline_calls();
+		// build.get_program().inline_calls();
 		build.get_program().lit_load_add();
 		build.get_program().lit_load_sub();
 		build.get_program().lit_load_le();

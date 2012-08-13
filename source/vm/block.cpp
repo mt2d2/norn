@@ -6,7 +6,7 @@ using namespace AsmJit;
 Block::Block(const std::string& name) :
 	native(NULL),
 	name(name),
-	needs_jit(false),
+	jit_type(NONE),
 	instructions(std::vector<Instruction>()),
 	memory_slots(0)
 {
@@ -14,8 +14,10 @@ Block::Block(const std::string& name) :
 
 Block::~Block()
 {
-	if (this->native && this->get_needs_jit())
+#ifdef ASMJIT_X64
+	if (this->native && (this->get_jit_type() == BASIC || this->get_jit_type() == OPTIMIZING))
 		MemoryManager::getGlobal()->free((void*)this->native);
+#endif
 }
 
 std::string Block::get_name() const
@@ -87,12 +89,12 @@ void Block::set_memory_slots(int memory_slots)
 	this->memory_slots = memory_slots;
 }
 
-bool Block::get_needs_jit() const
+JITType Block::get_jit_type() const
 {
-	return this->needs_jit;
+	return this->jit_type;
 }
 
-void Block::set_needs_jit(bool needs_jit)
+void Block::set_jit_type(JITType jit_type)
 {
-	this->needs_jit = needs_jit;
+	this->jit_type = jit_type;
 }

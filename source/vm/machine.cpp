@@ -71,7 +71,7 @@ void Machine::execute()
 			push<char>(instr->arg.c);
 			NEXT
 		OP(LOAD_INT)
-			push<long>(get_memory<int>(instr->arg.l));
+			push<long>(get_memory<long>(instr->arg.l));
 			NEXT
 		OP(LOAD_FLOAT)
 			push<double>(get_memory<double>(instr->arg.l));
@@ -89,73 +89,73 @@ void Machine::execute()
 			store_memory(instr->arg.c, pop<char>());
 			NEXT
 		OP(ADD_INT)
-			push<long>(pop<int>() + pop<int>());
+			push<long>(pop<long>() + pop<long>());
 			NEXT
 		OP(ADD_FLOAT)
 			push<double>(pop<double>() + pop<double>());
 			NEXT
 		OP(SUB_INT)
-			push<long>(pop<int>() - pop<int>());
+			push<long>(pop<long>() - pop<long>());
 			NEXT
 		OP(SUB_FLOAT)
 			push<double>(pop<double>() - pop<double>());
 			NEXT
 		OP(MUL_INT)
-			push<long>(pop<int>() * pop<int>());
+			push<long>(pop<long>() * pop<long>());
 			NEXT
 		OP(MUL_FLOAT)
 			push<double>(pop<double>() * pop<double>());
 			NEXT
 		OP(DIV_INT)
-			push<long>(pop<int>() / pop<int>());
+			push<long>(pop<long>() / pop<long>());
 			NEXT
 		OP(DIV_FLOAT)
 			push<double>(pop<double>() / pop<double>());
 			NEXT
 		OP(MOD_INT)
-			push<long>(pop<int>() % pop<int>());
+			push<long>(pop<long>() % pop<long>());
 			NEXT
 		OP(MOD_FLOAT)
 			push<double>(fmod(pop<double>(), pop<double>()));
 			NEXT
 		OP(AND_INT)
-			push<long>(pop<int>() & pop<int>());
+			push<long>(pop<long>() & pop<long>());
 			NEXT
 		OP(OR_INT)
-			push<long>(pop<int>() | pop<int>());
+			push<long>(pop<long>() | pop<long>());
 			NEXT
 		OP(LE_INT)
-			push<bool>(pop<int>() < pop<int>());
+			push<bool>(pop<long>() < pop<long>());
 			NEXT
 		OP(LE_FLOAT)
 			push<bool>(pop<double>() < pop<double>());
 			NEXT
 		OP(LEQ_INT)
-			push<bool>(pop<int>() <= pop<int>());
+			push<bool>(pop<long>() <= pop<long>());
 			NEXT
 		OP(LEQ_FLOAT)
 			push<bool>(pop<double>() <= pop<double>());
 			NEXT
 		OP(GE_INT)
-			push<bool>(pop<int>() > pop<int>());
+			push<bool>(pop<long>() > pop<long>());
 			NEXT
 		OP(GE_FLOAT)
 			push<bool>(pop<double>() > pop<double>());
 			NEXT
 		OP(GEQ_INT)
-			push<bool>(pop<int>() >= pop<int>());
+			push<bool>(pop<long>() >= pop<long>());
 			NEXT
 		OP(GEQ_FLOAT)
 			push<bool>(pop<double>() >= pop<double>());
 			NEXT
 		OP(EQ_INT)
-			push<bool>(pop<int>() == pop<int>());
+			push<bool>(pop<long>() == pop<long>());
 			NEXT
 		OP(EQ_FLOAT)
 			push<bool>(pop<double>() == pop<double>());
 			NEXT
 		OP(NEQ_INT)
-			push<bool>(pop<int>() != pop<int>());
+			push<bool>(pop<long>() != pop<long>());
 			NEXT
 		OP(NEQ_FLOAT)
 			push<bool>(pop<double>() != pop<double>());
@@ -217,7 +217,11 @@ void Machine::execute()
 			{
 			Block* callee = reinterpret_cast<Block*>(instr->arg.p);
 			memory += block->get_memory_slots();
-			callee->native(&stack, &memory);
+			long ret = callee->native(&stack, &memory);
+
+			if (callee->get_jit_type() == OPTIMIZING)
+				push<long>(ret);
+
 			memory -= block->get_memory_slots();
 			}				
 			NEXT

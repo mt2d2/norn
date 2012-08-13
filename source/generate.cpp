@@ -276,7 +276,7 @@ void CallExprAST::emit_bytecode(BuildContext& out)
 		(*i)->emit_bytecode(out);
 
 	Block* callee = out.get_program().get_block_ptr(block_id);
-	if (!out.get_nojit() && (callee->native || callee->get_needs_jit()))
+	if (!out.get_nojit() && (callee->native || callee->get_jit_type() == BASIC || callee->get_jit_type() == OPTIMIZING))
 		out.get_block()->add_instruction(Instruction(CALL_NATIVE, reinterpret_cast<Variant*>(callee)));
 	else
 		out.get_block()->add_instruction(Instruction(CALL, reinterpret_cast<Variant*>(callee)));
@@ -285,7 +285,7 @@ void CallExprAST::emit_bytecode(BuildContext& out)
 void PrototypeAST::emit_bytecode(BuildContext& out)
 {
 	out.set_block(out.get_program().get_block_ptr(out.get_program().get_block_id(name)));
-	out.get_block()->set_needs_jit(this->needs_jit);
+	out.get_block()->set_jit_type(this->jit_type);
 
 	// handle args
 	typedef std::map<std::string, Type> arg_type_t;
@@ -335,7 +335,9 @@ void FunctionAST::emit_bytecode(BuildContext& out)
 	for (std::vector<ExprAST*>::iterator i = body.begin(); i != body.end(); ++i)
 		(*i)->emit_bytecode(out);
 
-	out.get_block()->add_instruction(Instruction(RTRN));
+	
+	if (out.get_block()->get_instruction(out.get_block()->get_size()-1)->op != RTRN)
+		out.get_block()->add_instruction(Instruction(RTRN));
 }
 
 void IfExprAST::emit_bytecode(BuildContext& out)

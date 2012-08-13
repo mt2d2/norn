@@ -3,7 +3,6 @@
 #include "block.h"
 #include "common.h"
 
-
 #include <cmath> // sqrt
 #include <cstring> // memcpy
 
@@ -90,7 +89,6 @@ void Program::absolute_jumps()
 		(*b)->absolute_jumps();
 }
 
-
 void Program::store_load_elimination()
 {
 	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
@@ -130,6 +128,14 @@ void Program::lit_load_le()
 void Program::jit()
 {
 	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
-		if (!(*b)->native && (*b)->get_needs_jit())
-			(*b)->jit(this->blocks);
+	{
+		if (!(*b)->native) 
+		{
+			if ((*b)->get_jit_type() == BASIC)
+				(*b)->jit(this->blocks);
+			else if ((*b)->get_jit_type() == OPTIMIZING)
+				(*b)->optimizing_jit(this->blocks);
+
+		}
+	}
 }

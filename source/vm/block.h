@@ -9,7 +9,14 @@
 #include <vector>
 #include <list>
 
-typedef void(*native_ptr)(long**, long**);
+enum JITType
+{
+	NONE,
+	BASIC,
+	OPTIMIZING
+};
+
+typedef long(*native_ptr)(long**, long**);
 
 class Block
 {
@@ -27,8 +34,8 @@ public:
 	{
 		return this->memory_slots;
 	}
-	bool get_needs_jit() const;
-	void set_needs_jit(bool needs_jit);
+	JITType get_jit_type() const;
+	void set_jit_type(JITType needs_jit);
 
 	// TODO, rename, repairs
 	void repair_disp_table(void** disp_table);
@@ -46,6 +53,7 @@ public:
 	
 	// jit
 	void jit(std::vector<Block*>& blocks);
+	void optimizing_jit(std::vector<Block*>& blocks);
 
 	native_ptr native;
 
@@ -56,13 +64,14 @@ private:
 	void fold_floats();
 	
 	std::string name;
-	bool needs_jit;
+	JITType jit_type;
 	std::vector<Instruction> instructions;
 	int memory_slots;
 
 	friend std::ostream& operator<<(std::ostream& os, Block& b)
 	{
 		os << "Name: " << b.name << "; Memory Slots: " << b.get_memory_slots() << std::endl;
+		os << b.name << std::endl;
 
 		for (std::vector<Instruction>::iterator i = b.instructions.begin(); i != b.instructions.end(); ++i)
 			os << *i << std::endl;
