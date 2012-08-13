@@ -1,5 +1,7 @@
 #include "tree.h"
 
+#include "vm/AsmJit/AsmJit.h"
+
 BuildContext::BuildContext(bool nojit) : 
 	program(Program()),
 	working_block(NULL),
@@ -7,7 +9,11 @@ BuildContext::BuildContext(bool nojit) :
 	block_types(std::map<std::string, Type>()),
 	variable_types(std::map<std::string, Type>()),
 	seed(0),
+#ifdef ASMJIT_X64
 	nojit(nojit)
+#else
+	nojit(true)
+#endif
 {
 }
 
