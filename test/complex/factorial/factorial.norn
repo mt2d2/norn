@@ -1,0 +1,13 @@
+def jit factorial(n: Int): Int
+	ret: Int = 1
+
+	for i: Int = 1, i < (n+1), i = i + 1 in
+		ret = ret * i
+	end
+
+	return ret
+end
+
+def jit main(): Void
+	println(factorial(12))
+end

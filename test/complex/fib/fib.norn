@@ -7,5 +7,5 @@ def jit fib(n: Int): Int
 end
 
 def jit main(): Void
-	println(fib(40))
+	println(fib(30))
 end
