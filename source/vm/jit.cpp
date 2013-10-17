@@ -52,8 +52,6 @@ void Block::jit(std::vector<Block*>& blocks)
 		if (instr->op == TJMP || instr->op == FJMP || instr->op == UJMP)
 			label_positions[instr->arg.l] = c.newLabel();
 
-	int offset = 0;
-
 	int instr_count = 0;
 	for (std::vector<Instruction>::iterator instr = instructions.begin(); instr != instructions.end(); ++instr)
 	{
