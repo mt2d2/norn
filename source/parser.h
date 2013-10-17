@@ -58,7 +58,6 @@ private:
 	    return (FunctionAST*)NULL;
 	}
 
-	std::istream& stream;
 	Lexer lex;
 	int CurToken;
 	std::map<char, int> BinopPrecedence;

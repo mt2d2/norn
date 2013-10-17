@@ -1,6 +1,6 @@
 #include "parser.h"
 
-Parser::Parser(std::istream& stream) : stream(stream), lex(Lexer(stream)), CurToken(0), BinopPrecedence(std::map<char, int>())
+Parser::Parser(std::istream& stream) : lex(Lexer(stream)), CurToken(0), BinopPrecedence(std::map<char, int>())
 {
 	// Install standard binary operators.
 	// 1 is lowest precedence.
