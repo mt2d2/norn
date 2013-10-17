@@ -1,4 +1,4 @@
-def isPrime(number: Int): Boolean
+def jit isPrime(number: Int): Boolean
 	if number < 2 then return false end
 
 	for i: Int = 2, (i*i) <= number, i=i+1 in

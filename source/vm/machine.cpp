@@ -80,7 +80,7 @@ void Machine::execute()
 			push<char>(get_memory<char>(instr->arg.l));
 			NEXT
 		OP(STORE_INT)
-			store_memory(instr->arg.l, pop<int>());
+			store_memory(instr->arg.l, pop<long>());
 			NEXT
 		OP(STORE_FLOAT) 
 			store_memory(instr->arg.l, pop<double>());
@@ -172,7 +172,7 @@ void Machine::execute()
 			ip = instr->arg.l;
 			NEXT
 		OP(PRINT_INT)
-			printf("%d", pop<int>());
+			printf("%ld", pop<long>());
 			NEXT
 		OP(PRINT_FLOAT)
 			printf("%f", pop<double>());
@@ -251,7 +251,7 @@ void Machine::execute()
 					printf("Instructions executed: %d\n", ipc);
 					printf("Yielding stack...\n");
 					while (!stack_is_empty())
-						printf("%d\n", pop<int>());
+						printf("%ld\n", pop<long>());
 				}
 
 				// clean and final exit
@@ -259,13 +259,13 @@ void Machine::execute()
 			}
 			NEXT
 		OP(STORE_ARY_ELM_CHAR)
-			(get_memory<Variant*>(instr->arg.l))[1 + pop<int>()] = pop<long>();
+			(get_memory<Variant*>(instr->arg.l))[1 + pop<long>()] = pop<long>();
 			NEXT
 		OP(STORE_ARY_ELM_INT)
-			(get_memory<Variant*>(instr->arg.l))[1 + pop<int>()] = pop<long>();
+			(get_memory<Variant*>(instr->arg.l))[1 + pop<long>()] = pop<long>();
 			NEXT
 		OP(STORE_ARY_ELM_FLOAT)
-			(get_memory<Variant*>(instr->arg.l))[1 + pop<int>()] = pop<double>();
+			(get_memory<Variant*>(instr->arg.l))[1 + pop<long>()] = pop<double>();
 			NEXT
 		OP(LOAD_ARY_ELM_CHAR)
 			push<char>((get_memory<Variant*>(instr->arg.l))[1 + pop<long>()].c);
@@ -278,20 +278,20 @@ void Machine::execute()
 			NEXT
 			
 		OP(LIT_LOAD_ADD)
-			push<long>(get_memory<int>(instr->arg.l) + instr->arg2.l);
+			push<long>(get_memory<long>(instr->arg.l) + instr->arg2.l);
 			NEXT
 		OP(LIT_LOAD_SUB)
-			push<long>(get_memory<int>(instr->arg.l) - instr->arg2.l);
+			push<long>(get_memory<long>(instr->arg.l) - instr->arg2.l);
 			NEXT
 		OP(LIT_LOAD_LE)
-			push<long>(get_memory<int>(instr->arg.l) < instr->arg2.l);
+			push<long>(get_memory<long>(instr->arg.l) < instr->arg2.l);
 			NEXT
 
 		OP(F2I)
 			push<long>(pop<double>());
 			NEXT
 		OP(I2F)
-			push<double>(pop<int>());
+			push<double>(pop<long>());
 			NEXT
 			
 		OP(LBL)

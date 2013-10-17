@@ -52,6 +52,8 @@ void Block::jit(std::vector<Block*>& blocks)
 		if (instr->op == TJMP || instr->op == FJMP || instr->op == UJMP)
 			label_positions[instr->arg.l] = c.newLabel();
 
+	int offset = 0;
+
 	int instr_count = 0;
 	for (std::vector<Instruction>::iterator instr = instructions.begin(); instr != instructions.end(); ++instr)
 	{
@@ -171,6 +173,41 @@ void Block::jit(std::vector<Block*>& blocks)
 
 				c.unuse(tmp1);
 				c.unuse(tmp2);
+				}
+				break;
+
+			case DIV_INT:
+			case MOD_INT:
+				{
+				c.comment("MOD_INT");
+				GPVar tmp0(c.newGP());
+				GPVar tmp1(c.newGP());
+				// GPVar tmp2(c.newGP());
+
+				c.mov(tmp1, qword_ptr(stackTop));
+
+				// make rdx 0, but really should sign extend it with cqo
+				GPVar t_rdx(c.newGP());
+				c.alloc(t_rdx, rdx);
+				c.xor_(t_rdx, t_rdx);
+				c.unuse(t_rdx);
+
+				c.idiv(tmp0, tmp1, qword_ptr(stackTop, -8));
+
+				c.sub(stackTop, 8);
+
+				switch (instr->op)
+				{
+					case DIV_INT:
+						c.mov(qword_ptr(stackTop), tmp1);
+						break;
+					case MOD_INT:
+						c.mov(qword_ptr(stackTop), tmp0);
+						break;
+				}
+
+				c.unuse(tmp0);
+				c.unuse(tmp1);
 				}
 				break;
 
@@ -478,7 +515,7 @@ void Block::jit(std::vector<Block*>& blocks)
 
 			case LIT_LOAD_LE:
 				{
-				c.comment("LIT_LOAD_ADD/SUB");
+				c.comment("LIT_LOAD_LE");
 
 				GPVar tmp(c.newGP());
 				c.mov(tmp, qword_ptr(memoryTop, (instr->arg.l * 8)));
