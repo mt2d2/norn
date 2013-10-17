@@ -362,7 +362,7 @@ public:
 class ProgramAST
 {
 public:
-	ProgramAST() : functions(std::vector<FunctionAST*>()), structs(std::vector<StructAST*>()) { };
+	ProgramAST() : structs(std::vector<StructAST*>()), functions(std::vector<FunctionAST*>()) { };
 	virtual ~ProgramAST();
 	void add_struct(StructAST* s) { structs.push_back(s); }
 	void add_function(FunctionAST* f) { functions.push_back(f); }

@@ -8,8 +8,8 @@ Lexer::Lexer(std::istream& stream) :
 	pos(0),
 	line(1),
 	identifier(std::string()),
-	number(0.0),
-	floater(false)
+	floater(false),
+	number(0.0)
 {
 }
 

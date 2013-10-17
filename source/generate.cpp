@@ -58,6 +58,7 @@ void VariableExprAST::emit_bytecode(BuildContext& out)
 				break;
 			case VOID:
 			default:
+				opcode = LOAD_INT; // default, will never be used since error
 				raise_error("cannot determine variable type in VariableExprAST");
 				break;
 		}
@@ -107,6 +108,7 @@ void VariableAssignExprAST::emit_bytecode(BuildContext& out)
 				break;
 			case VOID:
 			default:
+				opcode = STORE_INT; // default, will never be used since error
 				raise_error("cannot emit VariableAssignExprAST for no type");
 				break;
 		}
@@ -314,6 +316,7 @@ void PrototypeAST::emit_bytecode(BuildContext& out)
 					break;
 				case VOID:
 				default:
+					opcode = STORE_INT; // default, will never be used since error
 					raise_error("cannot emit argument store for void type");
 					break;
 			}
@@ -464,10 +467,12 @@ void ArrayIndexAssignExprAST::emit_bytecode(BuildContext& out)
 			case CHAR_ARY:
 			case INT_ARY:
 			case FLOAT_ARY:
+				opcode = STORE_ARY_ELM_INT; // default, will never be used since error
 				raise_error("array access for 'Ary' unimplemented");
 				break;
 			case VOID:
 			default:
+				opcode = LOAD_INT; // default, will never be used since error
 				raise_error("cannot access array of no type");
 				break;
 		}
@@ -508,10 +513,12 @@ void ArrayIndexAccessExprAST::emit_bytecode(BuildContext& out)
 				break;
 			case ARY:
 			case CHAR_ARY:
+				opcode = LOAD_ARY_ELM_INT; // default, will never be used since error
 				raise_error("array access for 'Ary' unimplemented");
 				break;
 			case VOID:
 			default:
+				opcode = LOAD_ARY_ELM_INT; // default, will never be used since error
 				raise_error("cannot access array with no type");
 				break;
 		}
