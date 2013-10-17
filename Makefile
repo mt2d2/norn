@@ -10,12 +10,10 @@ SRC=source/vm/common.cpp source/vm/opcode.cpp source/vm/memory.cpp source/vm/blo
 	source/vm/AsmJit/Logger.cpp source/vm/AsmJit/MemoryManager.cpp source/vm/AsmJit/OperandX86X64.cpp\
 	source/vm/AsmJit/Platform.cpp source/vm/AsmJit/Util.cpp
 OBJ=${SRC:.cpp=.o}
-LIB=
-INC=
 
 # PGO: use -fprofile-generate, run then -fprofile-use; in both
 # Other: -fomit-frame-pointer -pipe -march=core2 -g -fast -stdlib=libc++
-CFLAGS=-Wall -pipe -g -O3
+CFLAGS=-std=c++11 -Wall -pipe -g -O2
 LDFLAGS=
 
 all: ${SRC} ${EXE}
@@ -26,7 +24,7 @@ ${EXE}: ${OBJ}
 
 .cpp.o:
 	@${ECHO} CC $<
-	@${CC} -I${INC} ${CFLAGS}  -c $< -o $@
+	@${CC} ${CFLAGS} -c $< -o $@
 
 clean:
 	@${ECHO} RM objects, executable

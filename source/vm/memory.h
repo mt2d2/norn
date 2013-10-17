@@ -22,8 +22,8 @@ private:
 	
 	std::vector<void*> allocated;
 	
-	long** stack;
-	long** memory;
+	// long** stack;
+	// long** memory;
 };
 
 #endif // MEMORY_H
