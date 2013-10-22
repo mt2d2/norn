@@ -18,6 +18,7 @@ class Machine
 {
 public:
 	Machine(const Program& program, bool debug=false, bool nojit=false);
+	~Machine();
 	void execute();
 
 private:

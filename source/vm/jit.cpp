@@ -798,10 +798,11 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 				break;
 
 			default:
-				raise_error("unimplemented opcode in optimizing jit");
+				raise_error("unimplemented opcode " + opcode_str[instr->op] + " in optimizing jit");
 				break;
 		}
 	}
+
 
 	c.endFunction();
 

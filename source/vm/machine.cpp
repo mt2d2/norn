@@ -28,12 +28,19 @@ Machine::Machine(const Program& program, bool debug, bool nojit) :
 	ipc(0),
 	debug(debug),
 	nojit(nojit),
-	stack(NULL),
-	stack_start(NULL),	
-	frames(NULL),
-	frames_start(NULL),
-	memory(NULL)
+	stack(reinterpret_cast<long*>(malloc(sizeof(long) * STACK_SIZE))),
+	stack_start(stack),	
+	frames(reinterpret_cast<Frame*>(malloc(sizeof(Frame) * STACK_SIZE))),
+	frames_start(frames),
+	memory(reinterpret_cast<long*>(malloc(sizeof(long) * STACK_SIZE * this->program.get_memory_slots())))
 {
+}
+
+Machine::~Machine()
+{
+	free(stack);
+	free(frames);
+	free(memory);
 }
 
 void Machine::execute()
@@ -45,13 +52,7 @@ void Machine::execute()
 #	include "goto.h"
 	program.repair_disp_table(disp_table);
 #endif
-		
-	this->stack = reinterpret_cast<long*>(alloca(sizeof(long) * STACK_SIZE));
-	this->stack_start = this->stack;
-	this->frames = reinterpret_cast<Frame*>(alloca(sizeof(Frame) * STACK_SIZE));
-	this->frames_start = this->frames;
-	this->memory = reinterpret_cast<long*>(alloca(sizeof(long) * STACK_SIZE * this->program.get_memory_slots()));
-		
+
 	block = this->program.get_block_ptr(this->program.get_block_id("main"));
 
 	if (!this->nojit && block->native)
@@ -217,6 +218,7 @@ void Machine::execute()
 			{
 			Block* callee = reinterpret_cast<Block*>(instr->arg.p);
 			memory += block->get_memory_slots();
+
 			long ret = callee->native(&stack, &memory);
 
 			if (callee->get_jit_type() == OPTIMIZING)
