@@ -1,7 +1,6 @@
 #include "block.h"
 #include "common.h"
 
-#include <algorithm>
 #include <stack>
 
 #include "AsmJit/AsmJit.h"
@@ -699,7 +698,7 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 				}
 
 				c.jz(label_positions[instr->arg.l]);
-				c.unuse(tmp);
+				// c.unuse(tmp);
 				}
 				break;
 
@@ -797,12 +796,46 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 				}
 				break;
 
+			case LIT_LOAD_LE:
+				{
+				c.comment("LIT_LOAD_LE");
+
+				GPVar tmp = static_cast<GPVar&>(memory[instr->arg.l]);
+				GPVar ret(c.newGP());
+
+				Label L_LE = c.newLabel();
+			  	Label L_Exit = c.newLabel();
+
+				c.cmp(tmp, instr->arg2.l);
+				c.jl(L_LE);
+
+				c.mov(ret, 0);
+				c.jmp(L_Exit);
+
+				c.bind(L_LE);
+				c.mov(ret, 1);
+
+				c.bind(L_Exit);
+
+				stack.push(static_cast<BaseVar&>(ret));
+				}
+				break;	
+
+
+			case LIT_LOAD_ADD:
+				{
+				c.comment("LIT_LOAD_ADD");
+				GPVar tmp = static_cast<GPVar&>(memory[instr->arg.l]);
+				c.add(tmp, instr->arg2.l);
+				stack.push(static_cast<BaseVar&>(tmp));
+				}
+				break;		
+
 			default:
 				raise_error("unimplemented opcode " + opcode_str[instr->op] + " in optimizing jit");
 				break;
 		}
 	}
-
 
 	c.endFunction();
 
