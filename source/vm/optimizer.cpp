@@ -250,7 +250,7 @@ void Block::fold_constants()
 
 void Block::inline_calls()
 {
-	for (int i = 0; i < instructions.size(); i++)
+	for (unsigned int i = 0; i < instructions.size(); i++)
 	{
 		if (instructions[i].op == CALL || instructions[i].op == CALL_NATIVE)
 		{
