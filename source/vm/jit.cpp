@@ -560,7 +560,6 @@ void Block::jit(std::vector<Block*>& blocks)
 void Block::optimizing_jit(std::vector<Block*>& blocks)
 {
 #ifndef ASMJIT_X64
-	#warning JIT is only supported for x86_64
 	return;
 #else
 
