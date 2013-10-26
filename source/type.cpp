@@ -20,7 +20,7 @@ TypeFactory::TypeFactory()
 void TypeFactory::install(const Type& new_type)
 {	
 	// type definitions can be overriden
-	std::vector<Type>::iterator it = std::find(types.begin(), types.end(), new_type);
+	auto it = std::find(types.begin(), types.end(), new_type);
 	if (it != types.end())
 		*it = new_type;
 	else
@@ -29,9 +29,9 @@ void TypeFactory::install(const Type& new_type)
 
 const Type& TypeFactory::get(Primative key) const
 {
-	for (std::vector<Type>::const_iterator t = types.begin(); t != types.end(); ++t)
-		if (t->get_primative() == key)
-			return *t;
+	for (const auto& t : types)
+		if (t.get_primative() == key)
+			return t;
 
 	raise_error("couldn't find type by primative key, shouldn't happen!");
 	return types[0];
@@ -39,9 +39,9 @@ const Type& TypeFactory::get(Primative key) const
 
 const Type& TypeFactory::get(const std::string& key) const
 {
-	for (std::vector<Type>::const_iterator t = types.begin(); t != types.end(); ++t)
-		if (t->get_name() == key)
-			return *t;
+	for (const auto& t : types)
+		if (t.get_name() == key)
+			return t;
 		
 	raise_error("couldn't find type by string key: " + key);
 	return types[0];

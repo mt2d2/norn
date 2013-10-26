@@ -35,8 +35,8 @@ public:
 	// complex constructor
 	Type(const std::string& name, std::vector<Type> members) : name(name), primative(COMPLEX), members(members) 
 	{ 
-		for (std::vector<Type>::iterator i = members.begin(); i != members.end(); ++i)
-		 	size += (*i).get_size();
+		for (const auto& i : members)
+		 	size += i.get_size();
 	}
 
 	const std::string& get_name() const { return name; }
