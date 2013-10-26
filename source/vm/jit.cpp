@@ -1,6 +1,7 @@
 #include "block.h"
 #include "common.h"
 
+#include <algorithm>
 #include <stack>
 
 #include "AsmJit/AsmJit.h"

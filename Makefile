@@ -20,7 +20,8 @@ ${EXE}: ${OBJ} ${LIBASMJIT}
 	@${CC} ${LDFLAGS} ${OBJ} ${LIBASMJIT} -o $@ ${LIB}
 
 ${LIBASMJIT}:
-	make -C source/vm/AsmJit
+	@${ECHO} MAKE LIBASMJIT
+	@+$(MAKE) -C source/vm/AsmJit
 
 .cpp.o:
 	@${ECHO} CC $<
@@ -34,7 +35,6 @@ realclean: clean
 	@${ECHO} RM profile data, libasmjit.a
 	@rm -f source/*gc* source/vm/*gc*
 	@make -C source/vm/AsmJit clean
-
 
 test:
 	python test/runner.py

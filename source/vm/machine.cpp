@@ -28,19 +28,19 @@ Machine::Machine(const Program& program, bool debug, bool nojit) :
 	ipc(0),
 	debug(debug),
 	nojit(nojit),
-	stack(reinterpret_cast<long*>(malloc(sizeof(long) * STACK_SIZE))),
+	stack(new long[STACK_SIZE]),
 	stack_start(stack),	
-	frames(reinterpret_cast<Frame*>(malloc(sizeof(Frame) * STACK_SIZE))),
+	frames(new Frame[STACK_SIZE]),
 	frames_start(frames),
-	memory(reinterpret_cast<long*>(malloc(sizeof(long) * STACK_SIZE * this->program.get_memory_slots())))
+	memory(new long[STACK_SIZE * this->program.get_memory_slots()])
 {
 }
 
 Machine::~Machine()
 {
-	free(stack);
-	free(frames);
-	free(memory);
+	delete[] stack;
+	delete[] frames;
+	delete[] memory;
 }
 
 void Machine::execute()
