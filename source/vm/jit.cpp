@@ -697,7 +697,7 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 				}
 
 				c.jz(label_positions[instr->arg.l]);
-				// c.unuse(tmp);
+				c.unuse(tmp);
 				}
 				break;
 
