@@ -19,6 +19,10 @@ ${EXE}: ${OBJ} ${LIBASMJIT}
 	@${ECHO} LINK $@
 	@${CC} ${LDFLAGS} ${OBJ} ${LIBASMJIT} -o $@ ${LIB}
 
+${EXE}_nojit: ${OBJ}
+	@${ECHO} LINK $@
+	@${CC} ${LDFLAGS} ${OBJ} -o ${EXE} ${LIB}
+
 ${LIBASMJIT}:
 	@${ECHO} MAKE LIBASMJIT
 	@+$(MAKE) -C source/vm/AsmJit
