@@ -47,7 +47,6 @@ private:
 	Frame* frames;
 	Frame* frames_start;
 	long* memory;
-	
 };
 
 template<typename T>
