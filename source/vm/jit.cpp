@@ -47,9 +47,9 @@ void Block::jit(std::vector<Block*>& blocks)
 	c.mov(memoryTop, qword_ptr(memory));
 
 	std::map<int, Label> label_positions;
-	for (std::vector<Instruction>::iterator instr = instructions.begin(); instr != instructions.end(); ++instr)
-		if (instr->op == TJMP || instr->op == FJMP || instr->op == UJMP)
-			label_positions[instr->arg.l] = c.newLabel();
+	for (const auto& instr : instructions)
+		if (instr.op == TJMP || instr.op == FJMP || instr.op == UJMP)
+			label_positions[instr.arg.l] = c.newLabel();
 
 	int instr_count = 0;
 	for (std::vector<Instruction>::iterator instr = instructions.begin(); instr != instructions.end(); ++instr)
@@ -574,10 +574,10 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 	c.comment(std::string("optimized jit function '" + this->get_name() + "'").c_str());
 
 	std::map<int, Label> label_positions;
-	for (std::vector<Instruction>::iterator instr = instructions.begin(); instr != instructions.end(); ++instr)
-		if (instr->op == TJMP || instr->op == FJMP || instr->op == UJMP)
-			label_positions[instr->arg.l] = c.newLabel();
-
+	for (const auto& instr : instructions)
+		if (instr.op == TJMP || instr.op == FJMP || instr.op == UJMP)
+			label_positions[instr.arg.l] = c.newLabel();
+		
 	std::stack<BaseVar> stack;
 	std::map<int, BaseVar> memory;
 
