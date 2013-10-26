@@ -3,6 +3,8 @@
 #include <cctype> // isdigit, isspace
 #include <cstdlib> // strtod
 
+#include "vm/common.h"
+
 Lexer::Lexer(std::istream& stream) :
 	source(stream),
 	pos(0),
@@ -227,7 +229,7 @@ std::string& Lexer::get_string()
 
 char Lexer::lex_escape(char escape)
 {
-	char c;
+	char c = '\0';
 
 	switch (escape)
 	{
@@ -238,6 +240,9 @@ char Lexer::lex_escape(char escape)
 		case 'r': c = '\r'; break;
 		case 't': c = '\t'; break;
 		case 'v': c = '\v'; break;
+		default:
+			raise_error("unhandled escape");
+			break;
 	}
 
 	return c;
