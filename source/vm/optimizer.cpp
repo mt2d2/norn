@@ -38,7 +38,7 @@ Constant folding in source/vm/optimizer.cpp was heavily influenced by Objeck
 void Block::store_load_elimination()
 {
 	int line_number = 0;
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
+	for (auto i = instructions.begin(); i != instructions.end(); ++i)
 	{
 		++line_number;
 
@@ -62,13 +62,13 @@ void Block::store_load_elimination()
 
 void Block::calculate_int_fold(Instruction instr, std::list<Instruction>& calc_stack, std::list<Instruction>& outputs)
 {
-	if(calc_stack.size() == 1) 
+	if (calc_stack.size() == 1) 
 	{
 		outputs.push_back(calc_stack.front());
 		calc_stack.pop_front();
 		outputs.push_back(instr);
 	} 
-	else if(calc_stack.size() > 1) 
+	else if (calc_stack.size() > 1) 
 	{
 		Instruction& left = calc_stack.front();
 		calc_stack.pop_front();
@@ -107,13 +107,13 @@ void Block::calculate_int_fold(Instruction instr, std::list<Instruction>& calc_s
 
 void Block::calculate_float_fold(Instruction instr, std::list<Instruction>& calc_stack, std::list<Instruction>& outputs)
 {
-	if(calc_stack.size() == 1) 
+	if (calc_stack.size() == 1) 
 	{
 		outputs.push_back(calc_stack.front());
 		calc_stack.pop_front();
 		outputs.push_back(instr);
 	} 
-	else if(calc_stack.size() > 1) 
+	else if (calc_stack.size() > 1) 
 	{
 		Instruction& left = calc_stack.front();
 		calc_stack.pop_front();
@@ -155,7 +155,7 @@ void Block::fold_ints()
 	std::list<Instruction> outputs;
 	std::list<Instruction> calc_stack;
 	
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
+	for (auto i = instructions.begin(); i != instructions.end(); ++i)
 	{
 		switch (i->op)
 		{
@@ -201,7 +201,7 @@ void Block::fold_floats()
 	std::list<Instruction> outputs;
 	std::list<Instruction> calc_stack;
 	
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
+	for (auto i = instructions.begin(); i != instructions.end(); ++i)
 	{
 		switch (i->op)
 		{
@@ -270,7 +270,7 @@ void Block::inline_calls()
 void Block::lit_load_add()
 {
 	int line_number = 0;
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
+	for (auto i = instructions.begin(); i != instructions.end(); ++i)
 	{
 		++line_number;
 
@@ -295,7 +295,7 @@ void Block::lit_load_add()
 void Block::lit_load_sub()
 {
 	int line_number = 0;
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
+	for (auto i = instructions.begin(); i != instructions.end(); ++i)
 	{
 		++line_number;
 
@@ -320,7 +320,7 @@ void Block::lit_load_sub()
 void Block::lit_load_le()
 {
 	int line_number = 0;
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
+	for (auto i = instructions.begin(); i != instructions.end(); ++i)
 	{
 		++line_number;
 

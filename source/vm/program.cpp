@@ -16,8 +16,8 @@ Program::Program() :
 
 void Program::clean_up()
 {
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
-		delete *b;
+	for (const auto* b : blocks)
+		delete b;
 }
 
 void Program::add_block(Block* block)
@@ -57,11 +57,11 @@ std::string Program::get_string(int key) const
 
 void Program::calculate_memory_slots()
 {
-	int total = 0;
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
+	int total = 0;	
+	for (auto* b : blocks)
 	{
-		(*b)->calculate_memory_slots();
-		total += (*b)->get_memory_slots();
+		b->calculate_memory_slots();
+		total += b->get_memory_slots();
 	}
 	
 	this->set_memory_slots(total);
@@ -79,63 +79,62 @@ int Program::get_memory_slots() const
 
 void Program::repair_disp_table(void** disp_table)
 {
-	for (std::vector<Block*>::iterator i = blocks.begin(); i != blocks.end(); ++i)
-		(*i)->repair_disp_table(disp_table);
+	for (auto* b : blocks)
+		b->repair_disp_table(disp_table);
 }
 
 void Program::absolute_jumps()
 {
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
-		(*b)->absolute_jumps();
+	for (auto* b : blocks)
+		b->absolute_jumps();
 }
 
 void Program::store_load_elimination()
 {
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
-		(*b)->store_load_elimination();
+	for (auto* b : blocks)
+		b->store_load_elimination();
 }
 
 void Program::fold_constants()
 {
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
-		(*b)->fold_constants();
+	for (auto* b : blocks)
+		b->fold_constants();
 }
 
 void Program::inline_calls()
 {
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
-		(*b)->inline_calls();
+	for (auto* b : blocks)
+		b->inline_calls();
 }
 
 void Program::lit_load_add()
 {
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
-		(*b)->lit_load_add();
+	for (auto* b : blocks)
+		b->lit_load_add();
 }
 
 void Program::lit_load_sub()
 {
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
-		(*b)->lit_load_sub();
+	for (auto* b : blocks)
+		b->lit_load_sub();
 }
 
 void Program::lit_load_le()
 {
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
-		(*b)->lit_load_le();
+	for (auto* b : blocks)
+		b->lit_load_le();
 }
 
 void Program::jit()
 {
-	for (std::vector<Block*>::iterator b = blocks.begin(); b != blocks.end(); ++b)
+	for (auto* b : blocks)
 	{
-		if (!(*b)->native) 
+		if (!b->native) 
 		{
-			if ((*b)->get_jit_type() == BASIC)
-				(*b)->jit(this->blocks);
-			else if ((*b)->get_jit_type() == OPTIMIZING)
-				(*b)->optimizing_jit(this->blocks);
-
+			if (b->get_jit_type() == BASIC)
+				b->jit(this->blocks);
+			else if (b->get_jit_type() == OPTIMIZING)
+				b->optimizing_jit(this->blocks);
 		}
 	}
 }

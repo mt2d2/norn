@@ -20,7 +20,7 @@ Block::~Block()
 #endif
 }
 
-std::string Block::get_name() const
+const std::string& Block::get_name() const
 {
     return this->name;
 }
@@ -37,8 +37,8 @@ int Block::get_size() const
 
 void Block::repair_disp_table(void** disp_table)
 {
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
-		i->op = reinterpret_cast<long>(disp_table[i->op]);
+	for (auto& i : instructions)
+		i.op = reinterpret_cast<long>(disp_table[i.op]);
 }
 
 void Block::add_instruction(const Instruction& instruction)
@@ -49,11 +49,11 @@ void Block::add_instruction(const Instruction& instruction)
 void Block::calculate_memory_slots()
 {
 	int total = -1;
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
-		if (i->op == STORE_INT || i->op == STORE_FLOAT || i->op == STORE_CHAR || i->op == STORE_ARY)
-			if (i->arg.l > total)
-				total = i->arg.l;
-	
+	for (const auto& i : instructions)
+		if (i.op == STORE_INT || i.op == STORE_FLOAT || i.op == STORE_CHAR || i.op == STORE_ARY)
+			if (i.arg.l > total)
+				total = i.arg.l;
+
 	if (total > -1)
 		total += 1; /* 0-based */
 	else 
@@ -65,9 +65,9 @@ void Block::calculate_memory_slots()
 void Block::absolute_jumps()
 {
 	std::map<long, long> jmp_map;
-	
 	long instr_count = 0;
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
+
+	for (auto i = instructions.begin(); i != instructions.end(); ++i)
 	{
 		if (i->op == LBL)
 		{
@@ -77,11 +77,10 @@ void Block::absolute_jumps()
 			
 		++instr_count;
 	}
-	
-	for (std::vector<Instruction>::iterator i = instructions.begin(); i != instructions.end(); ++i)
-		if (i->op == TJMP || i->op == FJMP || i->op == UJMP)
-			i->arg.l = jmp_map[i->arg.l];
-	
+
+	for (auto& i : instructions)
+		if (i.op == TJMP || i.op == FJMP || i.op == UJMP)
+			i.arg.l = jmp_map[i.arg.l];	
 }
 
 void Block::set_memory_slots(int memory_slots)

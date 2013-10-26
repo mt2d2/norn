@@ -23,7 +23,7 @@ class Block
 public:
 	Block(const std::string& name);
 	~Block();
-	std::string get_name() const;
+	const std::string& get_name() const;
 	const Instruction* get_instruction(int index) const;
 	const std::vector<Instruction>& get_instructions() const;
 	int get_size() const;
@@ -73,8 +73,8 @@ private:
 		os << "Name: " << b.name << "; Memory Slots: " << b.get_memory_slots() << std::endl;
 		os << b.name << std::endl;
 
-		for (std::vector<Instruction>::iterator i = b.instructions.begin(); i != b.instructions.end(); ++i)
-			os << *i << std::endl;
+		for (const auto& i : b.instructions)
+			os << i << std::endl;
 
 		return os;
 	}
