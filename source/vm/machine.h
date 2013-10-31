@@ -66,7 +66,7 @@ inline double Machine::get_memory(int key)
 template<typename T>
 inline void Machine::store_memory(int key, T value)
 {
-	memory[key] = (long)value;
+	memory[key] = (int64_t)value;
 }
 
 template<>
@@ -98,13 +98,13 @@ inline bool Machine::stack_is_empty()
 template<typename T>
 inline void Machine::push(T element)
 {
-	*++stack = (long)element;
+	*++stack = (int64_t)element;
 }
 
 template<>
 inline void Machine::push(double element)
 {
-	long tmp;
+	int64_t tmp;
 	memcpy(&tmp, &element, sizeof(double));
 	*++stack = tmp;
 }
