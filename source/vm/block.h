@@ -16,7 +16,7 @@ enum JITType
 	OPTIMIZING
 };
 
-typedef long(*native_ptr)(long**, long**);
+typedef int64_t(*native_ptr)(int64_t**, int64_t**);
 
 class Block
 {

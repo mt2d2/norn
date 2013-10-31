@@ -42,11 +42,11 @@ private:
 	bool debug;
 	bool nojit;
 
-	long* stack;
-	long* stack_start;
+	int64_t* stack;
+	int64_t* stack_start;
 	Frame* frames;
 	Frame* frames_start;
-	long* memory;
+	int64_t* memory;
 };
 
 template<typename T>

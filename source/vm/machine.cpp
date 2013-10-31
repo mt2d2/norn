@@ -28,11 +28,11 @@ Machine::Machine(const Program& program, bool debug, bool nojit) :
 	ipc(0),
 	debug(debug),
 	nojit(nojit),
-	stack(new long[STACK_SIZE]),
+	stack(new int64_t[STACK_SIZE]),
 	stack_start(stack),	
 	frames(new Frame[STACK_SIZE]),
 	frames_start(frames),
-	memory(new long[STACK_SIZE * this->program.get_memory_slots()])
+	memory(new int64_t[STACK_SIZE * this->program.get_memory_slots()])
 {
 }
 
