@@ -58,8 +58,8 @@ for test, out, err in zip(tests, outs, errs):
 		test_vm_out, test_vm_err, vm_time = run_test(test, nojit=True)
 		out_out = file_to_string(out)
 
-		jit_vm_ratio = (vm_time - jit_time) / vm_time
-		if jit_vm_ratio >= 0:
+		jit_vm_ratio = vm_time / jit_time
+		if jit_vm_ratio >= 1:
 			jit_vm_ratio_string = fast("%2.2f" % (jit_vm_ratio))
 		else:
 			jit_vm_ratio_string = slow("%2.2f" % (jit_vm_ratio))
