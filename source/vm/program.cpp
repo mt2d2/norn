@@ -22,7 +22,7 @@ void Program::clean_up()
 
 void Program::add_block(Block* block)
 {
-	std::map<std::string, int>::iterator it = block_map.find(block->get_name());
+	auto it = block_map.find(block->get_name());
  	if (it == block_map.end())
     {
 		// not found

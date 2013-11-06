@@ -177,7 +177,7 @@ int Lexer::get_token()
             current = source[++pos];
         }
 
-        this->number = strtod(num.c_str(), 0);
+        this->number = strtod(num.c_str(), nullptr);
         this->number = is_negative ? -this->number : this->number;
 
         return tok_number;

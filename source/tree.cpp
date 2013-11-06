@@ -4,7 +4,7 @@
 
 BuildContext::BuildContext(bool nojit) : 
 	program(Program()),
-	working_block(NULL),
+	working_block(nullptr),
 	memory_ids(std::map<std::string, int>()),
 	block_types(std::map<std::string, Type>()),
 	variable_types(std::map<std::string, Type>()),
@@ -42,7 +42,7 @@ void BuildContext::set_block(Block* block)
 
 int BuildContext::get_mem_id(const std::string& key)
 {
-	std::map<std::string, int>::iterator it = memory_ids.find(key);
+	auto it = memory_ids.find(key);
 	if (it == memory_ids.end())
 	{
 		// the key wasn't found
@@ -94,11 +94,11 @@ std::string CallExprAST::callee_signature(BuildContext& out)
 {
 	std::string block_name = this->callee;
 
-	for (std::vector<ExprAST*>::iterator i = Args.begin(); i != Args.end(); ++i)
+	for (auto & elem : Args)
 	{
-		if (CallExprAST* call_ast = dynamic_cast<CallExprAST*>(*i))
-			(*i)->type = out.get_block_type(call_ast->callee_signature(out));
-		else if (ArrayIndexAccessExprAST* array_access_ast = dynamic_cast<ArrayIndexAccessExprAST*>(*i))
+		if (CallExprAST* call_ast = dynamic_cast<CallExprAST*>(elem))
+			(elem)->type = out.get_block_type(call_ast->callee_signature(out));
+		else if (ArrayIndexAccessExprAST* array_access_ast = dynamic_cast<ArrayIndexAccessExprAST*>(elem))
 		{
 			Type var_type = out.get_variable_type(array_access_ast->name);
 			if (var_type == TypeFactory::get_instance().get("CharAry"))
@@ -108,12 +108,12 @@ std::string CallExprAST::callee_signature(BuildContext& out)
 			else if (var_type == TypeFactory::get_instance().get("FloatAry"))
 				var_type = TypeFactory::get_instance().get("Float");
 				
-			(*i)->type = var_type;
+			(elem)->type = var_type;
 		}
-		else if (VariableExprAST* var_ast = dynamic_cast<VariableExprAST*>(*i))
-			(*i)->type = out.get_variable_type(var_ast->name);
+		else if (VariableExprAST* var_ast = dynamic_cast<VariableExprAST*>(elem))
+			(elem)->type = out.get_variable_type(var_ast->name);
 		
-		block_name += (std::string(":") + (*i)->type.get_name());
+		block_name += (std::string(":") + (elem)->type.get_name());
 	}
 
 	return block_name;
@@ -126,36 +126,36 @@ int CallExprAST::get_block_id(BuildContext& out, Block* block)
 
 void ProgramAST::install_types(BuildContext& out)
 {
-	for (std::vector<StructAST*>::iterator i = structs.begin(); i != structs.end(); ++i)
+	for (auto & elem : structs)
 	{
 		std::vector<Type> types;
-		for (std::map<std::string, std::string>::iterator j = (*i)->members.begin(); j != (*i)->members.end(); ++j)
+		for (auto j = (elem)->members.begin(); j != (elem)->members.end(); ++j)
 			types.push_back(TypeFactory::get_instance().get(j->second));
 
-		TypeFactory::get_instance().install(Type((*i)->name, types));
+		TypeFactory::get_instance().install(Type((elem)->name, types));
 	}
 }
 
 void ProgramAST::register_functions(BuildContext& out)
 {
-	for (std::vector<FunctionAST*>::iterator i = functions.begin(); i != functions.end(); ++i)
+	for (auto & elem : functions)
 	{
-		out.get_program().add_block(new Block((*i)->proto->name));
-		out.set_block_type((*i)->proto->name, (*i)->proto->type);		
+		out.get_program().add_block(new Block((elem)->proto->name));
+		out.set_block_type((elem)->proto->name, (elem)->proto->type);		
 	}
 }
 
 void ProgramAST::emit_bytecode(BuildContext& out)
 {
-	for (std::vector<FunctionAST*>::iterator i = functions.begin(); i != functions.end(); ++i)
-		(*i)->emit_bytecode(out);
+	for (auto & elem : functions)
+		(elem)->emit_bytecode(out);
 }
 
 ProgramAST::~ProgramAST()
 {
-	for (std::vector<StructAST*>::iterator i = structs.begin(); i != structs.end(); ++i)
-		delete *i;
+	for (auto & elem : structs)
+		delete elem;
 
-	for (std::vector<FunctionAST*>::iterator i = functions.begin(); i != functions.end(); ++i)
-		delete *i;
+	for (auto & elem : functions)
+		delete elem;
 }

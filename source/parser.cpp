@@ -91,7 +91,7 @@ ExprAST* Parser::ParseIdentifierExpr()
 			if (ExprAST* expr = ParseExpression())
 				return new VariableAssignExprAST(IdName, expr, var_type);
 			else
-				return 0;
+				return nullptr;
 		}
 	}
 
@@ -133,7 +133,7 @@ ExprAST* Parser::ParseIdentifierExpr()
             ExprAST* Arg = ParseExpression();
 
             if (!Arg)
-                return 0;
+                return nullptr;
 			else
             	Args.push_back(Arg);
 
@@ -181,7 +181,7 @@ ExprAST* Parser::ParseParenExpr()
 
     ExprAST* V = ParseExpression();
     if (!V)
-        return 0;
+        return nullptr;
 
     if (CurToken != ')')
         return Error("expected ')'");
@@ -270,7 +270,7 @@ ExprAST* Parser::ParseBinOpRHS(int ExprPrec, ExprAST* LHS)
 
         // Parse the primary expression after the binary operator.
         ExprAST *RHS = ParsePrimary();
-        if (!RHS) return 0;
+        if (!RHS) return nullptr;
 
         // If BinOp binds less tightly with RHS than the operator after RHS, let
         // the pending operator take RHS as its LHS.
@@ -279,7 +279,7 @@ ExprAST* Parser::ParseBinOpRHS(int ExprPrec, ExprAST* LHS)
         {
             RHS = ParseBinOpRHS(TokPrec+1, RHS);
             if (!RHS)
-				return 0;
+				return nullptr;
         }
 
         // Merge LHS/RHS.
@@ -291,7 +291,7 @@ ExprAST* Parser::ParseExpression()
 {
     ExprAST *LHS = ParsePrimary();
     if (!LHS)
-      return 0;
+      return nullptr;
 
     return ParseBinOpRHS(0, LHS);
 }
@@ -374,10 +374,10 @@ FunctionAST* Parser::ParseDefinition()
     getNextToken();  // eat def
 
     PrototypeAST *Proto = ParsePrototype();
-    if (Proto == 0)
-        return 0;
+    if (Proto == nullptr)
+        return nullptr;
 
-	FunctionAST* function_ast = new FunctionAST(Proto);
+	auto  function_ast = new FunctionAST(Proto);
 
 	while (CurToken != tok_end)
 	{
@@ -404,7 +404,7 @@ ExprAST* Parser::ParseIfExpr()
 		return Error("expected 'then' after the condition of 'if'");
 	getNextToken();  // eat 'in'.
 
-	IfExprAST* if_ast = new IfExprAST(cond);
+	auto  if_ast = new IfExprAST(cond);
 	while (CurToken != tok_else && CurToken != tok_end)
 	{
     	if (ExprAST *E = ParseExpression())
@@ -446,29 +446,29 @@ ExprAST* Parser::ParseForExpr()
 	std::string IdName = lex.get_identifier();
 	ExprAST* Start = ParseExpression();
 	if (!Start)
-		return 0;
+		return nullptr;
 	if (CurToken != ',')
 		return Error("expected ',' after for start value");
 	getNextToken();
 
 	ExprAST *End = ParseExpression();
 	if (!End)
-		return 0;
+		return nullptr;
 
-	ExprAST *Step = 0;
+	ExprAST *Step = nullptr;
 	if (CurToken == ',')
 	{
 		getNextToken();
 		Step = ParseExpression();
 		if (!Step)
-			return 0;
+			return nullptr;
 	}
 
 	if (CurToken != tok_in)
 		return Error("expected 'in' at the end of a 'for' statment");
 	getNextToken();  // eat 'in'.
 
-	ForExprAST* for_ast = new ForExprAST(IdName, Start, End, Step);
+	auto  for_ast = new ForExprAST(IdName, Start, End, Step);
 	while (CurToken != tok_end)
 	{
     	if (ExprAST *E = ParseExpression())
@@ -494,7 +494,7 @@ ExprAST* Parser::ParseWhileExpr()
 		return Error("expected 'in' after while");
 	getNextToken();  // eat 'in'.
 
-	WhileExprAST* while_ast = new WhileExprAST(cond);
+	auto  while_ast = new WhileExprAST(cond);
 	while (CurToken != tok_end)
 	{
     	if (ExprAST *E = ParseExpression())

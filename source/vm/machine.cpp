@@ -21,8 +21,8 @@
 // TODO reference things by frame, push inital frame for main, too
 Machine::Machine(const Program& program, bool debug, bool nojit) :
 	program(program),
-	block(NULL),
-	instr(NULL),
+	block(nullptr),
+	instr(nullptr),
 	manager(Memory()),
 	ip(0),
 	ipc(0),

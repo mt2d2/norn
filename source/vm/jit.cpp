@@ -52,9 +52,9 @@ void Block::jit(std::vector<Block*>& blocks)
 			label_positions[instr.arg.l] = c.newLabel();
 
 	int instr_count = 0;
-	for (std::vector<Instruction>::iterator instr = instructions.begin(); instr != instructions.end(); ++instr)
+	for (auto instr = instructions.begin(); instr != instructions.end(); ++instr)
 	{
-		std::map<int, Label>::iterator label_position = label_positions.find(instr_count);
+		auto label_position = label_positions.find(instr_count);
 		if (label_position != label_positions.end())
 			c.bind(label_position->second);
 		
@@ -390,7 +390,7 @@ void Block::jit(std::vector<Block*>& blocks)
 				break;
 			case CALL_NATIVE:
 				{
-					std::vector<Block*>::iterator callee = std::find(blocks.begin(), blocks.end(), (Block*)instr->arg.p);
+					auto callee = std::find(blocks.begin(), blocks.end(), (Block*)instr->arg.p);
 					if (callee == blocks.end())
 						raise_error("couldn't identify block for jit native call");
 
@@ -406,7 +406,7 @@ void Block::jit(std::vector<Block*>& blocks)
 					if (this->get_memory_slots() > 0)
 						c.add(qword_ptr(memory), 8 * this->get_memory_slots());
 
-					ECall* ctx = NULL;
+					ECall* ctx = nullptr;
 					if (*callee == this)
 						ctx = c.call(func->getEntryLabel());
 					else
@@ -470,7 +470,7 @@ void Block::jit(std::vector<Block*>& blocks)
 					c.mov(tmp, qword_ptr(stackTop));
 					c.sub(stackTop, 8);
 
-					void* printFunction = NULL;
+					void* printFunction = nullptr;
 					if (instr->op == PRINT_INT)
 						printFunction = reinterpret_cast<void*>(&putint);
 					else if (instr->op == PRINT_FLOAT)
@@ -582,21 +582,21 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 	std::map<int, BaseVar> memory;
 
 	int instr_count = 0;
-	for (std::vector<Instruction>::iterator instr = instructions.begin(); instr != instructions.end(); ++instr)
+	for (auto & elem : instructions)
 	{
-		std::map<int, Label>::iterator label_position = label_positions.find(instr_count);
+		auto label_position = label_positions.find(instr_count);
 		if (label_position != label_positions.end())
 			c.bind(label_position->second);
 		
 		++instr_count;
 		
-		switch (instr->op)
+		switch (elem.op)
 		{
 			case LIT_INT:
 				{
 					c.comment("LIT_INT");
 					GPVar tmp(c.newGP());
-					c.mov(tmp, instr->arg.l);
+					c.mov(tmp, elem.arg.l);
 
 					stack.push(tmp);
 				}
@@ -607,7 +607,7 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 			case LOAD_FLOAT:
 				{
 				c.comment("LOAD_INT/CHAR/FLOAT");
-				stack.push(memory[instr->arg.l]);
+				stack.push(memory[elem.arg.l]);
 				}
 				break;
 
@@ -619,10 +619,10 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 				
 				GPVar tmp = static_cast<GPVar&>(stack.top()); stack.pop();
 
-				if (memory.find(instr->arg.l) != memory.end())
-					c.unuse(memory[instr->arg.l]);
+				if (memory.find(elem.arg.l) != memory.end())
+					c.unuse(memory[elem.arg.l]);
 				
-				memory[instr->arg.l] = tmp;
+				memory[elem.arg.l] = tmp;
 				}
 				break;
 
@@ -644,7 +644,7 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 					GPVar cond(c.newGP());
 					c.cmp(tmp2, tmp1);
 
-					switch (instr->op)
+					switch (elem.op)
 					{
 						case LEQ_INT:
 							c.jle(L_LT);
@@ -686,7 +686,7 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 				c.comment("FJMP/TJMP");
 				GPVar tmp = static_cast<GPVar&>(stack.top()); stack.pop();
 
-				switch (instr->op)
+				switch (elem.op)
 				{
 					case TJMP:
 						c.cmp(tmp, 1);
@@ -696,7 +696,7 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 						break;
 				}
 
-				c.jz(label_positions[instr->arg.l]);
+				c.jz(label_positions[elem.arg.l]);
 				c.unuse(tmp);
 				}
 				break;
@@ -709,7 +709,7 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 					GPVar a = static_cast<GPVar&>(stack.top()); stack.pop();
 					GPVar b = static_cast<GPVar&>(stack.top()); stack.pop();
 
-					switch (instr->op) 
+					switch (elem.op) 
 					{
 						case ADD_INT:
 							c.add(a, b);
@@ -732,15 +732,15 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 
 			case UJMP:
 				c.comment("UJMP");
-				c.jmp(label_positions[instr->arg.l]);
+				c.jmp(label_positions[elem.arg.l]);
 				break;
 
 			case CALL:
-				raise_error("'" + reinterpret_cast<Block*>(instr->arg.p)->get_name() + "' must be jit'able to be called from a jit'd function");
+				raise_error("'" + reinterpret_cast<Block*>(elem.arg.p)->get_name() + "' must be jit'able to be called from a jit'd function");
 				break;
 			case CALL_NATIVE:
 				{
-					std::vector<Block*>::iterator callee = std::find(blocks.begin(), blocks.end(), (Block*)instr->arg.p);
+					auto callee = std::find(blocks.begin(), blocks.end(), (Block*)elem.arg.p);
 					if (callee == blocks.end())
 						raise_error("couldn't identify block for jit native call");
 
@@ -758,7 +758,7 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 					if (this->get_memory_slots() > 0)
 						c.add(qword_ptr(m), 8 * this->get_memory_slots());
 
-					ECall* ctx = NULL;
+					ECall* ctx = nullptr;
 					if (*callee == this)
 						ctx = c.call(func->getEntryLabel());
 					else
@@ -799,13 +799,13 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 				{
 				c.comment("LIT_LOAD_LE");
 
-				GPVar tmp = static_cast<GPVar&>(memory[instr->arg.l]);
+				GPVar tmp = static_cast<GPVar&>(memory[elem.arg.l]);
 				GPVar ret(c.newGP());
 
 				Label L_LE = c.newLabel();
 			  	Label L_Exit = c.newLabel();
 
-				c.cmp(tmp, instr->arg2.l);
+				c.cmp(tmp, elem.arg2.l);
 				c.jl(L_LE);
 
 				c.mov(ret, 0);
@@ -824,14 +824,14 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 			case LIT_LOAD_ADD:
 				{
 				c.comment("LIT_LOAD_ADD");
-				GPVar tmp = static_cast<GPVar&>(memory[instr->arg.l]);
-				c.add(tmp, instr->arg2.l);
+				GPVar tmp = static_cast<GPVar&>(memory[elem.arg.l]);
+				c.add(tmp, elem.arg2.l);
 				stack.push(static_cast<BaseVar&>(tmp));
 				}
 				break;		
 
 			default:
-				raise_error("unimplemented opcode " + opcode_str[instr->op] + " in optimizing jit");
+				raise_error("unimplemented opcode " + opcode_str[elem.op] + " in optimizing jit");
 				break;
 		}
 	}

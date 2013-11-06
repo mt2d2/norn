@@ -155,12 +155,12 @@ void Block::fold_ints()
 	std::list<Instruction> outputs;
 	std::list<Instruction> calc_stack;
 	
-	for (auto i = instructions.begin(); i != instructions.end(); ++i)
+	for (auto & elem : instructions)
 	{
-		switch (i->op)
+		switch (elem.op)
 		{
 			case LIT_INT:
-				calc_stack.push_front(*i);
+				calc_stack.push_front(elem);
 				break;
 
 			case ADD_INT:
@@ -168,7 +168,7 @@ void Block::fold_ints()
 			case MUL_INT:
 			case DIV_INT:
 			case MOD_INT:
-				calculate_int_fold(*i, calc_stack, outputs);
+				calculate_int_fold(elem, calc_stack, outputs);
 				break;
 
 			default:
@@ -179,7 +179,7 @@ void Block::fold_ints()
 					calc_stack.pop_back();
 				}
 				
-				outputs.push_back(*i);
+				outputs.push_back(elem);
 				break;
 		}
 	}
@@ -192,8 +192,8 @@ void Block::fold_ints()
 	}
 	
 	instructions.clear();
-	for (std::list<Instruction>::iterator i = outputs.begin(); i != outputs.end(); ++i)
-		instructions.push_back(*i);
+	for (auto & output : outputs)
+		instructions.push_back(output);
 }
 
 void Block::fold_floats()
@@ -201,12 +201,12 @@ void Block::fold_floats()
 	std::list<Instruction> outputs;
 	std::list<Instruction> calc_stack;
 	
-	for (auto i = instructions.begin(); i != instructions.end(); ++i)
+	for (auto & elem : instructions)
 	{
-		switch (i->op)
+		switch (elem.op)
 		{
 			case LIT_FLOAT:
-				calc_stack.push_front(*i);
+				calc_stack.push_front(elem);
 				break;
 
 			case ADD_FLOAT:
@@ -214,7 +214,7 @@ void Block::fold_floats()
 			case MUL_FLOAT:
 			case DIV_FLOAT:
 			case MOD_FLOAT:
-				calculate_float_fold(*i, calc_stack, outputs);
+				calculate_float_fold(elem, calc_stack, outputs);
 				break;
 
 			default:
@@ -225,7 +225,7 @@ void Block::fold_floats()
 					calc_stack.pop_back();
 				}
 				
-				outputs.push_back(*i);
+				outputs.push_back(elem);
 				break;
 		}
 	}
@@ -238,8 +238,8 @@ void Block::fold_floats()
 	}
 	
 	instructions.clear();
-	for (std::list<Instruction>::iterator i = outputs.begin(); i != outputs.end(); ++i)
-		instructions.push_back(*i);
+	for (auto & output : outputs)
+		instructions.push_back(output);
 }
 
 void Block::fold_constants()

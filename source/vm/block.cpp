@@ -4,7 +4,7 @@
 using namespace AsmJit;	
 
 Block::Block(const std::string& name) :
-	native(NULL),
+	native(nullptr),
 	name(name),
 	jit_type(NONE),
 	instructions(std::vector<Instruction>()),

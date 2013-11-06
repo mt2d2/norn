@@ -12,8 +12,8 @@ Memory::Memory() :
 Memory::~Memory()
 {
 	// free any unfreed memory at end
-	for (std::vector<void*>::iterator i = allocated.begin(); i != allocated.end(); ++i)
-		free(*i);
+	for (auto & elem : allocated)
+		free(elem);
 }
 
 

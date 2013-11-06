@@ -274,7 +274,7 @@ void CallExprAST::emit_bytecode(BuildContext& out)
 	int block_id = this->get_block_id(out, out.get_block());
 	// std::cout << "Calling: " <<  out.get_block_ptr(block_id)->get_name() << " block_id: " << block_id << std::endl;
 
- 	for (std::vector<ExprAST*>::reverse_iterator i = Args.rbegin(); i != Args.rend(); ++i)
+ 	for (auto i = Args.rbegin(); i != Args.rend(); ++i)
 		(*i)->emit_bytecode(out);
 
 	Block* callee = out.get_program().get_block_ptr(block_id);
@@ -291,12 +291,12 @@ void PrototypeAST::emit_bytecode(BuildContext& out)
 
 	// handle args
 	typedef std::map<std::string, Type> arg_type_t;
-	for (std::map<std::string, Type>::iterator i = args.begin(); i != args.end(); ++i)
+	for (auto & elem : args)
 	{
-		if (i->second.is_primative())
+		if (elem.second.is_primative())
 		{
 			Opcode opcode;
-			switch (i->second.get_primative())
+			switch (elem.second.get_primative())
 			{
 				case BOOLEAN:
 				case INT:
@@ -321,8 +321,8 @@ void PrototypeAST::emit_bytecode(BuildContext& out)
 					break;
 			}
 
-			out.set_variable_type(i->first, i->second);
-			out.get_block()->add_instruction(Instruction(opcode, out.get_mem_id(i->first)));
+			out.set_variable_type(elem.first, elem.second);
+			out.get_block()->add_instruction(Instruction(opcode, out.get_mem_id(elem.first)));
 		}
 		else
 		{
@@ -335,8 +335,8 @@ void FunctionAST::emit_bytecode(BuildContext& out)
 {
 	this->proto->emit_bytecode(out);
 
-	for (std::vector<ExprAST*>::iterator i = body.begin(); i != body.end(); ++i)
-		(*i)->emit_bytecode(out);
+	for (auto & elem : body)
+		(elem)->emit_bytecode(out);
 
 	
 	if (out.get_block()->get_instruction(out.get_block()->get_size()-1)->op != RTRN)
@@ -354,14 +354,14 @@ void IfExprAST::emit_bytecode(BuildContext& out)
 	out.get_block()->add_instruction(Instruction(TJMP, true_jmp));
 
 	// emit the otherwise block, jmp to end
-	for (std::vector<ExprAST*>::iterator i = otherwise.begin(); i != otherwise.end(); ++i)
-		(*i)->emit_bytecode(out);
+	for (auto & elem : otherwise)
+		(elem)->emit_bytecode(out);
    	 out.get_block()->add_instruction(Instruction(UJMP, false_jmp));
 
 	// emit the then block, jump to end
 	out.get_block()->add_instruction(Instruction(LBL, true_jmp));
-	for (std::vector<ExprAST*>::iterator i = then.begin(); i != then.end(); ++i)
-		(*i)->emit_bytecode(out);
+	for (auto & elem : then)
+		(elem)->emit_bytecode(out);
 
 	// mark end
 	out.get_block()->add_instruction(Instruction(LBL, false_jmp));
@@ -386,8 +386,8 @@ void ForExprAST::emit_bytecode(BuildContext& out)
 	out.get_block()->add_instruction(Instruction(FJMP, end_label));
 
 	// main body, looping point
-	for (std::vector<ExprAST*>::iterator i = body.begin(); i != body.end(); ++i)
-		(*i)->emit_bytecode(out);
+	for (auto & elem : body)
+		(elem)->emit_bytecode(out);
 
 	// Step++ and jump back
 	Step->emit_bytecode(out);
@@ -408,8 +408,8 @@ void WhileExprAST::emit_bytecode(BuildContext& out)
 	out.get_block()->add_instruction(Instruction(FJMP, end_label));
 
 	// main body, looping point
-	for (std::vector<ExprAST*>::iterator i = body.begin(); i != body.end(); ++i)
-		(*i)->emit_bytecode(out);
+	for (auto & elem : body)
+		(elem)->emit_bytecode(out);
 
 	// unconditionally jump back
 	out.get_block()->add_instruction(Instruction(UJMP, start_label));
