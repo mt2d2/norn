@@ -9,3 +9,6 @@
 * match only specified types, error for unspecified type
 * finish up rough jit
 * move away from common.h, use exceptions
+ 
+* profile based jit activation
+* optjit call conventions

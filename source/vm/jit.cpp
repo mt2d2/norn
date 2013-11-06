@@ -31,7 +31,7 @@ void Block::jit(std::vector<Block*>& blocks)
 
 	// Tell compiler the function prototype we want. It allocates variables representing
 	// function arguments that can be accessed through Compiler or Function instance.
-	EFunction* func = c.newFunction(CALL_CONV_DEFAULT, FunctionBuilder2<Void, long*, long*>());
+	EFunction* func = c.newFunction(CALL_CONV_DEFAULT, FunctionBuilder2<Void, int64_t*, int64_t*>());
 	c.getFunction()->setHint(FUNCTION_HINT_NAKED, true);
 	c.comment(std::string("jit function '" + this->get_name() + "'").c_str());
 	
@@ -569,7 +569,7 @@ void Block::optimizing_jit(std::vector<Block*>& blocks)
 
 	// Tell compiler the function prototype we want. It allocates variables representing
 	// function arguments that can be accessed through Compiler or Function instance.
-	EFunction* func = c.newFunction(CALL_CONV_DEFAULT, FunctionBuilder2<int64_t, long*, long*>());
+	EFunction* func = c.newFunction(CALL_CONV_DEFAULT, FunctionBuilder2<int64_t, int64_t*, int64_t*>());
 	c.getFunction()->setHint(FUNCTION_HINT_NAKED, true);
 	c.comment(std::string("optimized jit function '" + this->get_name() + "'").c_str());
 
