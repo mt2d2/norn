@@ -310,7 +310,7 @@ private:
 class PrototypeAST
 {
 public:
-	PrototypeAST(const std::string &n, const std::map<std::string, std::string> &a, const std::string& ftype, JITType jit_type) : args(std::map<std::string, Type>()), name(n), type(TypeFactory::get_instance().get(ftype)), jit_type(jit_type)
+	PrototypeAST(const std::string &n, const std::map<std::string, std::string> &a, const std::string& ftype) : args(std::map<std::string, Type>()), name(n), type(TypeFactory::get_instance().get(ftype))
 	{
 		for (std::map<std::string, std::string>::const_iterator i = a.begin(); i != a.end(); ++i)
 			args[i->first] = TypeFactory::get_instance().get(i->second);
@@ -327,7 +327,6 @@ public:
 	std::map<std::string, Type> args;
 	std::string name;
 	Type type;
-	JITType jit_type;
 };
 
 class StructAST
