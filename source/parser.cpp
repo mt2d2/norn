@@ -303,23 +303,6 @@ PrototypeAST* Parser::ParsePrototype()
 
     std::string FnName = lex.get_identifier();
     getNextToken();
-
-	JITType jit_type = NONE;
-	if (FnName == "jit")
-	{
-		jit_type = BASIC;
-		
-		// now get the real identifier
-		FnName = lex.get_identifier();
-		getNextToken();	
-	} 
-	else if (FnName == "optjit")
-	{
-		jit_type = OPTIMIZING;
-
-		FnName = lex.get_identifier();
-		getNextToken();
-	}
   
     if (CurToken != '(')
         return ErrorP("Expected '(' in prototype");
@@ -366,7 +349,7 @@ PrototypeAST* Parser::ParsePrototype()
 		getNextToken();
 	}
 		
-    return new PrototypeAST(FnName, args, function_type, jit_type);
+    return new PrototypeAST(FnName, args, function_type);
 }
 
 FunctionAST* Parser::ParseDefinition()

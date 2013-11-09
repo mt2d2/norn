@@ -284,7 +284,6 @@ void CallExprAST::emit_bytecode(BuildContext& out)
 void PrototypeAST::emit_bytecode(BuildContext& out)
 {
 	out.set_block(out.get_program().get_block_ptr(out.get_program().get_block_id(name)));
-	out.get_block()->set_jit_type(this->jit_type);
 
 	// handle args
 	typedef std::map<std::string, Type> arg_type_t;

@@ -6,17 +6,17 @@ def print(bool: Boolean): Void
 	end
 end
 
-def jit print(int: Int): Void
+def print(int: Int): Void
 	int
 	$PrintInt
 end
 
-def jit print(float: Float): Void
+def print(float: Float): Void
 	float
 	$PrintFloat
 end
 
-def jit print(char: Char): Void
+def print(char: Char): Void
 	char
 	$PrintChar
 end
@@ -31,17 +31,17 @@ def println(bool: Boolean): Void
 	print('\n')
 end
 
-def jit println(int: Int): Void
+def println(int: Int): Void
 	print(int)
 	print('\n')
 end
 
-def jit println(float: Float): Void
+def println(float: Float): Void
 	print(float)
 	print('\n')
 end
 
-def jit println(char: Char): Void
+def println(char: Char): Void
 	print(char)
 	print('\n')
 end
@@ -51,7 +51,7 @@ def println(string: CharAry): Void
 	print('\n')
 end
 
-def jit square_root(n: Float): Float
+def square_root(n: Float): Float
 	x: Float = 1.0
 	
 	for i: Float = 0.0, i < n, i=i+1.0 in
@@ -61,6 +61,6 @@ def jit square_root(n: Float): Float
 	return x
 end
 
-def jit square_root(n: Int): Float
+def square_root(n: Int): Float
 	return square_root(0.0 + n)
 end
