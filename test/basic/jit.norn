@@ -1,8 +1,8 @@
-def jit maths(): Int
+def maths(): Int
 	return (-10 + (2 + 2) * 20)
 end
 
-def jit jit_test(m: Int, t: Int): Int
+def jit_test(m: Int, t: Int): Int
 	ret: Int = 0 
 	
 	for i: Int = 0, i < 10000000, i=i+1 in
@@ -12,15 +12,15 @@ def jit jit_test(m: Int, t: Int): Int
 	return ret
 end
 
-def jit float_maths(): Float
+def float_maths(): Float
 	return 4.0 + 4.0
 end
 
-def jit jit_float_test(): Float
+def jit_float_test(): Float
 	return 8.4 + float_maths()
 end
 
-def jit main(): Void
+def main(): Void
 	println(jit_test(4, 4))
 	println(jit_float_test())
 end

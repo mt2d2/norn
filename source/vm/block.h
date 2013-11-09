@@ -36,9 +36,10 @@ public:
 	}
 	JITType get_jit_type() const;
 	void set_jit_type(JITType needs_jit);
+	unsigned int get_hotness() const;
+	void add_hotness();
 
 	// TODO, rename, repairs
-	void repair_disp_table(void** disp_table);
 	void absolute_jumps();
 
 	// optimizations
@@ -52,8 +53,8 @@ public:
 	void lit_load_le();
 	
 	// jit
-	void jit(std::vector<Block*>& blocks);
-	void optimizing_jit(std::vector<Block*>& blocks);
+	void jit(const std::vector<Block*>& blocks);
+	void optimizing_jit(const std::vector<Block*>& blocks);
 
 	native_ptr native;
 
@@ -66,7 +67,8 @@ private:
 	std::string name;
 	JITType jit_type;
 	std::vector<Instruction> instructions;
-	int memory_slots;
+	unsigned int memory_slots;
+	unsigned int hotness;
 
 	friend std::ostream& operator<<(std::ostream& os, Block& b)
 	{

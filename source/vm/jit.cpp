@@ -19,7 +19,7 @@ void putint(int n)
 	printf("%d", n);
 }
 
-void Block::jit(std::vector<Block*>& blocks)
+void Block::jit(const std::vector<Block*>& blocks)
 {
 #ifndef ASMJIT_X64
 	return;
@@ -27,7 +27,7 @@ void Block::jit(std::vector<Block*>& blocks)
 
 	Compiler c;
 	FileLogger logger(stderr);
-	c.setLogger(&logger);
+	// c.setLogger(&logger);
 
 	// Tell compiler the function prototype we want. It allocates variables representing
 	// function arguments that can be accessed through Compiler or Function instance.
@@ -57,7 +57,7 @@ void Block::jit(std::vector<Block*>& blocks)
 		auto label_position = label_positions.find(instr_count);
 		if (label_position != label_positions.end())
 			c.bind(label_position->second);
-		
+
 		++instr_count;
 		
 		switch (instr->op)
@@ -386,16 +386,14 @@ void Block::jit(std::vector<Block*>& blocks)
 				break;
 
 			case CALL:
-				raise_error("'" + reinterpret_cast<Block*>(instr->arg.p)->get_name() + "' must be jit'able to be called from a jit'd function");
-				break;
+				{
+					instr->op = CALL_NATIVE;
+				}
 			case CALL_NATIVE:
 				{
 					auto callee = std::find(blocks.begin(), blocks.end(), (Block*)instr->arg.p);
 					if (callee == blocks.end())
 						raise_error("couldn't identify block for jit native call");
-
-					if ((*callee)->get_jit_type() != BASIC)
-						raise_error("all referenced functions must be jittabled");
 
 					if (!(*callee)->native && *callee != this)
 						(*callee)->jit(blocks);
@@ -539,7 +537,7 @@ void Block::jit(std::vector<Block*>& blocks)
 				break;
 
 			default:
-				raise_error("unknown op in jit loop for block '" + this->get_name() + "'");
+				raise_error("unimplemented opcode " + opcode_str[instr->op] + " in jit");
 				break;
 		}
 	}
@@ -557,7 +555,7 @@ void Block::jit(std::vector<Block*>& blocks)
 #endif // ASMJIT_X64
 }
 
-void Block::optimizing_jit(std::vector<Block*>& blocks)
+void Block::optimizing_jit(const std::vector<Block*>& blocks)
 {
 #ifndef ASMJIT_X64
 	return;

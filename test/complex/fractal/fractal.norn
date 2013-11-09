@@ -1,4 +1,4 @@
-def jit iterate(x: Float, y: Float): Int
+def iterate(x: Float, y: Float): Int
 	cr: Float = y + -0.5 # disgusting bug, fixme, we will never have subtraction ever again!
 	ci: Float = x
 	zi: Float = 0.0
@@ -24,8 +24,7 @@ def jit iterate(x: Float, y: Float): Int
 	end
 end
 
-def jit main(): Void
-
+def main(): Void
 	for i: Int = 0, i < 1, i=i+1 in
 		for y: Int = -39, y < 39, y=y+1 in		
 		
