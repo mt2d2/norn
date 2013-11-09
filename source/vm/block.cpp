@@ -8,7 +8,8 @@ Block::Block(const std::string& name) :
 	name(name),
 	jit_type(NONE),
 	instructions(std::vector<Instruction>()),
-	memory_slots(0)
+	memory_slots(0),
+	hotness(0)
 {
 }
 
@@ -35,10 +36,14 @@ int Block::get_size() const
 	return this->instructions.size();
 }
 
-void Block::repair_disp_table(void** disp_table)
+unsigned int Block::get_hotness() const
 {
-	for (auto& i : instructions)
-		i.op = reinterpret_cast<long>(disp_table[i.op]);
+	return this->hotness;
+}
+
+void Block::add_hotness()
+{
+	this->hotness += 1;
 }
 
 void Block::add_instruction(const Instruction& instruction)

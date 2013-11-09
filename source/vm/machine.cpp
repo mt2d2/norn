@@ -1,5 +1,4 @@
 #include "machine.h"
-#include <alloca.h>
 #include <cmath> // fmod
 #include <cstdio> // printf
 
@@ -7,7 +6,7 @@
 #if COMPUTED_GOTO
 #	define DISPATCH NEXT
 #	define OP(x) x:
-#	define NEXT /*++ipc;*/ instr = block->get_instruction(ip++); goto *(reinterpret_cast<void*>(instr->op));
+#	define NEXT /*++ipc;*/ instr = block->get_instruction(ip++); goto *disp_table[instr->op];
 #	define END_DISPATCH
 #else
 #	define DISPATCH while (true) { ++ipc; instr = block->get_instruction(ip++); /*std::cout << *instr << std::endl;*/ switch(instr->op) {
@@ -44,22 +43,12 @@ Machine::~Machine()
 }
 
 void Machine::execute()
-{
-	if (!this->nojit)
-		this->program.jit();
-	
+{	
 #if COMPUTED_GOTO
 #	include "goto.h"
-	program.repair_disp_table(disp_table);
 #endif
 
 	block = this->program.get_block_ptr(this->program.get_block_id("main"));
-
-	if (!this->nojit && block->native)
-	{
-		block->native(&stack, &memory);
-		goto cleanup;
-	}	
 		
     DISPATCH
 		OP(LIT_INT)
@@ -212,7 +201,19 @@ void Machine::execute()
 			memory += block->get_memory_slots();
 			push_frame(Frame(ip, block));
 			block = reinterpret_cast<Block*>(instr->arg.p);
-			ip = 0;		
+			ip = 0;
+
+			if (unlikely(block->get_hotness()) == 40)
+			{
+				if (likely(!this->nojit))
+				{
+					fprintf(stderr, "jit %s\n", block->get_name().c_str());
+					block->jit(this->program.get_blocks());
+				}
+			}
+
+			block->add_hotness();
+
 			NEXT
 		OP(CALL_NATIVE)
 			{
