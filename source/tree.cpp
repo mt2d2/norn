@@ -1,19 +1,12 @@
 #include "tree.h"
 
-#include "vm/AsmJit/AsmJit.h"
-
-BuildContext::BuildContext(bool nojit) : 
+BuildContext::BuildContext() : 
 	program(Program()),
 	working_block(nullptr),
 	memory_ids(std::map<std::string, int>()),
 	block_types(std::map<std::string, Type>()),
 	variable_types(std::map<std::string, Type>()),
-	seed(0),
-#ifdef ASMJIT_X64
-	nojit(nojit)
-#else
-	nojit(true)
-#endif
+	seed(0)
 {
 }
 
@@ -83,11 +76,6 @@ bool BuildContext::variable_exists(const std::string& key)
 int BuildContext::get_and_increment_seed()
 {
 	return this->seed++;
-}
-
-bool BuildContext::get_nojit() const
-{
-	return this->nojit;
 }
 
 std::string CallExprAST::callee_signature(BuildContext& out)

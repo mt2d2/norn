@@ -66,6 +66,11 @@ void Program::calculate_memory_slots()
 	
 	this->set_memory_slots(total);
 }
+ 
+const std::vector<Block*>& Program::get_blocks() const
+{
+	return this->blocks;
+}
 
 void Program::set_memory_slots(int memory_slots)
 {
@@ -75,12 +80,6 @@ void Program::set_memory_slots(int memory_slots)
 int Program::get_memory_slots() const
 {
 	return this->memory_slots;
-}
-
-void Program::repair_disp_table(void** disp_table)
-{
-	for (auto* b : blocks)
-		b->repair_disp_table(disp_table);
 }
 
 void Program::absolute_jumps()

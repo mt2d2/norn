@@ -12,7 +12,7 @@
 class BuildContext
 {
 public:
-	BuildContext(bool nojit);
+	BuildContext();
 	Program& get_program();
 	Block* get_block();
 	void set_block(Block* block);
@@ -23,7 +23,6 @@ public:
 	int get_mem_id(const std::string& key);
 	bool variable_exists(const std::string& key);
 	int get_and_increment_seed();
-	bool get_nojit() const;
 
 private:
 	Program program;
@@ -32,7 +31,6 @@ private:
 	std::map<std::string, Type> block_types;
 	std::map<std::string, Type> variable_types;
 	int seed;
-	bool nojit;
 };
 
 /// ExprAST - Base class for all expression nodes.

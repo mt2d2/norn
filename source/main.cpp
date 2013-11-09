@@ -29,7 +29,7 @@ int main(int argc, char* argv[])
 	// parse the language stdlib and input
 	Program program;
 	{
-		BuildContext build(params.nojit);
+		BuildContext build;
 
 		std::ifstream lang("lang.norn");
 		Parser(lang).parse(build, -1);

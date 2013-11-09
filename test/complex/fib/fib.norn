@@ -1,4 +1,4 @@
-def jit fib(n: Int): Int
+def fib(n: Int): Int
 	if n < 3 then
 		1
 	else
@@ -6,6 +6,6 @@ def jit fib(n: Int): Int
 	end
 end
 
-def jit main(): Void
+def main(): Void
 	println(fib(30))
 end

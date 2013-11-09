@@ -16,9 +16,9 @@ public:
 	void calculate_memory_slots();
 	void set_memory_slots(int memory_slots);
 	int get_memory_slots() const;
+	const std::vector<Block*>& get_blocks() const;
 	
 	// repairs
-	void repair_disp_table(void** disp_table);
 	void absolute_jumps();
 
 	// optimizations
