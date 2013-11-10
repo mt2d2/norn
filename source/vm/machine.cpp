@@ -38,8 +38,8 @@ Machine::Machine(const Program& program, bool debug, bool nojit) :
 
 Machine::~Machine()
 {
-	delete[] stack;
-	delete[] frames;
+	delete[] stack_start;
+	delete[] frames_start;
 	delete[] memory;
 }
 
