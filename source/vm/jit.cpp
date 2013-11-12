@@ -56,7 +56,7 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 			label_positions[instr.arg.l] = c.newLabel();
 
 	int instr_count = 0;
-	for (auto instr = instructions.begin() + start_from_ip; instr != instructions.end(); ++instr)
+	for (auto instr = instructions.begin(); instr != instructions.end(); ++instr)
 	{
 		auto label_position = label_positions.find(instr_count);
 		if (label_position != label_positions.end())
