@@ -2,6 +2,8 @@
 #include <cmath> // fmod
 #include <cstdio> // printf
 
+#include <map>
+
 #define COMPUTED_GOTO __GNUC__
 #if COMPUTED_GOTO
 #	define DISPATCH NEXT
@@ -47,6 +49,8 @@ void Machine::execute()
 #if COMPUTED_GOTO
 #	include "goto.h"
 #endif
+
+	auto backedge_hotspot = std::map<const Instruction*, int>();
 
 	block = this->program.get_block_ptr(this->program.get_block_id("main"));
 		
@@ -159,7 +163,17 @@ void Machine::execute()
 				ip = instr->arg.l;
 			NEXT
 		OP(UJMP)
-			ip = instr->arg.l;
+			{
+				if (instr->arg.l < ip)
+				{
+					if (backedge_hotspot[instr]++ == 40) 
+					{
+						fprintf(stderr, "hot edge at %s:%d\n", block->get_name().c_str(), ip);
+					}
+				}
+
+				ip = instr->arg.l;
+			}
 			NEXT
 		OP(PRINT_INT)
 			printf("%ld", pop<long>());
