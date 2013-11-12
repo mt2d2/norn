@@ -40,7 +40,7 @@ realclean: clean
 	@rm -f source/*gc* source/vm/*gc*
 	@make -C source/vm/AsmJit clean
 
-test:
+test: ${EXE}
 	python test/runner.py
 
 .PHONY: clean realclean test

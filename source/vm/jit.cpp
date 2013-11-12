@@ -205,6 +205,7 @@ void Block::jit(std::vector<Block*>& blocks)
 
 				c.unuse(tmp0);
 				c.unuse(tmp1);
+				c.unuse(t_rdx);
 				}
 				break;
 
