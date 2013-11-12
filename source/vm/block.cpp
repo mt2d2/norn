@@ -88,6 +88,13 @@ void Block::absolute_jumps()
 			i.arg.l = jmp_map[i.arg.l];	
 }
 
+void Block::promote_call_to_native(const Block* target)
+{
+	for (auto& i : instructions)
+		if (i.op == CALL && reinterpret_cast<Block*>(i.arg.p) == target)
+			i.op = CALL_NATIVE;
+}
+
 void Block::set_memory_slots(int memory_slots)
 {
 	this->memory_slots = memory_slots;

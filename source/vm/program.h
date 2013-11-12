@@ -10,7 +10,7 @@ public:
 	void clean_up();
 	Block* get_block_ptr(int key) const;
 	void add_block(Block* block);
-	int get_block_id(const std::string& key);
+	int get_block_id(const std::string& key) const;
 	int add_string(std::string string);
 	std::string get_string(int key) const;
 	void calculate_memory_slots();

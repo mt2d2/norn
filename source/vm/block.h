@@ -18,6 +18,8 @@ enum JITType
 
 typedef int64_t(*native_ptr)(int64_t**, int64_t**);
 
+class Program;
+
 class Block
 {
 public:
@@ -41,6 +43,7 @@ public:
 
 	// TODO, rename, repairs
 	void absolute_jumps();
+	void promote_call_to_native(const Block* target);
 
 	// optimizations
 	void fold_constants();
@@ -53,8 +56,8 @@ public:
 	void lit_load_le();
 	
 	// jit
-	void jit(const std::vector<Block*>& blocks);
-	void optimizing_jit(const std::vector<Block*>& blocks);
+	void jit(const Program& blocks, unsigned int start_from_ip=0);
+	void optimizing_jit(const Program& program, unsigned int start_from_ip=0);
 
 	native_ptr native;
 

@@ -1,5 +1,7 @@
 #include "block.h"
 #include "common.h"
+#include "program.h"
+
 
 #include <algorithm>
 #include <stack>
@@ -19,11 +21,13 @@ void putint(int n)
 	printf("%d", n);
 }
 
-void Block::jit(const std::vector<Block*>& blocks)
+void Block::jit(const Program& program, unsigned int start_from_ip)
 {
 #ifndef ASMJIT_X64
 	return;
 #else
+
+	const auto& blocks = program.get_blocks();
 
 	Compiler c;
 	FileLogger logger(stderr);
@@ -52,7 +56,7 @@ void Block::jit(const std::vector<Block*>& blocks)
 			label_positions[instr.arg.l] = c.newLabel();
 
 	int instr_count = 0;
-	for (auto instr = instructions.begin(); instr != instructions.end(); ++instr)
+	for (auto instr = instructions.begin() + start_from_ip; instr != instructions.end(); ++instr)
 	{
 		auto label_position = label_positions.find(instr_count);
 		if (label_position != label_positions.end())
@@ -387,9 +391,6 @@ void Block::jit(const std::vector<Block*>& blocks)
 				break;
 
 			case CALL:
-				{
-					instr->op = CALL_NATIVE;
-				}
 			case CALL_NATIVE:
 				{
 					auto callee = std::find(blocks.begin(), blocks.end(), (Block*)instr->arg.p);
@@ -397,7 +398,7 @@ void Block::jit(const std::vector<Block*>& blocks)
 						raise_error("couldn't identify block for jit native call");
 
 					if (!(*callee)->native && *callee != this)
-						(*callee)->jit(blocks);
+						(*callee)->jit(program);
 
 					c.comment(std::string("CALL_NATIVE '" + (*callee)->get_name() + "'").c_str());
 
@@ -553,14 +554,21 @@ void Block::jit(const std::vector<Block*>& blocks)
 	this->native = function_cast<native_ptr>(c.make());
 	if (!this->native)
 		raise_error("unable to create jit'd block");
+
+	if (this->native)
+		for (auto *b : blocks)
+			b->promote_call_to_native(program.get_block_ptr(program.get_block_id(this->get_name())));
+
 #endif // ASMJIT_X64
 }
 
-void Block::optimizing_jit(const std::vector<Block*>& blocks)
+void Block::optimizing_jit(const Program& program, unsigned int start_from_ip)
 {
 #ifndef ASMJIT_X64
 	return;
 #else
+
+	const auto& blocks = program.get_blocks();
 
 	Compiler c;
 	FileLogger logger(stderr);
@@ -747,7 +755,7 @@ void Block::optimizing_jit(const std::vector<Block*>& blocks)
 						raise_error("all referenced functions must be jittabled and optimizing");
 
 					if (!(*callee)->native && *callee != this)
-						(*callee)->jit(blocks);
+						(*callee)->jit(program);
 
 					c.comment(std::string("CALL_NATIVE '" + (*callee)->get_name() + "'").c_str());
 
