@@ -35,12 +35,12 @@ void Program::add_block(Block* block)
     }
 }
 
-int Program::get_block_id(const std::string& key)
+int Program::get_block_id(const std::string& key) const
 {
 	if (block_map.find(key) == block_map.end())
 		raise_error("undefined function: " + key);
 
-    return block_map[key];
+    return block_map.at(key);
 }
 
 int Program::add_string(std::string string)
@@ -131,9 +131,9 @@ void Program::jit()
 		if (!b->native) 
 		{
 			if (b->get_jit_type() == BASIC)
-				b->jit(this->blocks);
+				b->jit(*this);
 			else if (b->get_jit_type() == OPTIMIZING)
-				b->optimizing_jit(this->blocks);
+				b->optimizing_jit(*this);
 		}
 	}
 }

@@ -208,7 +208,7 @@ void Machine::execute()
 				if (likely(!this->nojit))
 				{
 					fprintf(stderr, "jit %s\n", block->get_name().c_str());
-					block->jit(this->program.get_blocks());
+					block->jit(this->program);
 				}
 			}
 
