@@ -163,12 +163,23 @@ void Machine::execute()
 				ip = instr->arg.l;
 			NEXT
 		OP(UJMP)
-			{
-				if (instr->arg.l < ip)
+			{			
+				if (likely(!this->nojit))
 				{
-					if (backedge_hotspot[instr]++ == 40) 
+					if (instr->arg.l < ip)
 					{
-						fprintf(stderr, "hot edge at %s:%d\n", block->get_name().c_str(), ip);
+						if (backedge_hotspot[instr]++ == 40) 
+						{
+							// compile a special version of the block
+							// that bounces to the correct spot in the compiled code
+							block->jit(this->program, instr->arg.l);
+							block->native(&stack, &memory);
+
+							// now throw away the previous compiled code
+							// recompile the whole block and don't bounce in
+							block->jit(this->program);
+							goto RETURN;
+						}
 					}
 				}
 
@@ -242,6 +253,8 @@ void Machine::execute()
 			memory -= block->get_memory_slots();
 			}				
 			NEXT
+
+RETURN:
 		OP(RTRN)
 			if (likely(!frames_is_empty()))
 			{

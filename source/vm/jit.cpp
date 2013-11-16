@@ -52,12 +52,30 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 
 	std::map<int, Label> label_positions;
 	for (const auto& instr : instructions)
-		if (instr.op == TJMP || instr.op == FJMP || instr.op == UJMP)
-			label_positions[instr.arg.l] = c.newLabel();
+		label_positions[instr.arg.l] = c.newLabel();
+
+	// we need to bounce into the function a bit 
+	auto bounceToIp = c.newLabel();
+
+	if (start_from_ip > 0)
+	{
+		c.comment("bouncing into function");
+		GPVar tmp(c.newGP());
+		c.xor_(tmp, tmp);
+		c.cmp(tmp, 0);
+		c.jz(bounceToIp);
+		c.unuse(tmp);
+	}
 
 	int instr_count = 0;
 	for (auto instr = instructions.begin(); instr != instructions.end(); ++instr)
 	{
+		if (start_from_ip > 0 && instr_count == start_from_ip)
+		{
+			fprintf(stderr, "binding bounce to %d\n", instr_count);
+			c.bind(bounceToIp);
+		}
+
 		auto label_position = label_positions.find(instr_count);
 		if (label_position != label_positions.end())
 			c.bind(label_position->second);
@@ -555,9 +573,12 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 	if (!this->native)
 		raise_error("unable to create jit'd block");
 
-	if (this->native)
-		for (auto *b : blocks)
-			b->promote_call_to_native(program.get_block_ptr(program.get_block_id(this->get_name())));
+	if (start_from_ip == 0)
+	{
+		if (this->native)
+			for (auto *b : blocks)
+				b->promote_call_to_native(program.get_block_ptr(program.get_block_id(this->get_name())));
+	}
 
 #endif // ASMJIT_X64
 }
