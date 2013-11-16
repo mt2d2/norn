@@ -19,14 +19,14 @@ void print_trace()
 	strings = backtrace_symbols (array, size);
 
 	for (i = 0; i < size; i++)
-		std::cout << strings[i] << std::endl;
+		std::cerr << strings[i] << std::endl;
 
 	free(strings);
 }
 
 void raise_error(const std::string& message)
 {
-	std::cout << message << std::endl;
+	std::cerr << message << std::endl;
 	print_trace();
     exit(1);
 }
