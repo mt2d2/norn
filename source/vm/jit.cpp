@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <stack>
+#include <cstring>
 
 #if !NOJIT
 #include "AsmJit/AsmJit.h"
