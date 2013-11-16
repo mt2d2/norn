@@ -2,7 +2,6 @@
 #include "common.h"
 #include "program.h"
 
-
 #include <algorithm>
 #include <stack>
 
@@ -23,7 +22,7 @@ void putint(int n)
 
 void Block::jit(const Program& program, unsigned int start_from_ip)
 {
-#ifndef ASMJIT_X64
+#if NOJIT
 	return;
 #else
 
@@ -576,12 +575,12 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 				b->promote_call_to_native(program.get_block_ptr(program.get_block_id(this->get_name())));
 	}
 
-#endif // ASMJIT_X64
+#endif // NOJIT
 }
 
 void Block::optimizing_jit(const Program& program, unsigned int start_from_ip)
 {
-#ifndef ASMJIT_X64
+#if NOJIT
 	return;
 #else
 
@@ -865,5 +864,5 @@ void Block::optimizing_jit(const Program& program, unsigned int start_from_ip)
 	this->native = function_cast<native_ptr>(c.make());
 	if (!this->native)
 		raise_error("unable to create jit'd block");
-#endif // ASMJIT_X64
+#endif // NOJIT
 }

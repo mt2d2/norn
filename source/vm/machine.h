@@ -38,8 +38,10 @@ private:
 	const Instruction* instr;
 	Memory manager;
 	unsigned int ip;
+#if !NOJIT
 	bool debug;
 	bool nojit;
+#endif 
 
 	int64_t* stack;
 	int64_t* stack_start;

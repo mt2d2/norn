@@ -3,6 +3,8 @@
 
 #include <string>
 
+#define NOJIT 1
+
 // This one provides the compiler about branch hints, so it
 // keeps the normal case fast. From Rubinius.
 #ifdef __GNUC__

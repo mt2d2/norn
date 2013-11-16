@@ -27,8 +27,10 @@ Machine::Machine(const Program& program, bool debug, bool nojit) :
 	instr(nullptr),
 	manager(Memory()),
 	ip(0),
+#if !NOJIT
 	debug(debug),
 	nojit(nojit),
+#endif
 	stack(new int64_t[STACK_SIZE]),
 	stack_start(stack),	
 	frames(new Frame[STACK_SIZE]),
@@ -161,7 +163,8 @@ void Machine::execute()
 				ip = instr->arg.l;
 			NEXT
 		OP(UJMP)
-			{			
+			{
+#if !NOJIT
 				if (likely(!this->nojit))
 				{
 					if (instr->arg.l < ip)
@@ -185,6 +188,7 @@ void Machine::execute()
 						}
 					}
 				}
+#endif
 
 				ip = instr->arg.l;
 			}
@@ -231,6 +235,7 @@ void Machine::execute()
 			block = reinterpret_cast<Block*>(instr->arg.p);
 			ip = 0;
 
+#if !NOJIT
 			if (unlikely(block->get_hotness()) == CALL_HOTNESS)
 			{
 				if (unlikely(this->debug))
@@ -239,6 +244,7 @@ void Machine::execute()
 				if (likely(!this->nojit))
 					block->jit(this->program);
 			}
+#endif
 
 			block->add_hotness();
 
@@ -257,7 +263,9 @@ void Machine::execute()
 			}				
 			NEXT
 
+#if !NOJIT
 RETURN:
+#endif
 		OP(RTRN)
 			if (likely(!frames_is_empty()))
 			{
