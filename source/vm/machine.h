@@ -37,8 +37,7 @@ private:
 	Block* block;
 	const Instruction* instr;
 	Memory manager;
-	int ip;
-	int ipc;
+	unsigned int ip;
 	bool debug;
 	bool nojit;
 

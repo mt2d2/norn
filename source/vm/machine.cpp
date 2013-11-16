@@ -9,10 +9,10 @@
 #if COMPUTED_GOTO
 #	define DISPATCH NEXT
 #	define OP(x) x:
-#	define NEXT /*++ipc;*/ instr = block->get_instruction(ip++); goto *disp_table[instr->op];
+#	define NEXT instr = block->get_instruction(ip++); goto *disp_table[instr->op];
 #	define END_DISPATCH
 #else
-#	define DISPATCH while (true) { ++ipc; instr = block->get_instruction(ip++); /*std::cout << *instr << std::endl;*/ switch(instr->op) {
+#	define DISPATCH while (true) { instr = block->get_instruction(ip++); /*std::cout << *instr << std::endl;*/ switch(instr->op) {
 #	define OP(x) case x:
 #	define NEXT break;
 #	define END_DISPATCH } }
@@ -27,7 +27,6 @@ Machine::Machine(const Program& program, bool debug, bool nojit) :
 	instr(nullptr),
 	manager(Memory()),
 	ip(0),
-	ipc(0),
 	debug(debug),
 	nojit(nojit),
 	stack(new int64_t[STACK_SIZE]),
@@ -171,6 +170,9 @@ void Machine::execute()
 
 						if (block->get_backedge_hotness(instr) == BACKEDGE_HOTNESS) 
 						{
+							if (unlikely(this->debug))
+								fprintf(stderr, "hot backedge at %s:%d\n", block->get_name().c_str(), ip);
+
 							// compile a special version of the block
 							// that bounces to the correct spot in the compiled code
 							block->jit(this->program, instr->arg.l);
@@ -231,11 +233,11 @@ void Machine::execute()
 
 			if (unlikely(block->get_hotness()) == CALL_HOTNESS)
 			{
+				if (unlikely(this->debug))
+					fprintf(stderr, "hot call %s\n", block->get_name().c_str());
+
 				if (likely(!this->nojit))
-				{
-					fprintf(stderr, "jit %s\n", block->get_name().c_str());
 					block->jit(this->program);
-				}
 			}
 
 			block->add_hotness();
@@ -276,15 +278,6 @@ RETURN:
 			}
 			else
 			{
-				if (unlikely(debug))
-				{
-					printf("--------------------\n");
-					printf("Instructions executed: %d\n", ipc);
-					printf("Yielding stack...\n");
-					while (!stack_is_empty())
-						printf("%ld\n", pop<long>());
-				}
-
 				// clean and final exit
 				goto cleanup;
 			}
