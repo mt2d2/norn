@@ -16,7 +16,7 @@ Block::Block(const std::string& name) :
 
 Block::~Block()
 {
-#ifdef ASMJIT_X64
+#if !NOJIT
 	if (this->native && (this->get_jit_type() == BASIC || this->get_jit_type() == OPTIMIZING))
 		MemoryManager::getGlobal()->free((void*)this->native);
 #endif

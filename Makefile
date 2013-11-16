@@ -8,9 +8,8 @@ OBJ=${SRC:.cpp=.o}
 
 LIBASMJIT=source/vm/AsmJit/libasmjit.a
 
-# PGO: use -fprofile-generate, run then -fprofile-use; in both
-# Other: -fomit-frame-pointer -pipe -march=core2 -g -fast -stdlib=libc++
 CFLAGS=-std=c++11 -Wall -Werror -pipe -g -O2
+${EXE}_nojit: CFLAGS += -DNOJIT=1
 LDFLAGS=
 
 all: ${SRC} ${EXE}
