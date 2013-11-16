@@ -244,9 +244,9 @@ void Machine::execute()
 				if (likely(!this->nojit))
 					block->jit(this->program);
 			}
-#endif
 
 			block->add_hotness();
+#endif
 
 			NEXT
 		OP(CALL_NATIVE)
@@ -254,10 +254,13 @@ void Machine::execute()
 			Block* callee = reinterpret_cast<Block*>(instr->arg.p);
 			memory += block->get_memory_slots();
 
+#if !NOJIT
 			long ret = callee->native(&stack, &memory);
-
 			if (callee->get_jit_type() == OPTIMIZING)
 				push<long>(ret);
+#else
+			callee->native(&stack, &memory);
+#endif
 
 			memory -= block->get_memory_slots();
 			}				

@@ -9,9 +9,9 @@ Block::Block(const std::string& name) :
 	native(nullptr),
 	name(name),
 	instructions(std::vector<Instruction>()),
-	memory_slots(0),
+	memory_slots(0)
 #if !NOJIT
-	jit_type(NONE),
+	, jit_type(NONE),
 	hotness(0),
 	backedge_hotness(std::map<const Instruction*, unsigned int>())
 #endif

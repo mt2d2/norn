@@ -9,7 +9,6 @@
 #if !NOJIT
 #include "AsmJit/AsmJit.h"
 using namespace AsmJit;
-#endif
 
 void putdouble(long l)
 {
@@ -25,10 +24,6 @@ void putint(int n)
 
 void Block::jit(const Program& program, unsigned int start_from_ip)
 {
-#if NOJIT
-	return;
-#else
-
 	const auto& blocks = program.get_blocks();
 
 	Compiler c;
@@ -577,16 +572,10 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 			for (auto *b : blocks)
 				b->promote_call_to_native(program.get_block_ptr(program.get_block_id(this->get_name())));
 	}
-
-#endif // NOJIT
 }
 
 void Block::optimizing_jit(const Program& program, unsigned int start_from_ip)
 {
-#if NOJIT
-	return;
-#else
-
 	const auto& blocks = program.get_blocks();
 
 	Compiler c;
@@ -867,5 +856,6 @@ void Block::optimizing_jit(const Program& program, unsigned int start_from_ip)
 	this->native = function_cast<native_ptr>(c.make());
 	if (!this->native)
 		raise_error("unable to create jit'd block");
-#endif // NOJIT
 }
+
+#endif //!NOJIT

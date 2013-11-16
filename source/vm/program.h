@@ -30,9 +30,11 @@ public:
 	void lit_load_add();
 	void lit_load_sub();
 	void lit_load_le();
-	
-	void jit();
 
+#if !NOJIT
+	void jit();
+#endif
+	
 private:
 	std::map<std::string, int> block_map;
 	std::vector<Block*> blocks;

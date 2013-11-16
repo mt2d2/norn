@@ -10,12 +10,14 @@
 #include <list>
 #include <map>
 
+#if !NOJIT
 enum JITType
 {
 	NONE,
 	BASIC,
 	OPTIMIZING
 };
+#endif
 
 typedef int64_t(*native_ptr)(int64_t**, int64_t**);
 
@@ -61,9 +63,10 @@ public:
 	void lit_load_sub();
 	void lit_load_le();
 	
-	// jit
+#if !NOJIT
 	void jit(const Program& blocks, unsigned int start_from_ip=0);
 	void optimizing_jit(const Program& program, unsigned int start_from_ip=0);
+#endif
 
 	native_ptr native;
 
@@ -81,7 +84,7 @@ private:
 	unsigned int hotness;
 	std::map<const Instruction*, unsigned int> backedge_hotness;
 #endif
-	
+
 	friend std::ostream& operator<<(std::ostream& os, Block& b)
 	{
 		os << "Name: " << b.name << "; Memory Slots: " << b.get_memory_slots() << std::endl;

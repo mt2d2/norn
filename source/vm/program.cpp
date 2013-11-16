@@ -124,6 +124,7 @@ void Program::lit_load_le()
 		b->lit_load_le();
 }
 
+#if !NOJIT
 void Program::jit()
 {
 	for (auto* b : blocks)
@@ -137,3 +138,4 @@ void Program::jit()
 		}
 	}
 }
+#endif
