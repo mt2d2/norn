@@ -2,7 +2,8 @@
 #include <cmath> // fmod
 #include <cstdio> // printf
 
-#include <map>
+#define BACKEDGE_HOTNESS 40
+#define CALL_HOTNESS 40
 
 #define COMPUTED_GOTO __GNUC__
 #if COMPUTED_GOTO
@@ -49,8 +50,6 @@ void Machine::execute()
 #if COMPUTED_GOTO
 #	include "goto.h"
 #endif
-
-	auto backedge_hotspot = std::map<const Instruction*, int>();
 
 	block = this->program.get_block_ptr(this->program.get_block_id("main"));
 		
@@ -168,7 +167,9 @@ void Machine::execute()
 				{
 					if (instr->arg.l < ip)
 					{
-						if (backedge_hotspot[instr]++ == 40) 
+						block->add_backedge_hotness(instr);
+
+						if (block->get_backedge_hotness(instr) == BACKEDGE_HOTNESS) 
 						{
 							// compile a special version of the block
 							// that bounces to the correct spot in the compiled code
@@ -228,7 +229,7 @@ void Machine::execute()
 			block = reinterpret_cast<Block*>(instr->arg.p);
 			ip = 0;
 
-			if (unlikely(block->get_hotness()) == 40)
+			if (unlikely(block->get_hotness()) == CALL_HOTNESS)
 			{
 				if (likely(!this->nojit))
 				{

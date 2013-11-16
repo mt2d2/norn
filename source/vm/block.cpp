@@ -9,7 +9,8 @@ Block::Block(const std::string& name) :
 	jit_type(NONE),
 	instructions(std::vector<Instruction>()),
 	memory_slots(0),
-	hotness(0)
+	hotness(0),
+	backedge_hotness(std::map<const Instruction*, unsigned int>())
 {
 }
 
@@ -45,6 +46,18 @@ void Block::add_hotness()
 {
 	this->hotness += 1;
 }
+
+unsigned int Block::get_backedge_hotness(const Instruction* i) const
+{
+	return this->backedge_hotness.at(i);
+}
+
+
+void Block::add_backedge_hotness(const Instruction* i)
+{
+	this->backedge_hotness[i]++;
+}
+
 
 void Block::add_instruction(const Instruction& instruction)
 {

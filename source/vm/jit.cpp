@@ -56,7 +56,6 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 
 	// we need to bounce into the function a bit 
 	auto bounceToIp = c.newLabel();
-
 	if (start_from_ip > 0)
 	{
 		c.comment("bouncing into function");
@@ -71,10 +70,7 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 	for (auto instr = instructions.begin(); instr != instructions.end(); ++instr)
 	{
 		if (start_from_ip > 0 && instr_count == start_from_ip)
-		{
-			fprintf(stderr, "binding bounce to %d\n", instr_count);
 			c.bind(bounceToIp);
-		}
 
 		auto label_position = label_positions.find(instr_count);
 		if (label_position != label_positions.end())

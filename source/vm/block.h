@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <list>
+#include <map>
 
 enum JITType
 {
@@ -40,6 +41,8 @@ public:
 	void set_jit_type(JITType needs_jit);
 	unsigned int get_hotness() const;
 	void add_hotness();
+	unsigned int get_backedge_hotness(const Instruction* i) const;
+	void add_backedge_hotness(const Instruction* i);
 
 	// TODO, rename, repairs
 	void absolute_jumps();
@@ -72,6 +75,7 @@ private:
 	std::vector<Instruction> instructions;
 	unsigned int memory_slots;
 	unsigned int hotness;
+	std::map<const Instruction*, unsigned int> backedge_hotness;
 
 	friend std::ostream& operator<<(std::ostream& os, Block& b)
 	{
