@@ -1,7 +1,9 @@
 #include "block.h"
 
+#if !NOJIT
 #include "AsmJit/AsmJit.h"
 using namespace AsmJit;	
+#endif
 
 Block::Block(const std::string& name) :
 	native(nullptr),

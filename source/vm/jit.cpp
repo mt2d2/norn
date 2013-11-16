@@ -5,8 +5,10 @@
 #include <algorithm>
 #include <stack>
 
+#if !NOJIT
 #include "AsmJit/AsmJit.h"
 using namespace AsmJit;
+#endif
 
 void putdouble(long l)
 {
