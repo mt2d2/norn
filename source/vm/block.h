@@ -37,12 +37,15 @@ public:
 	{
 		return this->memory_slots;
 	}
+
+#if !NOJIT
 	JITType get_jit_type() const;
 	void set_jit_type(JITType needs_jit);
 	unsigned int get_hotness() const;
 	void add_hotness();
 	unsigned int get_backedge_hotness(const Instruction* i) const;
 	void add_backedge_hotness(const Instruction* i);
+#endif
 
 	// TODO, rename, repairs
 	void absolute_jumps();
@@ -71,12 +74,14 @@ private:
 	void fold_floats();
 	
 	std::string name;
-	JITType jit_type;
 	std::vector<Instruction> instructions;
 	unsigned int memory_slots;
+#if !NOJIT
+	JITType jit_type;
 	unsigned int hotness;
 	std::map<const Instruction*, unsigned int> backedge_hotness;
-
+#endif
+	
 	friend std::ostream& operator<<(std::ostream& os, Block& b)
 	{
 		os << "Name: " << b.name << "; Memory Slots: " << b.get_memory_slots() << std::endl;

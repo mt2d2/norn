@@ -8,11 +8,13 @@ using namespace AsmJit;
 Block::Block(const std::string& name) :
 	native(nullptr),
 	name(name),
-	jit_type(NONE),
 	instructions(std::vector<Instruction>()),
 	memory_slots(0),
+#if !NOJIT
+	jit_type(NONE),
 	hotness(0),
 	backedge_hotness(std::map<const Instruction*, unsigned int>())
+#endif
 {
 }
 
@@ -39,6 +41,17 @@ int Block::get_size() const
 	return this->instructions.size();
 }
 
+#if !NOJIT
+JITType Block::get_jit_type() const
+{
+	return this->jit_type;
+}
+
+void Block::set_jit_type(JITType jit_type)
+{
+	this->jit_type = jit_type;
+}
+
 unsigned int Block::get_hotness() const
 {
 	return this->hotness;
@@ -54,12 +67,11 @@ unsigned int Block::get_backedge_hotness(const Instruction* i) const
 	return this->backedge_hotness.at(i);
 }
 
-
 void Block::add_backedge_hotness(const Instruction* i)
 {
 	this->backedge_hotness[i]++;
 }
-
+#endif
 
 void Block::add_instruction(const Instruction& instruction)
 {
@@ -113,14 +125,4 @@ void Block::promote_call_to_native(const Block* target)
 void Block::set_memory_slots(int memory_slots)
 {
 	this->memory_slots = memory_slots;
-}
-
-JITType Block::get_jit_type() const
-{
-	return this->jit_type;
-}
-
-void Block::set_jit_type(JITType jit_type)
-{
-	this->jit_type = jit_type;
 }
