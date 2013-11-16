@@ -11,14 +11,10 @@
 void print_trace()
 {
 	void *array[10];
-	size_t size;
-	char **strings;
-	size_t i;
+	size_t size = backtrace(array, 10);
+	char **strings = backtrace_symbols(array, size);
 
-	size = backtrace (array, 10);
-	strings = backtrace_symbols (array, size);
-
-	for (i = 0; i < size; i++)
+	for (size_t i = 0; i < size; i++)
 		std::cerr << strings[i] << std::endl;
 
 	free(strings);
