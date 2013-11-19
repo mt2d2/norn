@@ -382,8 +382,8 @@ void ForExprAST::emit_bytecode(BuildContext& out)
 	out.get_block()->add_instruction(Instruction(FJMP, end_label));
 
 	// main body, looping point
-	for (auto & elem : body)
-		(elem)->emit_bytecode(out);
+	for (auto* elem : body)
+		elem->emit_bytecode(out);
 
 	// Step++ and jump back
 	Step->emit_bytecode(out);
