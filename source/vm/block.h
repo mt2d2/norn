@@ -41,6 +41,7 @@ public:
 	}
 
 #if !NOJIT
+	void free_native_code();
 	JITType get_jit_type() const;
 	void set_jit_type(JITType needs_jit);
 	unsigned int get_hotness() const;

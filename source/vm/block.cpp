@@ -21,8 +21,7 @@ Block::Block(const std::string& name) :
 Block::~Block()
 {
 #if !NOJIT
-	if (this->native && (this->get_jit_type() == BASIC || this->get_jit_type() == OPTIMIZING))
-		MemoryManager::getGlobal()->free((void*)this->native);
+	this->free_native_code();
 #endif
 }
 
@@ -42,6 +41,12 @@ int Block::get_size() const
 }
 
 #if !NOJIT
+void Block::free_native_code()
+{
+	if (this->native && (this->get_jit_type() == BASIC || this->get_jit_type() == OPTIMIZING))
+		MemoryManager::getGlobal()->free((void*)this->native);
+}
+
 JITType Block::get_jit_type() const
 {
 	return this->jit_type;

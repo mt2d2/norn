@@ -572,6 +572,9 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 			for (auto *b : blocks)
 				b->promote_call_to_native(program.get_block_ptr(program.get_block_id(this->get_name())));
 	}
+
+	// mark native segment as BASIC JIT compiled
+	this->set_jit_type(BASIC);
 }
 
 void Block::optimizing_jit(const Program& program, unsigned int start_from_ip)
@@ -856,6 +859,9 @@ void Block::optimizing_jit(const Program& program, unsigned int start_from_ip)
 	this->native = function_cast<native_ptr>(c.make());
 	if (!this->native)
 		raise_error("unable to create jit'd block");
+
+	// mark native segment as OPTIMIZING JIT compiled
+	this->set_jit_type(OPTIMIZING);
 }
 
 #endif //!NOJIT
