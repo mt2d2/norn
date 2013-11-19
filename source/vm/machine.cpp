@@ -180,10 +180,10 @@ void Machine::execute()
 							// that bounces to the correct spot in the compiled code
 							block->jit(this->program, instr->arg.l);
 							block->native(&stack, &memory);
-							block->free_native_code();
 
 							// now throw away the previous compiled code
 							// recompile the whole block and don't bounce in
+							block->free_native_code();
 							block->jit(this->program);
 							goto RETURN;
 						}
