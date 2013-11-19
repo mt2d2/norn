@@ -183,7 +183,7 @@ void Machine::execute()
 						// recompile the whole block and don't bounce in
 						block->free_native_code();
 						block->jit(this->program);
-						goto RETURN;
+						goto return_opcode;
 					}
 				}
 #endif
@@ -264,7 +264,7 @@ void Machine::execute()
 			NEXT
 
 #if !NOJIT
-RETURN:
+return_opcode:
 #endif
 		OP(RTRN)
 			if (likely(!frames_is_empty()))
@@ -338,7 +338,7 @@ RETURN:
 			NEXT
 	END_DISPATCH
 	
-	cleanup:
+cleanup:
 		program.clean_up();
 		return;
 }
