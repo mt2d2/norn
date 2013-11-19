@@ -165,28 +165,25 @@ void Machine::execute()
 		OP(UJMP)
 			{
 #if !NOJIT
-				if (likely(!this->nojit))
+				if (likely(!this->nojit) && instr->arg.l < ip)
 				{
-					if (instr->arg.l < ip)
+					block->add_backedge_hotness(instr);
+
+					if (block->get_backedge_hotness(instr) == BACKEDGE_HOTNESS) 
 					{
-						block->add_backedge_hotness(instr);
+						if (unlikely(this->debug))
+							fprintf(stderr, "hot backedge at %s:%d\n", block->get_name().c_str(), ip);
 
-						if (block->get_backedge_hotness(instr) == BACKEDGE_HOTNESS) 
-						{
-							if (unlikely(this->debug))
-								fprintf(stderr, "hot backedge at %s:%d\n", block->get_name().c_str(), ip);
+						// compile a special version of the block
+						// that bounces to the correct spot in the compiled code
+						block->jit(this->program, instr->arg.l);
+						block->native(&stack, &memory);
 
-							// compile a special version of the block
-							// that bounces to the correct spot in the compiled code
-							block->jit(this->program, instr->arg.l);
-							block->native(&stack, &memory);
-
-							// now throw away the previous compiled code
-							// recompile the whole block and don't bounce in
-							block->free_native_code();
-							block->jit(this->program);
-							goto RETURN;
-						}
+						// now throw away the previous compiled code
+						// recompile the whole block and don't bounce in
+						block->free_native_code();
+						block->jit(this->program);
+						goto RETURN;
 					}
 				}
 #endif
@@ -237,13 +234,12 @@ void Machine::execute()
 			ip = 0;
 
 #if !NOJIT
-			if (unlikely(block->get_hotness()) == CALL_HOTNESS)
+			if (likely(!this->nojit) && unlikely(block->get_hotness()) == CALL_HOTNESS)
 			{
 				if (unlikely(this->debug))
 					fprintf(stderr, "hot call %s\n", block->get_name().c_str());
 
-				if (likely(!this->nojit))
-					block->jit(this->program);
+				block->jit(this->program);
 			}
 
 			block->add_hotness();
