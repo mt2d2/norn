@@ -566,11 +566,10 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 	if (!this->native)
 		raise_error("unable to create jit'd block");
 
-	if (start_from_ip == 0)
+	if (start_from_ip == 0 && this->native)
 	{
-		if (this->native)
-			for (auto *b : blocks)
-				b->promote_call_to_native(program.get_block_ptr(program.get_block_id(this->get_name())));
+		for (auto *b : blocks)
+			b->promote_call_to_native(program.get_block_ptr(program.get_block_id(this->get_name())));
 	}
 
 	// mark native segment as BASIC JIT compiled
