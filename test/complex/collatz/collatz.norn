@@ -1,0 +1,26 @@
+def main(): Void
+   max_a0: Int = 1000000
+   longest: Int = 0
+   max_len: Int = 0
+
+   for a0: Int = 1, a0 < max_a0, a0=a0+1 in
+      a: Int = a0
+      len: Int = 0
+
+      while (a != 1) in      
+         if a%2 != 0 then
+            a = 3*a+1
+         end
+         
+         len = len + 1
+         a = a / 2
+      end
+
+      if (len > max_len) then
+         max_len = len
+         longest = a0
+      end
+   end
+
+   print('(') print(max_len) print(',') print(' ') print(longest) println(')')
+end

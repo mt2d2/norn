@@ -10,6 +10,7 @@ Parser::Parser(std::istream& stream) : lex(Lexer(stream)), CurToken(0), BinopPre
 	BinopPrecedence['l'] = 10;
 	BinopPrecedence['>'] = 10;
 	BinopPrecedence['g'] = 10;
+	BinopPrecedence['!'] = 10;
 	BinopPrecedence['='] = 10;
 	BinopPrecedence['+'] = 20;
 	BinopPrecedence['-'] = 20;
