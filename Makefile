@@ -1,4 +1,4 @@
-CC=clang++
+CXX=clang++
 ECHO=/bin/echo
 
 EXE=norn
@@ -16,19 +16,19 @@ all: ${SRC} ${EXE}
 
 ${EXE}: ${OBJ} ${LIBASMJIT}
 	@${ECHO} LINK $@
-	@${CC} ${LDFLAGS} ${OBJ} ${LIBASMJIT} -o $@ ${LIB}
+	@${CXX} ${LDFLAGS} ${OBJ} ${LIBASMJIT} -o $@ ${LIB}
 
 ${EXE}_nojit: ${OBJ}
 	@${ECHO} LINK $@
-	@${CC} ${LDFLAGS} ${OBJ} -o ${EXE} ${LIB}
+	@${CXX} ${LDFLAGS} ${OBJ} -o ${EXE} ${LIB}
 
 ${LIBASMJIT}:
 	@${ECHO} MAKE LIBASMJIT
 	@+$(MAKE) -C source/vm/AsmJit
 
 .cpp.o:
-	@${ECHO} CC $<
-	@${CC} ${CFLAGS} -c $< -o $@
+	@${ECHO} CXX $<
+	@${CXX} ${CFLAGS} -c $< -o $@
 
 clean:
 	@${ECHO} RM objects, executable
