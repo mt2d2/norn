@@ -56,7 +56,7 @@ void Machine::execute()
 		
     DISPATCH
 		OP(LIT_INT)
-			push<long>(instr->arg.l);
+			push<int64_t>(instr->arg.l);
 			NEXT
 		OP(LIT_FLOAT)
 			push<double>(instr->arg.d);
@@ -65,7 +65,7 @@ void Machine::execute()
 			push<char>(instr->arg.c);
 			NEXT
 		OP(LOAD_INT)
-			push<long>(get_memory<long>(instr->arg.l));
+			push<int64_t>(get_memory<int64_t>(instr->arg.l));
 			NEXT
 		OP(LOAD_FLOAT)
 			push<double>(get_memory<double>(instr->arg.l));
@@ -74,7 +74,7 @@ void Machine::execute()
 			push<char>(get_memory<char>(instr->arg.l));
 			NEXT
 		OP(STORE_INT)
-			store_memory(instr->arg.l, pop<long>());
+			store_memory(instr->arg.l, pop<int64_t>());
 			NEXT
 		OP(STORE_FLOAT) 
 			store_memory(instr->arg.l, pop<double>());
@@ -83,73 +83,73 @@ void Machine::execute()
 			store_memory(instr->arg.c, pop<char>());
 			NEXT
 		OP(ADD_INT)
-			push<long>(pop<long>() + pop<long>());
+			push<int64_t>(pop<int64_t>() + pop<int64_t>());
 			NEXT
 		OP(ADD_FLOAT)
 			push<double>(pop<double>() + pop<double>());
 			NEXT
 		OP(SUB_INT)
-			push<long>(pop<long>() - pop<long>());
+			push<int64_t>(pop<int64_t>() - pop<int64_t>());
 			NEXT
 		OP(SUB_FLOAT)
 			push<double>(pop<double>() - pop<double>());
 			NEXT
 		OP(MUL_INT)
-			push<long>(pop<long>() * pop<long>());
+			push<int64_t>(pop<int64_t>() * pop<int64_t>());
 			NEXT
 		OP(MUL_FLOAT)
 			push<double>(pop<double>() * pop<double>());
 			NEXT
 		OP(DIV_INT)
-			push<long>(pop<long>() / pop<long>());
+			push<int64_t>(pop<int64_t>() / pop<int64_t>());
 			NEXT
 		OP(DIV_FLOAT)
 			push<double>(pop<double>() / pop<double>());
 			NEXT
 		OP(MOD_INT)
-			push<long>(pop<long>() % pop<long>());
+			push<int64_t>(pop<int64_t>() % pop<int64_t>());
 			NEXT
 		OP(MOD_FLOAT)
 			push<double>(fmod(pop<double>(), pop<double>()));
 			NEXT
 		OP(AND_INT)
-			push<long>(pop<long>() & pop<long>());
+			push<int64_t>(pop<int64_t>() & pop<int64_t>());
 			NEXT
 		OP(OR_INT)
-			push<long>(pop<long>() | pop<long>());
+			push<int64_t>(pop<int64_t>() | pop<int64_t>());
 			NEXT
 		OP(LE_INT)
-			push<bool>(pop<long>() < pop<long>());
+			push<bool>(pop<int64_t>() < pop<int64_t>());
 			NEXT
 		OP(LE_FLOAT)
 			push<bool>(pop<double>() < pop<double>());
 			NEXT
 		OP(LEQ_INT)
-			push<bool>(pop<long>() <= pop<long>());
+			push<bool>(pop<int64_t>() <= pop<int64_t>());
 			NEXT
 		OP(LEQ_FLOAT)
 			push<bool>(pop<double>() <= pop<double>());
 			NEXT
 		OP(GE_INT)
-			push<bool>(pop<long>() > pop<long>());
+			push<bool>(pop<int64_t>() > pop<int64_t>());
 			NEXT
 		OP(GE_FLOAT)
 			push<bool>(pop<double>() > pop<double>());
 			NEXT
 		OP(GEQ_INT)
-			push<bool>(pop<long>() >= pop<long>());
+			push<bool>(pop<int64_t>() >= pop<int64_t>());
 			NEXT
 		OP(GEQ_FLOAT)
 			push<bool>(pop<double>() >= pop<double>());
 			NEXT
 		OP(EQ_INT)
-			push<bool>(pop<long>() == pop<long>());
+			push<bool>(pop<int64_t>() == pop<int64_t>());
 			NEXT
 		OP(EQ_FLOAT)
 			push<bool>(pop<double>() == pop<double>());
 			NEXT
 		OP(NEQ_INT)
-			push<bool>(pop<long>() != pop<long>());
+			push<bool>(pop<int64_t>() != pop<int64_t>());
 			NEXT
 		OP(NEQ_FLOAT)
 			push<bool>(pop<double>() != pop<double>());
@@ -192,7 +192,7 @@ void Machine::execute()
 			}
 			NEXT
 		OP(PRINT_INT)
-			printf("%ld", pop<long>());
+			printf("%lld", pop<int64_t>());
 			NEXT
 		OP(PRINT_FLOAT)
 			printf("%f", pop<double>());
@@ -214,7 +214,7 @@ void Machine::execute()
 				const std::string& string = program.get_string(instr->arg.l);
 				Variant* array = pop<Variant*>();
 
-				for (long i = 1; i < array[0].l; ++i)
+				for (int64_t i = 1; i < array[0].l; ++i)
 					array[i].c = string[i-1];
 
 				push<Variant*>(array);
@@ -223,7 +223,7 @@ void Machine::execute()
 		OP(PRINT_ARY_CHAR)
 			{
 				Variant* array = pop<Variant*>();
-				for (long i = 1; i < array[0].l; ++i)
+				for (int64_t i = 1; i < array[0].l; ++i)
 					putchar(array[i].c);
 			}
 			NEXT
@@ -252,9 +252,9 @@ void Machine::execute()
 			memory += block->get_memory_slots();
 
 #if !NOJIT
-			long ret = callee->native(&stack, &memory);
+			int64_t ret = callee->native(&stack, &memory);
 			if (callee->get_jit_type() == OPTIMIZING)
-				push<long>(ret);
+				push<int64_t>(ret);
 #else
 			callee->native(&stack, &memory);
 #endif
@@ -291,39 +291,39 @@ return_opcode:
 			}
 			NEXT
 		OP(STORE_ARY_ELM_CHAR)
-			(get_memory<Variant*>(instr->arg.l))[1 + pop<long>()] = pop<long>();
+			(get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()] = pop<int64_t>();
 			NEXT
 		OP(STORE_ARY_ELM_INT)
-			(get_memory<Variant*>(instr->arg.l))[1 + pop<long>()] = pop<long>();
+			(get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()] = pop<int64_t>();
 			NEXT
 		OP(STORE_ARY_ELM_FLOAT)
-			(get_memory<Variant*>(instr->arg.l))[1 + pop<long>()] = pop<double>();
+			(get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()] = pop<double>();
 			NEXT
 		OP(LOAD_ARY_ELM_CHAR)
-			push<char>((get_memory<Variant*>(instr->arg.l))[1 + pop<long>()].c);
+			push<char>((get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()].c);
 			NEXT
 		OP(LOAD_ARY_ELM_INT)
-			push<long>((get_memory<Variant*>(instr->arg.l))[1 + pop<long>()].l);
+			push<int64_t>((get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()].l);
 			NEXT
 		OP(LOAD_ARY_ELM_FLOAT)
-			push<double>((get_memory<Variant*>(instr->arg.l))[1 + pop<long>()].d);
+			push<double>((get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()].d);
 			NEXT
 			
 		OP(LIT_LOAD_ADD)
-			push<long>(get_memory<long>(instr->arg.l) + instr->arg2.l);
+			push<int64_t>(get_memory<int64_t>(instr->arg.l) + instr->arg2.l);
 			NEXT
 		OP(LIT_LOAD_SUB)
-			push<long>(get_memory<long>(instr->arg.l) - instr->arg2.l);
+			push<int64_t>(get_memory<int64_t>(instr->arg.l) - instr->arg2.l);
 			NEXT
 		OP(LIT_LOAD_LE)
-			push<long>(get_memory<long>(instr->arg.l) < instr->arg2.l);
+			push<int64_t>(get_memory<int64_t>(instr->arg.l) < instr->arg2.l);
 			NEXT
 
 		OP(F2I)
-			push<long>(pop<double>());
+			push<int64_t>(pop<double>());
 			NEXT
 		OP(I2F)
-			push<double>(pop<long>());
+			push<double>(pop<int64_t>());
 			NEXT
 			
 		OP(LBL)
