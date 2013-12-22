@@ -4,13 +4,15 @@ struct Test
 end
 
 def main(): Void
-	# tester: Test = 8
-
-	tester: Test = new(9)
+	tester: Test = new(16)
 	tester.i = 8
+	tester.b = true
 
 	test: Int = tester.i
 
 	print("Value of struct: ")
 	println(tester.i)
+
+	print("Value of struct: ")
+	println(tester.b)
 end

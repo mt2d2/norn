@@ -6,15 +6,18 @@
 int Type::offset_of(const std::string& field) const
 {
 	int offset = 0;
+	int i = 0;
 
-	for (const auto& member : members)
+	for (const auto& f : fields)
 	{
-		if (member.get_name() == field)
+		if (f == field)
 			return offset;
-	
-		offset += member.get_size();
+
+		offset += members[i].get_size();
+		i += 1;
 	}
 
+	raise_error("unable to get offset of field " + field);
 	return 0;
 }
 

@@ -81,7 +81,8 @@ void VariableFieldExprAST::emit_bytecode(BuildContext& out)
 	auto field_type = struct_type.get_member(field);
 
 	Opcode op = STRUCT_LOAD_INT;
-	if (field_type == TypeFactory::get_instance().get(INT))
+	if (field_type == TypeFactory::get_instance().get(INT) ||
+		field_type == TypeFactory::get_instance().get(BOOLEAN))
 		op = STRUCT_LOAD_INT;
 	else if (field_type == TypeFactory::get_instance().get(FLOAT))
 		op = STRUCT_LOAD_FLOAT;
@@ -105,7 +106,8 @@ void VariableAssignFieldExprAST::emit_bytecode(BuildContext& out)
 	auto field_type = struct_type.get_member(field);
 
 	Opcode op = STRUCT_STORE_INT;
-	if (field_type == TypeFactory::get_instance().get(INT))
+	if (field_type == TypeFactory::get_instance().get(INT) ||
+		field_type == TypeFactory::get_instance().get(BOOLEAN))
 		op = STRUCT_STORE_INT;
 	else if (field_type == TypeFactory::get_instance().get(FLOAT))
 		op = STRUCT_STORE_FLOAT;
