@@ -23,15 +23,6 @@ int Type::offset_of(const std::string& field) const
 
 const Type& Type::get_member(const std::string& field) const
 {
-	// int i = 0;
-	// for (const auto& f : fields)
-	// {
-	// 	i++;
-	// 	if (f == field)
-	// 		return members[i];
-	// }
-
-
 	int i = 0;
 	for (const auto& f : fields)
 	{
