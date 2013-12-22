@@ -33,7 +33,7 @@ public:
 	}
 
 	// complex constructor
-	Type(const std::string& name, std::vector<Type> members, std::vector<std::string> fields = {}) : name(name), primative(COMPLEX), members(members), fields(fields) 
+	Type(const std::string& name, std::vector<Type> members, std::vector<std::string> fields = std::vector<std::string>()) : name(name), primative(COMPLEX), members(members), fields(fields) 
 	{ 
 		for (const auto& i : members)
 		 	size += i.get_size();
