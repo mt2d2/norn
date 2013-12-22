@@ -109,16 +109,41 @@ public:
 	std::string name;
 };
 
+class VariableFieldExprAST : public ExprAST
+{
+public:
+	VariableFieldExprAST(const std::string &n, const std::string &f) : name(n), field(f) { }
+	virtual void emit_bytecode(BuildContext& out);
+	virtual ~VariableFieldExprAST() { }
+	std::string name;
+	std::string field;
+};
+
 class VariableAssignExprAST : public ExprAST
 {
 public:
 	VariableAssignExprAST(const std::string& name, ExprAST* value) : name(name), value(value) { }
-	VariableAssignExprAST(const std::string& name, ExprAST* value, std::string type) : name(name), value(value) { this->type = TypeFactory::get_instance().get(type); }
+	VariableAssignExprAST(const std::string& name, ExprAST* value, std::string type) : name(name), value(value) 
+	{
+		this->type = TypeFactory::get_instance().get(type); 
+	}
 	virtual void emit_bytecode(BuildContext& out);
-	virtual ~VariableAssignExprAST() { }
+	virtual ~VariableAssignExprAST() { delete value; }
 	std::string name;
 	ExprAST* value;
 };
+
+class VariableAssignFieldExprAST : public ExprAST
+{
+public:
+	VariableAssignFieldExprAST(const std::string& name, const std::string field, ExprAST* value) : name(name), field(field), value(value) { }
+	virtual void emit_bytecode(BuildContext& out);
+	virtual ~VariableAssignFieldExprAST() { }
+	std::string name;
+	std::string field;
+	ExprAST* value;
+};
+
 
 class VariableAssignShortExprAST : public VariableAssignExprAST
 {
@@ -161,6 +186,8 @@ public:
 	virtual void emit_bytecode(BuildContext& out);
 	virtual ~ArrayIndexAssignExprAST()
 	{
+		delete index;
+		delete value;
 	}
 
 private:

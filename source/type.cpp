@@ -3,6 +3,44 @@
 #include <iostream>
 #include <algorithm>
 
+int Type::offset_of(const std::string& field) const
+{
+	int offset = 0;
+
+	for (const auto& member : members)
+	{
+		if (member.get_name() == field)
+			return offset;
+	
+		offset += member.get_size();
+	}
+
+	return 0;
+}
+
+const Type& Type::get_member(const std::string& field) const
+{
+	// int i = 0;
+	// for (const auto& f : fields)
+	// {
+	// 	i++;
+	// 	if (f == field)
+	// 		return members[i];
+	// }
+
+
+	int i = 0;
+	for (const auto& f : fields)
+	{
+		if (f == field)
+			return members[i];
+		i++;
+	}
+
+	raise_error("unknown field: " + this->get_name() + "." + field);
+	return members[0];
+}
+
 TypeFactory::TypeFactory()
 {
 	install(Type("Boolean", BOOLEAN));
@@ -42,7 +80,7 @@ const Type& TypeFactory::get(const std::string& key) const
 	for (const auto& t : types)
 		if (t.get_name() == key)
 			return t;
-		
+
 	raise_error("couldn't find type by string key: " + key);
 	return types[0];
 }

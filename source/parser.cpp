@@ -121,6 +121,24 @@ ExprAST* Parser::ParseIdentifierExpr()
 		}
 	}
 
+	if (CurToken == '.')
+	{
+		getNextToken(); // eat .
+		std::string field(lex.get_identifier());
+		getNextToken(); // eat identifier
+
+		if (CurToken == '=') 
+		{
+			getNextToken(); // eat =
+			if (ExprAST* expr = ParseExpression())
+				return new VariableAssignFieldExprAST(IdName, field, expr);
+		}
+		else
+		{
+			return new VariableFieldExprAST(IdName, field);
+		}
+	}
+
     if (CurToken != '(') // Simple variable ref.
 	    return new VariableExprAST(IdName);
 
@@ -248,6 +266,8 @@ ExprAST* Parser::ParseVMBuiltinExpr()
 		which = PRINT_FLOAT;
 	else if (lex.get_identifier() == "PrintCharArray")
 		which = PRINT_ARY_CHAR;
+	else if (lex.get_identifier() == "Malloc")
+		which = MALLOC;
 
 	getNextToken(); // eat VM Token
 	return new VMBuiltinExprAST(which);
@@ -518,7 +538,6 @@ StructAST* Parser::ParseStruct()
 	std::string identifier = lex.get_identifier();
 	getNextToken(); // eat identifer
 	
-
 	std::map<std::string, std::string> members;
 	while (CurToken != tok_end)
 	{
@@ -594,7 +613,7 @@ BuildContext Parser::parse(BuildContext& build, int optimize)
 
 	if (optimize >= 1)
 	{
-		build.get_program().store_load_elimination();
+		// build.get_program().store_load_elimination();
 		build.get_program().fold_constants();
 		// build.get_program().inline_calls();
 		build.get_program().lit_load_add();

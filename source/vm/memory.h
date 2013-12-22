@@ -10,16 +10,11 @@ class Memory
 public:
 	Memory();
 	~Memory();
-	
-	template<typename T> 
-	T* new_root_array(int size);
-	
-	Variant* new_lang_array(int size);	
 
-private:
-	template<typename T>
-	T* allocate(int size);
-	
+	Variant* new_lang_array(int size);	
+	void* allocate(int64_t size);
+
+private:	
 	std::vector<void*> allocated;
 	
 	// long** stack;

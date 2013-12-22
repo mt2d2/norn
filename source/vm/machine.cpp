@@ -5,7 +5,7 @@
 #define BACKEDGE_HOTNESS 40
 #define CALL_HOTNESS 40
 
-#define COMPUTED_GOTO __GNUC__
+#define COMPUTED_GOTO 0
 #if COMPUTED_GOTO
 #	define DISPATCH NEXT
 #	define OP(x) x:
@@ -209,6 +209,54 @@ void Machine::execute()
 		OP(LOAD_ARY)
 			push<Variant*>(get_memory<Variant*>(instr->arg.l));
 			NEXT
+
+		OP(MALLOC)
+			push<uint64_t>(reinterpret_cast<uintptr_t>(manager.allocate(pop<int64_t>())));
+			NEXT
+		OP(STRUCT_STORE_INT)
+			{
+			auto s = pop<uint8_t*>();
+			auto v = pop<int64_t>();
+			memcpy(s + instr->arg.l, &v, sizeof(int64_t));
+			}
+			NEXT
+		OP(STRUCT_STORE_FLOAT)
+			{
+			auto s = pop<uint8_t*>();
+			auto v = pop<double>();
+			memcpy(s + instr->arg.l, &v, sizeof(double));
+			}			NEXT
+		OP(STRUCT_STORE_CHAR)
+			{
+			auto s = pop<uint8_t*>();
+			auto v = pop<char>();
+			memcpy(s + instr->arg.l, &v, sizeof(char));
+			}			NEXT
+		OP(STRUCT_LOAD_INT)
+			{
+			auto s = pop<uint8_t*>();
+			int64_t p;
+			memcpy(&p, s + instr->arg.l, sizeof(int64_t));
+			push(p);
+			}
+			NEXT
+		OP(STRUCT_LOAD_FLOAT)
+			{
+			auto s = pop<uint8_t*>();
+			double p;
+			memcpy(&p, s + instr->arg.l, sizeof(double));
+			push(p);
+			}
+			NEXT
+		OP(STRUCT_LOAD_CHAR)
+			{
+			auto s = pop<uint8_t*>();
+			char p;
+			memcpy(&p, s + instr->arg.l, sizeof(char));
+			push(p);
+			}
+			NEXT
+
 		OP(CPY_ARY_CHAR)
 			{
 				const std::string& string = program.get_string(instr->arg.l);

@@ -24,20 +24,23 @@ class Type
 {
 public:
 	// default
-	Type() : name("DEFAULT_TYPE"), size(-1), primative(VOID), members(std::vector<Type>()) { }
+	Type() : name("DEFAULT_TYPE"), size(-1), primative(VOID), members(std::vector<Type>()), fields(std::vector<std::string>()) { }
 
 	// primative constructor
-	Type(const std::string& name, Primative primative) : name(name), primative(primative), members(std::vector<Type>()) 
+	Type(const std::string& name, Primative primative) : name(name), primative(primative), members(std::vector<Type>()), fields(std::vector<std::string>()) 
 	{
 		size = 8;
 	}
 
 	// complex constructor
-	Type(const std::string& name, std::vector<Type> members) : name(name), primative(COMPLEX), members(members) 
+	Type(const std::string& name, std::vector<Type> members, std::vector<std::string> fields = {}) : name(name), primative(COMPLEX), members(members), fields(fields) 
 	{ 
 		for (const auto& i : members)
 		 	size += i.get_size();
 	}
+
+	int offset_of(const std::string& field) const;
+	const Type& get_member(const std::string& field) const;
 
 	const std::string& get_name() const { return name; }
 	int get_size() const { return size; }
@@ -51,6 +54,7 @@ private:
 	int size;
 	Primative primative;
 	std::vector<Type> members;
+	std::vector<std::string> fields;
 };
 
 class TypeFactory

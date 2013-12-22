@@ -71,6 +71,52 @@ void VariableExprAST::emit_bytecode(BuildContext& out)
 	}
 }
 
+void VariableFieldExprAST::emit_bytecode(BuildContext& out)
+{
+	// load struct
+	out.get_block()->add_instruction(Instruction(LOAD_INT, Variant(out.get_mem_id(this->name))));
+
+	// load field
+	auto struct_type = out.get_variable_type(name);
+	auto field_type = struct_type.get_member(field);
+
+	Opcode op = STRUCT_LOAD_INT;
+	if (field_type == TypeFactory::get_instance().get(INT))
+		op = STRUCT_LOAD_INT;
+	else if (field_type == TypeFactory::get_instance().get(FLOAT))
+		op = STRUCT_LOAD_FLOAT;
+	else if (field_type == TypeFactory::get_instance().get(CHAR))
+		op = STRUCT_LOAD_CHAR;
+	else
+		raise_error("unknown type in field access");
+
+	out.get_block()->add_instruction(Instruction(op, struct_type.offset_of(field)));
+}
+
+void VariableAssignFieldExprAST::emit_bytecode(BuildContext& out)
+{
+	value->emit_bytecode(out);
+
+	// load struct
+	out.get_block()->add_instruction(Instruction(LOAD_INT, Variant(out.get_mem_id(this->name))));
+
+	// assign field
+	auto struct_type = out.get_variable_type(name);
+	auto field_type = struct_type.get_member(field);
+
+	Opcode op = STRUCT_STORE_INT;
+	if (field_type == TypeFactory::get_instance().get(INT))
+		op = STRUCT_STORE_INT;
+	else if (field_type == TypeFactory::get_instance().get(FLOAT))
+		op = STRUCT_STORE_FLOAT;
+	else if (field_type == TypeFactory::get_instance().get(CHAR))
+		op = STRUCT_STORE_CHAR;
+	else
+		raise_error("unknown type in field access");
+
+	out.get_block()->add_instruction(Instruction(op, struct_type.offset_of(field)));
+}
+
 void VariableAssignShortExprAST::emit_bytecode(BuildContext& out)
 {
 	// ensure that the variable was previously declared
@@ -118,7 +164,8 @@ void VariableAssignExprAST::emit_bytecode(BuildContext& out)
 	}
 	else
 	{
-		raise_error("cannot emit VariableAssignExprAST for COMPLEX");
+		value->emit_bytecode(out);
+		out.get_block()->add_instruction(Instruction(STORE_INT, Variant(out.get_mem_id(this->name))));
 	}
 }
 

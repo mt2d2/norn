@@ -96,11 +96,17 @@ std::string CallExprAST::callee_signature(BuildContext& out)
 			else if (var_type == TypeFactory::get_instance().get("FloatAry"))
 				var_type = TypeFactory::get_instance().get("Float");
 				
-			(elem)->type = var_type;
+			elem->type = var_type;
 		}
 		else if (VariableExprAST* var_ast = dynamic_cast<VariableExprAST*>(elem))
-			(elem)->type = out.get_variable_type(var_ast->name);
-		
+			elem->type = out.get_variable_type(var_ast->name);
+		else if (VariableFieldExprAST* field_ast = dynamic_cast<VariableFieldExprAST*>(elem))
+		{
+			auto struct_type = out.get_variable_type(field_ast->name);
+			auto field_type = struct_type.get_member(field_ast->field);
+			elem->type = field_type;
+		}
+
 		block_name += (std::string(":") + (elem)->type.get_name());
 	}
 
@@ -116,11 +122,15 @@ void ProgramAST::install_types(BuildContext& out)
 {
 	for (auto & elem : structs)
 	{
+		std::vector<std::string> fields; 
 		std::vector<Type> types;
 		for (auto j = (elem)->members.begin(); j != (elem)->members.end(); ++j)
+		{
+			fields.push_back(j->first);
 			types.push_back(TypeFactory::get_instance().get(j->second));
+		}
 
-		TypeFactory::get_instance().install(Type((elem)->name, types));
+		TypeFactory::get_instance().install(Type((elem)->name, types, fields));
 	}
 }
 

@@ -17,30 +17,20 @@ Memory::~Memory()
 }
 
 
-template<typename T>
-T* Memory::allocate(int size)
+void* Memory::allocate(int64_t size)
 {
 	// do fancy gc things in here
-	void* allocd = calloc(size, sizeof(T));
+	void* allocd = calloc(size, sizeof(uint8_t));
 	this->allocated.push_back(allocd);
 	
-	return reinterpret_cast<T*>(allocd);
+	return allocd;
 }
-
-template<typename T> 
-T* Memory::new_root_array(int size) 
-{ 
-	return this->allocate<T>(size);
-}
-
-template long* Memory::new_root_array(int size);
-template Frame* Memory::new_root_array(int size);
 
 Variant* Memory::new_lang_array(int size)
 {
 	size += 1;
 	
-	Variant* ret = this->allocate<Variant>(size);
+	Variant* ret = reinterpret_cast<Variant*>(this->allocate(size * sizeof(Variant)));
 	ret[0].l = size;
 
 	return ret;

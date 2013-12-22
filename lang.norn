@@ -1,3 +1,8 @@
+def new(size: Int): Complex
+	size
+	$Malloc
+end
+
 def print(bool: Boolean): Void
 	if bool then
 		print("true")
