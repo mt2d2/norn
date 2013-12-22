@@ -613,7 +613,7 @@ BuildContext Parser::parse(BuildContext& build, int optimize)
 
 	if (optimize >= 1)
 	{
-		// build.get_program().store_load_elimination();
+		build.get_program().store_load_elimination();
 		build.get_program().fold_constants();
 		// build.get_program().inline_calls();
 		build.get_program().lit_load_add();
