@@ -5,7 +5,7 @@
 #define BACKEDGE_HOTNESS 40
 #define CALL_HOTNESS 40
 
-#define COMPUTED_GOTO 0
+#define COMPUTED_GOTO __GNUC__
 #if COMPUTED_GOTO
 #	define DISPATCH NEXT
 #	define OP(x) x:
