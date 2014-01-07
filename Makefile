@@ -41,7 +41,7 @@ clean:
 	@rm -f ${OBJ} ${EXE}
 
 realclean: clean
-	@${ECHO} RM profile data, libasmjit.a
+	@${ECHO} RM profile data, libasmjit.a, libdlmalloc.a
 	@rm -f source/*gc* source/vm/*gc*
 	@make -C source/vm/AsmJit clean
 	@make -C source/vm/dlmalloc clean
