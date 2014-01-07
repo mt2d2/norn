@@ -39,7 +39,7 @@ AllocatedMemory* Memory::allocate(int64_t size)
 	if (allocated.size() == GC_THRESHOLD)
 		gc();
 
-	auto ret = this->allocated.emplace(new AllocatedMemory(size));
+	auto ret = this->allocated.insert(new AllocatedMemory(size));
 
 	if (!ret.second)
 		raise_error("allocation failure, not unique");
