@@ -20,7 +20,7 @@ ${EXE}: ${OBJ} ${LIBASMJIT} ${LIBDLMALLOC}
 	@${ECHO} LINK $@
 	@${CXX} ${LDFLAGS} ${OBJ} ${LIBASMJIT} ${LIBDLMALLOC} -o $@ ${LIB}
 
-${EXE}_nojit: ${OBJ}
+${EXE}_nojit: ${OBJ} ${LIBDLMALLOC}
 	@${ECHO} LINK $@
 	@${CXX} ${LDFLAGS} ${OBJ} -o ${EXE} ${LIB}
 
