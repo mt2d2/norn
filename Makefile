@@ -44,6 +44,7 @@ realclean: clean
 	@${ECHO} RM profile data, libasmjit.a
 	@rm -f source/*gc* source/vm/*gc*
 	@make -C source/vm/AsmJit clean
+	@make -C source/vm/dlmalloc clean
 
 test: ${EXE}
 	python test/runner.py
