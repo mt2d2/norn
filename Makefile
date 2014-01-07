@@ -22,7 +22,7 @@ ${EXE}: ${OBJ} ${LIBASMJIT} ${LIBDLMALLOC}
 
 ${EXE}_nojit: ${OBJ} ${LIBDLMALLOC}
 	@${ECHO} LINK $@
-	@${CXX} ${LDFLAGS} ${OBJ} -o ${EXE} ${LIB}
+	@${CXX} ${LDFLAGS} ${OBJ} ${LIBDLMALLOC} -o ${EXE} ${LIB}
 
 ${LIBASMJIT}:
 	@${ECHO} MAKE libasmjit
