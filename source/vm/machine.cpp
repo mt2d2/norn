@@ -12,7 +12,7 @@
 #	define NEXT instr = block->get_instruction(ip++); goto *disp_table[instr->op];
 #	define END_DISPATCH
 #else
-#	define DISPATCH while (true) { instr = block->get_instruction(ip++); /*std::cout << *instr << std::endl;*/ switch(instr->op) {
+#	define DISPATCH while (true) { instr = block->get_instruction(ip++); std::cout << *instr << std::endl; switch(instr->op) {
 #	define OP(x) case x:
 #	define NEXT break;
 #	define END_DISPATCH } }
@@ -25,7 +25,6 @@ Machine::Machine(const Program& program, bool debug, bool nojit) :
 	program(program),
 	block(nullptr),
 	instr(nullptr),
-	manager(Memory()),
 	ip(0),
 #if !NOJIT
 	debug(debug),
@@ -35,7 +34,8 @@ Machine::Machine(const Program& program, bool debug, bool nojit) :
 	stack_start(stack),	
 	frames(new Frame[STACK_SIZE]),
 	frames_start(frames),
-	memory(new int64_t[STACK_SIZE * this->program.get_memory_slots()])
+	memory(new int64_t[STACK_SIZE * this->program.get_memory_slots()]),
+	manager(Memory(stack_start, memory))
 {
 }
 
@@ -80,7 +80,7 @@ void Machine::execute()
 			store_memory(instr->arg.l, pop<double>());
 			NEXT
 		OP(STORE_CHAR)
-			store_memory(instr->arg.c, pop<char>());
+			store_memory(instr->arg.l, pop<char>());
 			NEXT
 		OP(ADD_INT)
 			push<int64_t>(pop<int64_t>() + pop<int64_t>());
@@ -211,30 +211,34 @@ void Machine::execute()
 			NEXT
 
 		OP(MALLOC)
-			push<uint64_t>(reinterpret_cast<uintptr_t>(manager.allocate(pop<int64_t>())));
+			manager.set_stack(stack);
+			manager.set_memory(memory + block->get_memory_slots());
+			push(reinterpret_cast<uint8_t*>(manager.allocate(pop<int64_t>())));
 			NEXT
 		OP(STRUCT_STORE_INT)
 			{
-			auto s = pop<uint8_t*>();
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
 			auto v = pop<int64_t>();
 			memcpy(s + instr->arg.l, &v, sizeof(int64_t));
 			}
 			NEXT
 		OP(STRUCT_STORE_FLOAT)
 			{
-			auto s = pop<uint8_t*>();
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
 			auto v = pop<double>();
 			memcpy(s + instr->arg.l, &v, sizeof(double));
-			}			NEXT
+			}			
+			NEXT
 		OP(STRUCT_STORE_CHAR)
 			{
-			auto s = pop<uint8_t*>();
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
 			auto v = pop<char>();
 			memcpy(s + instr->arg.l, &v, sizeof(char));
-			}			NEXT
+			}			
+			NEXT
 		OP(STRUCT_LOAD_INT)
 			{
-			auto s = pop<uint8_t*>();
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
 			int64_t p;
 			memcpy(&p, s + instr->arg.l, sizeof(int64_t));
 			push(p);
@@ -242,7 +246,7 @@ void Machine::execute()
 			NEXT
 		OP(STRUCT_LOAD_FLOAT)
 			{
-			auto s = pop<uint8_t*>();
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
 			double p;
 			memcpy(&p, s + instr->arg.l, sizeof(double));
 			push(p);
@@ -250,7 +254,7 @@ void Machine::execute()
 			NEXT
 		OP(STRUCT_LOAD_CHAR)
 			{
-			auto s = pop<uint8_t*>();
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
 			char p;
 			memcpy(&p, s + instr->arg.l, sizeof(char));
 			push(p);

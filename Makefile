@@ -7,24 +7,30 @@ SRC=source/vm/common.cpp source/vm/opcode.cpp source/vm/memory.cpp source/vm/blo
 OBJ=${SRC:.cpp=.o}
 
 LIBASMJIT=source/vm/AsmJit/libasmjit.a
+LIBDLMALLOC=source/vm/dlmalloc/dlmalloc.a
 
 CFLAGS=-std=c++11 -Wall -Werror -pipe -g -O2
 ${EXE}_nojit: CFLAGS += -DNOJIT=1
-LDFLAGS=
+
+CFLAGS += -Isource/vm/dlmalloc -DUSE_DL_PREFIX
 
 all: ${SRC} ${EXE}
 
-${EXE}: ${OBJ} ${LIBASMJIT}
+${EXE}: ${OBJ} ${LIBASMJIT} ${LIBDLMALLOC}
 	@${ECHO} LINK $@
-	@${CXX} ${LDFLAGS} ${OBJ} ${LIBASMJIT} -o $@ ${LIB}
+	@${CXX} ${LDFLAGS} ${OBJ} ${LIBASMJIT} ${LIBDLMALLOC} -o $@ ${LIB}
 
 ${EXE}_nojit: ${OBJ}
 	@${ECHO} LINK $@
 	@${CXX} ${LDFLAGS} ${OBJ} -o ${EXE} ${LIB}
 
 ${LIBASMJIT}:
-	@${ECHO} MAKE LIBASMJIT
-	@+$(MAKE) -C source/vm/AsmJit
+	@${ECHO} MAKE libasmjit
+	@+${MAKE} -C source/vm/AsmJit
+
+${LIBDLMALLOC}:
+	@${ECHO} MAKE libdlmalloc
+	@+${MAKE} -C source/vm/dlmalloc
 
 .cpp.o:
 	@${ECHO} CXX $<

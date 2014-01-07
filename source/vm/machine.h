@@ -36,7 +36,6 @@ private:
 	Program program;
 	Block* block;
 	const Instruction* instr;
-	Memory manager;
 	unsigned int ip;
 #if !NOJIT
 	bool debug;
@@ -48,6 +47,7 @@ private:
 	Frame* frames;
 	Frame* frames_start;
 	int64_t* memory;
+	Memory manager;
 };
 
 template<typename T>

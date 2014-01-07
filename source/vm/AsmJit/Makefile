@@ -21,7 +21,7 @@ ${LIB}: ${OBJ}
 
 .cpp.o:
 	@${ECHO} CC $<
-	@${CC} ${CFLAGS} -c $< -o $@
+	@${CXX} ${CFLAGS} -c $< -o $@
 
 clean:
 	@${ECHO} RM objects, executable

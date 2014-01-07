@@ -1,0 +1,15 @@
+struct Test
+	i: Int
+	b: Boolean
+end
+
+def main(): Void
+	for i: Int = 0, i < 1000000, i = i + 1 in
+		tester: Test = new(16)
+		tester.i = 8
+		tester.b = true
+
+		println(tester.i)
+		println(tester.b)
+	end
+end

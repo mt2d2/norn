@@ -5,20 +5,40 @@
 
 #include "variant.h"
 
+
+struct AllocatedMemory
+{
+	bool marked;
+	void *data;
+
+	AllocatedMemory(uint64_t size);
+	~AllocatedMemory();
+};
+
 class Memory
 {
 public:
-	Memory();
+	Memory(int64_t* stack_start, int64_t* memory_start);
 	~Memory();
 
 	Variant* new_lang_array(int size);	
-	void* allocate(int64_t size);
+	AllocatedMemory* allocate(int64_t size);
+
+	void set_stack(int64_t* stack);
+	void set_memory(int64_t* memory);
 
 private:	
-	std::vector<void*> allocated;
+	std::vector<AllocatedMemory*> allocated;
+
+	bool is_managed(void *memory);
+	void mark();
+	void sweep();
+	void gc();
 	
-	// long** stack;
-	// long** memory;
+	int64_t* stack_start;
+	int64_t* stack;
+	int64_t* memory_start;
+	int64_t* memory;
 };
 
 #endif // MEMORY_H
