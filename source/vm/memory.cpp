@@ -1,10 +1,7 @@
 #include "memory.h"
 
-#include <cstdlib>
-#include <iostream>
-#include <cstdio>
-
 #include "frame.h"
+#include "common.h"
 
 #include <dlmalloc.h>
 
@@ -22,7 +19,7 @@ AllocatedMemory::~AllocatedMemory()
 }
 
 Memory::Memory(int64_t* stack_start, int64_t* memory_start) :
-	allocated(std::vector<AllocatedMemory*>()),
+	allocated(std::unordered_set<AllocatedMemory*>()),
 	stack_start(stack_start),
 	stack(nullptr),
 	memory_start(memory_start),
@@ -42,9 +39,12 @@ AllocatedMemory* Memory::allocate(int64_t size)
 	if (allocated.size() == GC_THRESHOLD)
 		gc();
 
-	this->allocated.push_back(new AllocatedMemory(size));
-	
-	return this->allocated[this->allocated.size() - 1];	
+	auto ret = this->allocated.emplace(new AllocatedMemory(size));
+
+	if (!ret.second)
+		raise_error("allocation failure, not unique");
+
+	return *ret.first;
 }
 
 void Memory::set_stack(int64_t* stack)
@@ -68,12 +68,9 @@ Variant* Memory::new_lang_array(int size)
 	return ret;
 }
 
-bool Memory::is_managed(void *memory)
+bool Memory::is_managed(AllocatedMemory *memory)
 {
-	for (auto elem : allocated)
-		if (elem == memory)
-			return true;	
-	return false;
+	return allocated.find(memory) != allocated.end();
 }
 
 void Memory::mark()
@@ -81,7 +78,7 @@ void Memory::mark()
 	// check stack
 	while (stack != stack_start)
 	{
-		if (is_managed(reinterpret_cast<uint8_t*>(*stack)))
+		if (is_managed(reinterpret_cast<AllocatedMemory*>(*stack)))
 			reinterpret_cast<AllocatedMemory*>(*stack)->marked = true;
 		stack--;
 	}
@@ -89,7 +86,7 @@ void Memory::mark()
 	// check memory
 	while (memory != memory_start)
 	{
-		if (is_managed(reinterpret_cast<uint8_t*>(*memory)))
+		if (is_managed(reinterpret_cast<AllocatedMemory*>(*memory)))
 			reinterpret_cast<AllocatedMemory*>(*memory)->marked = true;
 		memory--;
 	}
@@ -123,7 +120,7 @@ void Memory::gc()
 	sweep();
 
 	// auto finish = allocated.size();
-	// printf("swept %lu objects, %lu remaining\n", start - finish, finish);
+	// fprintf(stderr, "swept %lu objects, %lu remaining\n", start - finish, finish);
 
 	dlmalloc_trim(0);
 	// dlmalloc_stats();

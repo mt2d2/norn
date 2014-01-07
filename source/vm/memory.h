@@ -1,7 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#include <vector>
+#include <unordered_set>
 
 #include "variant.h"
 
@@ -28,9 +28,9 @@ public:
 	void set_memory(int64_t* memory);
 
 private:	
-	std::vector<AllocatedMemory*> allocated;
+	std::unordered_set<AllocatedMemory*> allocated;
 
-	bool is_managed(void *memory);
+	bool is_managed(AllocatedMemory *memory);
 	void mark();
 	void sweep();
 	void gc();
