@@ -4,7 +4,7 @@ struct Test
 end
 
 def main(): Void
-	for i: Int = 0, i < 1000000, i = i + 1 in
+	for i: Int = 0, i < 10000000, i = i + 1 in
 		tester: Test = new(16)
 		tester.i = 8
 		tester.b = true

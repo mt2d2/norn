@@ -76,19 +76,19 @@ bool Memory::is_managed(AllocatedMemory *memory)
 void Memory::mark()
 {
 	// check stack
-	while (stack != stack_start)
+	for (; stack != stack_start; --stack)
 	{
-		if (is_managed(reinterpret_cast<AllocatedMemory*>(*stack)))
-			reinterpret_cast<AllocatedMemory*>(*stack)->marked = true;
-		stack--;
+		auto *allocd = reinterpret_cast<AllocatedMemory*>(*stack);
+		if (is_managed(allocd))
+			allocd->marked = true;
 	}
 
 	// check memory
-	while (memory != memory_start)
+	for (; memory != memory_start; --memory)
 	{
-		if (is_managed(reinterpret_cast<AllocatedMemory*>(*memory)))
-			reinterpret_cast<AllocatedMemory*>(*memory)->marked = true;
-		memory--;
+		auto *allocd = reinterpret_cast<AllocatedMemory*>(*memory);
+		if (is_managed(allocd))
+			allocd->marked = true;
 	}
 }
 
