@@ -96,16 +96,16 @@ void Memory::sweep()
 {
 	for (auto it = allocated.begin(); it != allocated.end();)
 	{
-		auto alloc = *it;
+		auto *allocd = *it;
 
-		if (!alloc->marked)
+		if (!allocd->marked)
 		{
-			delete alloc;
+			delete allocd;
 			it = allocated.erase(it);
 		}
 		else
 		{
-			alloc->marked = false;
+			allocd->marked = false;
 			++it;
 		}
 	}
