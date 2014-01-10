@@ -325,16 +325,7 @@ return_opcode:
 				block = f.block;
 				ip = f.ip;	
 				
-				memory -= block->get_memory_slots();						
-				// memset(memory+1, 0, block->get_memory_slots());
-
-				/*
-				Right now, the GC reads this stack for references to other active
-				allocated objects, because we just reset our position, if they are
-				never overwritten, the GC will never collect. Issue to work on.
-
-				for (int i = sp; i > f.spc; --i)
-					memory[i] = 0;*/	
+				memory -= block->get_memory_slots();
 			}
 			else
 			{
