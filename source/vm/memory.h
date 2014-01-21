@@ -5,9 +5,7 @@
 
 #include "variant.h"
 
-#include <cassert>
-#include <stdint.h>
-
+// Tagged pointer example from http://nikic.github.io/2012/02/02/Pointer-magic-for-efficient-dynamic-value-representations.html
 template <typename T, int alignedTo>
 class TaggedPointer {
 private:
@@ -41,10 +39,10 @@ public:
     }
 
     inline void set(T *pointer, int tag = 0) {
-        // make sure that the pointer really is aligned
-        assert((reinterpret_cast<intptr_t>(pointer) & tagMask) == 0);
-        // make sure that the tag isn't too large
-        assert((tag & pointerMask) == 0);
+        // // make sure that the pointer really is aligned
+        // assert((reinterpret_cast<intptr_t>(pointer) & tagMask) == 0);
+        // // make sure that the tag isn't too large
+        // assert((tag & pointerMask) == 0);
 
         asPointer = pointer;
         asBits |= tag;
