@@ -67,7 +67,7 @@ struct AllocatedMemory
 	void operator delete(void * p) throw();
 };
 
-static_assert(sizeof(AllocatedMemory) == 8, "AllocatedMemory must be 8 bytes");
+static_assert(sizeof(AllocatedMemory) == sizeof(void*), "AllocatedMemory must be sizeof(void*)");
 
 class Memory
 {
