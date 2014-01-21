@@ -7,15 +7,24 @@
 
 #define GC_THRESHOLD 100
 
-AllocatedMemory::AllocatedMemory(uint64_t size)
+AllocatedMemory::AllocatedMemory(uint64_t size) :
+	data(TaggedPointer<void*, 8>(dlmalloc(size), 0))
 {
-	this->marked = false;
-	this->data = dlmalloc(size);
 }
 
 AllocatedMemory::~AllocatedMemory()
 {
-	dlfree(this->data);
+	dlfree(this->data.getPointer());
+}
+
+void* AllocatedMemory::operator new(std::size_t n) throw(std::bad_alloc)
+{
+	return dlmalloc(n);
+}
+
+void AllocatedMemory::operator delete(void * p) throw()
+{
+	dlfree(p);
 }
 
 Memory::Memory(int64_t* stack_start, int64_t* memory_start) :
@@ -40,7 +49,6 @@ AllocatedMemory* Memory::allocate(int64_t size)
 		gc();
 
 	auto ret = this->allocated.insert(new AllocatedMemory(size));
-
 	if (!ret.second)
 		raise_error("allocation failure, not unique");
 
@@ -80,7 +88,8 @@ void Memory::mark()
 	{
 		auto *allocd = reinterpret_cast<AllocatedMemory*>(*stack);
 		if (is_managed(allocd))
-			allocd->marked = true;
+			allocd->data.set(allocd->data.getPointer(), true);
+
 	}
 
 	// check memory
@@ -88,7 +97,7 @@ void Memory::mark()
 	{
 		auto *allocd = reinterpret_cast<AllocatedMemory*>(*memory);
 		if (is_managed(allocd))
-			allocd->marked = true;
+			allocd->data.set(allocd->data.getPointer(), true);
 	}
 }
 
@@ -98,14 +107,14 @@ void Memory::sweep()
 	{
 		auto *allocd = *it;
 
-		if (!allocd->marked)
+		if (!allocd->data.getTag())
 		{
 			delete allocd;
 			it = allocated.erase(it);
 		}
 		else
 		{
-			allocd->marked = false;
+			allocd->data.set(allocd->data.getPointer(), false);
 			++it;
 		}
 	}
@@ -122,6 +131,6 @@ void Memory::gc()
 	// auto finish = allocated.size();
 	// fprintf(stderr, "swept %lu objects, %lu remaining\n", start - finish, finish);
 
-	dlmalloc_trim(0);
+	// dlmalloc_trim(0);
 	// dlmalloc_stats();
 }

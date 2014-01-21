@@ -217,28 +217,28 @@ void Machine::execute()
 			NEXT
 		OP(STRUCT_STORE_INT)
 			{
-			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
 			auto v = pop<int64_t>();
 			memcpy(s + instr->arg.l, &v, sizeof(int64_t));
 			}
 			NEXT
 		OP(STRUCT_STORE_FLOAT)
 			{
-			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
 			auto v = pop<double>();
 			memcpy(s + instr->arg.l, &v, sizeof(double));
 			}			
 			NEXT
 		OP(STRUCT_STORE_CHAR)
 			{
-			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
 			auto v = pop<char>();
 			memcpy(s + instr->arg.l, &v, sizeof(char));
 			}			
 			NEXT
 		OP(STRUCT_LOAD_INT)
 			{
-			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
 			int64_t p;
 			memcpy(&p, s + instr->arg.l, sizeof(int64_t));
 			push(p);
@@ -246,7 +246,7 @@ void Machine::execute()
 			NEXT
 		OP(STRUCT_LOAD_FLOAT)
 			{
-			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
 			double p;
 			memcpy(&p, s + instr->arg.l, sizeof(double));
 			push(p);
@@ -254,7 +254,7 @@ void Machine::execute()
 			NEXT
 		OP(STRUCT_LOAD_CHAR)
 			{
-			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data);
+			auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
 			char p;
 			memcpy(&p, s + instr->arg.l, sizeof(char));
 			push(p);
