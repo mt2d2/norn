@@ -176,13 +176,13 @@ void Machine::execute()
 
 						// compile a special version of the block
 						// that bounces to the correct spot in the compiled code
-						block->jit(this->program, instr->arg.l);
+						block->jit(this->program, this->manager, instr->arg.l);
 						block->native(&stack, &memory);
 
 						// now throw away the previous compiled code
 						// recompile the whole block and don't bounce in
 						block->free_native_code();
-						block->jit(this->program);
+						block->jit(this->program, this->manager);
 						goto return_opcode;
 					}
 				}
@@ -291,7 +291,7 @@ void Machine::execute()
 				if (unlikely(this->debug))
 					fprintf(stderr, "hot call %s\n", block->get_name().c_str());
 
-				block->jit(this->program);
+				block->jit(this->program, this->manager);
 			}
 
 			block->add_hotness();

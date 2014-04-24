@@ -1,10 +1,11 @@
-#include "block.h"
-#include "common.h"
-#include "program.h"
-
 #include <algorithm>
 #include <stack>
 #include <cstring>
+
+#include "block.h"
+#include "common.h"
+#include "program.h"
+#include "memory.h"
 
 #if !NOJIT
 #include "AsmJit/AsmJit.h"
@@ -22,13 +23,15 @@ void putint(int n)
 	printf("%d", n);
 }
 
-void Block::jit(const Program& program, unsigned int start_from_ip)
+void Block::jit(const Program& program, Memory& manager, unsigned int start_from_ip)
 {
 	const auto& blocks = program.get_blocks();
 
 	Compiler c;
 	FileLogger logger(stderr);
-	// c.setLogger(&logger);
+	c.setLogger(&logger);
+
+	printf("manager: %p\n", &manager);
 
 	// Tell compiler the function prototype we want. It allocates variables representing
 	// function arguments that can be accessed through Compiler or Function instance.
@@ -409,7 +412,7 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 						raise_error("couldn't identify block for jit native call");
 
 					if (!(*callee)->native && *callee != this)
-						(*callee)->jit(program);
+						(*callee)->jit(program, manager);
 
 					c.comment(std::string("CALL_NATIVE '" + (*callee)->get_name() + "'").c_str());
 
@@ -547,6 +550,68 @@ void Block::jit(const Program& program, unsigned int start_from_ip)
 
 				c.unuse(tmp);
 				}
+				break;
+
+			case MALLOC:
+				{
+				c.comment("MALLOC");
+				GPVar managerReg(c.newGP());
+				GPVar memoryBlockTop(c.newGP());
+				c.mov(managerReg, (uintptr_t)&manager);
+				c.mov(qword_ptr(stack), stackTop);
+				c.mov(memoryBlockTop, qword_ptr(memory));
+				c.add(memoryBlockTop, this->get_memory_slots() * 8);
+
+				// manager.set_stack(stack);
+				ECall* ctx = c.call(imm((sysint_t)&Memory_set_stack));
+				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<Void, void*, int64_t*>());
+				ctx->setArgument(0, managerReg);
+				ctx->setArgument(1, stack);
+
+				// manager.set_memory(memory + block->get_memory_slots());
+				ctx = c.call(imm((sysint_t)&Memory_set_memory));
+				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<Void, void*, int64_t*>());
+				ctx->setArgument(0, managerReg);
+				ctx->setArgument(1, memoryBlockTop);
+
+				// push(reinterpret_cast<uint8_t*>(manager.allocate(pop<int64_t>())));
+				GPVar sizeToMalloc(c.newGP());
+				c.mov(sizeToMalloc, qword_ptr(stackTop));
+				c.sub(stackTop, 8);			
+				GPVar mallocd(c.newGP());
+
+				ctx = c.call(imm((sysint_t)&Memory_allocate));
+				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<void*, void*, int64_t>());
+				ctx->setArgument(0, managerReg);
+				ctx->setArgument(1, sizeToMalloc);
+				ctx->setReturn(mallocd);
+
+				c.add(stackTop, 8);
+				c.mov(qword_ptr(stackTop), mallocd);
+
+				c.unuse(managerReg);
+				c.unuse(memoryBlockTop);
+				c.unuse(sizeToMalloc);
+				c.unuse(mallocd);
+				}
+				break;
+			case NEW_ARY:
+				c.comment("NEW_ARY");
+				break;
+			case CPY_ARY_CHAR:
+				c.comment("CPY_ARY_CHAR");
+				break;
+			case PRINT_ARY_CHAR:
+				c.comment("PRINT_ARY_CHAR");
+				break;
+			case STRUCT_STORE_INT:
+				c.comment("STRUCT_STORE_INT");
+				// auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
+				// auto v = pop<int64_t>();
+				// memcpy(s + instr->arg.l, &v, sizeof(int64_t));
+				break;
+			case STRUCT_LOAD_INT:
+				c.comment("STRUCT_LOAD_INT");
 				break;
 
 			default:
@@ -765,7 +830,7 @@ void Block::optimizing_jit(const Program& program, unsigned int start_from_ip)
 						raise_error("all referenced functions must be jittabled and optimizing");
 
 					if (!(*callee)->native && *callee != this)
-						(*callee)->jit(program);
+						(*callee)->optimizing_jit(program);
 
 					c.comment(std::string("CALL_NATIVE '" + (*callee)->get_name() + "'").c_str());
 

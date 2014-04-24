@@ -30,10 +30,6 @@ public:
 	void lit_load_add();
 	void lit_load_sub();
 	void lit_load_le();
-
-#if !NOJIT
-	void jit();
-#endif
 	
 private:
 	std::map<std::string, int> block_map;

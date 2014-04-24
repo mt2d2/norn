@@ -123,19 +123,3 @@ void Program::lit_load_le()
 	for (auto* b : blocks)
 		b->lit_load_le();
 }
-
-#if !NOJIT
-void Program::jit()
-{
-	for (auto* b : blocks)
-	{
-		if (!b->native) 
-		{
-			if (b->get_jit_type() == BASIC)
-				b->jit(*this);
-			else if (b->get_jit_type() == OPTIMIZING)
-				b->optimizing_jit(*this);
-		}
-	}
-}
-#endif

@@ -1,14 +1,15 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-#include "instruction.h"
-#include "variant.h"
-
 #include <iostream>
 #include <string>
 #include <vector>
 #include <list>
 #include <map>
+
+#include "instruction.h"
+#include "variant.h"
+#include "memory.h"
 
 #if !NOJIT
 enum JITType
@@ -65,7 +66,7 @@ public:
 	void lit_load_le();
 	
 #if !NOJIT
-	void jit(const Program& blocks, unsigned int start_from_ip=0);
+	void jit(const Program& blocks, Memory& manager, unsigned int start_from_ip=0);
 	void optimizing_jit(const Program& program, unsigned int start_from_ip=0);
 #endif
 

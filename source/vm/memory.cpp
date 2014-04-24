@@ -134,3 +134,18 @@ void Memory::gc()
 	// dlmalloc_trim(0);
 	// dlmalloc_stats();
 }
+
+AllocatedMemory* Memory_allocate(Memory* memory, int64_t size)
+{
+    return memory->allocate(size);
+}
+
+void Memory_set_stack(Memory* memory, int64_t* stack)
+{
+	memory->set_stack(stack);
+}
+
+void Memory_set_memory(Memory* memory, int64_t* mem)
+{
+	memory->set_memory(mem);
+}

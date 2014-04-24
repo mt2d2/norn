@@ -95,4 +95,8 @@ private:
 	int64_t* memory;
 };
 
+extern "C" AllocatedMemory* Memory_allocate(Memory* memory, int64_t size);
+extern "C" void Memory_set_stack(Memory* memory, int64_t* stack);
+extern "C" void Memory_set_memory(Memory* memory, int64_t* mem);
+
 #endif // MEMORY_H
