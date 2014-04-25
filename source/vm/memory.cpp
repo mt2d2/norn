@@ -149,3 +149,9 @@ void Memory_set_memory(Memory* memory, int64_t* mem)
 {
 	memory->set_memory(mem);
 }
+
+void Memory_new_lang_array(Memory* memory, int size)
+{
+	memory->new_lang_array(size);
+}
+

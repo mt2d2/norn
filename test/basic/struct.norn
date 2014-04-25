@@ -9,7 +9,7 @@ def main(): Void
 	tester.b = true
 
 	test: Int = tester.i
-
+	
 	print("Value of struct: ")
 	println(tester.i)
 

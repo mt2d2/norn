@@ -594,14 +594,28 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				}
 				break;
 			case NEW_ARY:
+				{
 				c.comment("NEW_ARY");
+				GPVar managerReg(c.newGP());
+				c.mov(managerReg, (uintptr_t)&manager);
+
+				GPVar newArray(c.newGP());
+				ECall *ctx = c.call(imm((sysint_t)&Memory_allocate));
+				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<void*, void*, int>());
+				ctx->setArgument(0, managerReg);
+				ctx->setArgument(1, instr->arg.l);
+				ctx->setReturn(newArray);
+
+				c.add(stackTop, 8);
+				c.mov(qword_ptr(stackTop), newArray);
+				}
 				break;
-			case CPY_ARY_CHAR:
-				c.comment("CPY_ARY_CHAR");
-				break;
-			case PRINT_ARY_CHAR:
-				c.comment("PRINT_ARY_CHAR");
-				break;
+			// case CPY_ARY_CHAR:
+			// 	c.comment("CPY_ARY_CHAR");
+			// 	break;
+			// case PRINT_ARY_CHAR:
+			// 	c.comment("PRINT_ARY_CHAR");
+			// 	break;
 			case STRUCT_STORE_INT:
 				{
 				c.comment("STRUCT_STORE_INT");

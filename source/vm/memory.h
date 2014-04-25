@@ -28,7 +28,7 @@ public:
     // pointerMask is the exact contrary: 0b...11111000
     // i.e. all bits apart from the three lowest are set, which is where the pointer is stored
     static const intptr_t pointerMask = ~tagMask;
-    
+
 	inline TaggedPointer(void *pointer, int tag = 0) {
 		asPointer = static_cast<void**>(pointer);
 		asBits |= tag;
@@ -98,5 +98,7 @@ private:
 extern "C" AllocatedMemory* Memory_allocate(Memory* memory, int64_t size);
 extern "C" void Memory_set_stack(Memory* memory, int64_t* stack);
 extern "C" void Memory_set_memory(Memory* memory, int64_t* mem);
+extern "C" void Memory_new_lang_array(Memory* memory, int size);
+
 
 #endif // MEMORY_H
