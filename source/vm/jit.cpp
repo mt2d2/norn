@@ -31,8 +31,6 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 	FileLogger logger(stderr);
 	c.setLogger(&logger);
 
-	printf("manager: %p\n", &manager);
-
 	// Tell compiler the function prototype we want. It allocates variables representing
 	// function arguments that can be accessed through Compiler or Function instance.
 	EFunction* func = c.newFunction(CALL_CONV_DEFAULT, FunctionBuilder2<Void, int64_t*, int64_t*>());
@@ -558,7 +556,7 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				GPVar managerReg(c.newGP());
 				GPVar memoryBlockTop(c.newGP());
 				c.mov(managerReg, (uintptr_t)&manager);
-				c.mov(qword_ptr(stack), stackTop);
+				// c.mov(qword_ptr(stack), stackTop);
 				c.mov(memoryBlockTop, qword_ptr(memory));
 				c.add(memoryBlockTop, this->get_memory_slots() * 8);
 
@@ -566,7 +564,7 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				ECall* ctx = c.call(imm((sysint_t)&Memory_set_stack));
 				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<Void, void*, int64_t*>());
 				ctx->setArgument(0, managerReg);
-				ctx->setArgument(1, stack);
+				ctx->setArgument(1, stackTop);
 
 				// manager.set_memory(memory + block->get_memory_slots());
 				ctx = c.call(imm((sysint_t)&Memory_set_memory));
@@ -605,13 +603,50 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				c.comment("PRINT_ARY_CHAR");
 				break;
 			case STRUCT_STORE_INT:
+				{
 				c.comment("STRUCT_STORE_INT");
 				// auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
+				GPVar ptr(c.newGP());
+				c.mov(ptr, qword_ptr(stackTop));
+				c.sub(stackTop, 8);	
+		        // return asBits & tagMask;
+				c.and_(ptr, TaggedPointer<void*, 8>().pointerMask);
+
 				// auto v = pop<int64_t>();
+				GPVar value(c.newGP());
+				c.mov(value, qword_ptr(stackTop));
+				c.sub(stackTop, 8);			
+
 				// memcpy(s + instr->arg.l, &v, sizeof(int64_t));
+				c.add(ptr, instr->arg.l);
+				c.mov(qword_ptr(ptr), value);
+
+				c.unuse(ptr);
+				c.unuse(value);
+				}
 				break;
 			case STRUCT_LOAD_INT:
+				{
 				c.comment("STRUCT_LOAD_INT");
+				// auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
+				GPVar ptr(c.newGP());
+				c.mov(ptr, qword_ptr(stackTop));
+				c.sub(stackTop, 8);	
+		        // return asBits & tagMask;
+				c.and_(ptr, TaggedPointer<void*, 8>().pointerMask);
+
+				// int64_t p;
+				// memcpy(&p, s + instr->arg.l, sizeof(int64_t));
+				// push(p);
+				GPVar value(c.newGP());
+				c.add(ptr, instr->arg.l);
+				c.mov(value, qword_ptr(ptr));
+				c.add(stackTop, 8);
+				c.mov(qword_ptr(stackTop), value);
+				
+				c.unuse(ptr);
+				c.unuse(value);
+				}
 				break;
 
 			default:

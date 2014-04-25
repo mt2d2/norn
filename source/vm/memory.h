@@ -14,14 +14,6 @@ private:
         "Alignment parameter must be power of two"
     );
 
-    // for 8 byte alignment tagMask = alignedTo - 1 = 8 - 1 = 7 = 0b111
-    // i.e. the lowest three bits are set, which is where the tag is stored
-    static const intptr_t tagMask = alignedTo - 1;
-
-    // pointerMask is the exact contrary: 0b...11111000
-    // i.e. all bits apart from the three lowest are set, which is where the pointer is stored
-    static const intptr_t pointerMask = ~tagMask;
-
     // save us some reinterpret_casts with a union
     union {
         T *asPointer;
@@ -29,6 +21,14 @@ private:
     };
 
 public:
+   // for 8 byte alignment tagMask = alignedTo - 1 = 8 - 1 = 7 = 0b111
+    // i.e. the lowest three bits are set, which is where the tag is stored
+    static const intptr_t tagMask = alignedTo - 1;
+
+    // pointerMask is the exact contrary: 0b...11111000
+    // i.e. all bits apart from the three lowest are set, which is where the pointer is stored
+    static const intptr_t pointerMask = ~tagMask;
+    
 	inline TaggedPointer(void *pointer, int tag = 0) {
 		asPointer = static_cast<void**>(pointer);
 		asBits |= tag;
