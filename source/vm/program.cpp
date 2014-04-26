@@ -123,3 +123,11 @@ void Program::lit_load_le()
 	for (auto* b : blocks)
 		b->lit_load_le();
 }
+
+extern "C" void Program_copy_array_char(Program *program, int key, Variant *array)
+{
+	const auto& string = program->get_string(key);
+	for (int64_t i = 1; i < array[0].l; ++i)
+		array[i].c = string[i-1];
+}
+

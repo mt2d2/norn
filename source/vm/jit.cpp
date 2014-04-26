@@ -610,9 +610,26 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				c.mov(qword_ptr(stackTop), newArray);
 				}
 				break;
-			// case CPY_ARY_CHAR:
-			// 	c.comment("CPY_ARY_CHAR");
-			// 	break;
+			case CPY_ARY_CHAR:
+				{
+				c.comment("CPY_ARY_CHAR");
+
+				GPVar programReg(c.newGP());
+				c.mov(programReg, (uintptr_t)&program);
+				
+				GPVar str(c.newGP());
+				c.mov(str, qword_ptr(stackTop));
+
+				ECall *ctx = c.call(imm((sysint_t)&Program_copy_array_char));
+				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<void*, void*, int>());
+				ctx->setArgument(0, programReg);
+				ctx->setArgument(1, instr->arg.l);
+				ctx->setArgument(2, str);
+
+				c.unuse(programReg);
+				c.unuse(str);
+				}
+				break;
 			// case PRINT_ARY_CHAR:
 			// 	c.comment("PRINT_ARY_CHAR");
 			// 	break;
