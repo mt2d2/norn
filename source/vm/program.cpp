@@ -1,10 +1,11 @@
 #include "program.h"
 
-#include "block.h"
-#include "common.h"
-
 #include <cmath> // sqrt
 #include <cstring> // memcpy
+#include <cstdio> //putchar
+
+#include "block.h"
+#include "common.h"
 
 Program::Program() : 
 	block_map(std::map<std::string, int>()), 
@@ -131,3 +132,8 @@ extern "C" void Program_copy_array_char(Program *program, int key, Variant *arra
 		array[i].c = string[i-1];
 }
 
+extern "C" void Program_print_array_char(Program *program, Variant *array)
+{
+	for (int64_t i = 1; i < array[0].l; ++i)
+		putchar(array[i].c);
+}

@@ -620,8 +620,8 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				GPVar str(c.newGP());
 				c.mov(str, qword_ptr(stackTop));
 
-				ECall *ctx = c.call(imm((sysint_t)&Program_copy_array_char));
-				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<void*, void*, int>());
+				ECall *ctx = c.call(imm((uintptr_t)&Program_copy_array_char));
+				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<Void, void*, int>());
 				ctx->setArgument(0, programReg);
 				ctx->setArgument(1, instr->arg.l);
 				ctx->setArgument(2, str);
@@ -630,9 +630,26 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				c.unuse(str);
 				}
 				break;
-			// case PRINT_ARY_CHAR:
-			// 	c.comment("PRINT_ARY_CHAR");
-			// 	break;
+			case PRINT_ARY_CHAR:
+				{
+				c.comment("PRINT_ARY_CHAR");
+
+				GPVar programReg(c.newGP());
+				c.mov(programReg, (uintptr_t)&program);
+				
+				GPVar str(c.newGP());
+				c.mov(str, qword_ptr(stackTop));
+				c.sub(stackTop, 8);
+
+				ECall *ctx = c.call(imm((uintptr_t)&Program_print_array_char));
+				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<Void, void*, void*>());
+				ctx->setArgument(0, programReg);
+				ctx->setArgument(1, str);
+
+				c.unuse(programReg);
+				c.unuse(str);
+				}
+				break;
 			case STRUCT_STORE_INT:
 				{
 				c.comment("STRUCT_STORE_INT");

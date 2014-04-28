@@ -52,6 +52,7 @@ inline Block* Program::get_block_ptr(int key) const
 }
 
 extern "C" void Program_copy_array_char(Program *program, int key, Variant *array);
+extern "C" void Program_print_array_char(Program *program, Variant *array);
 
 #endif
 
