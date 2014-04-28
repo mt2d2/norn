@@ -98,7 +98,7 @@ private:
 extern "C" AllocatedMemory* Memory_allocate(Memory* memory, int64_t size);
 extern "C" void Memory_set_stack(Memory* memory, int64_t* stack);
 extern "C" void Memory_set_memory(Memory* memory, int64_t* mem);
-extern "C" void Memory_new_lang_array(Memory* memory, int size);
+extern "C" Variant* Memory_new_lang_array(Memory* memory, int size);
 
 
 #endif // MEMORY_H

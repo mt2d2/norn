@@ -10,7 +10,7 @@ SRC=AssemblerX86X64.cpp CodeGenerator.cpp Compiler.cpp \
 	Platform.cpp Util.cpp
 OBJ=${SRC:.cpp=.o}
 
-CFLAGS=-pipe -g -O2
+CFLAGS=-pipe -g -Os
 LDFLAGS=
 
 all: ${SRC} ${LIB}

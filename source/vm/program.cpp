@@ -132,7 +132,7 @@ extern "C" void Program_copy_array_char(Program *program, int key, Variant *arra
 		array[i].c = string[i-1];
 }
 
-extern "C" void Program_print_array_char(Program *program, Variant *array)
+extern "C" void Program_print_array_char(Variant *array)
 {
 	for (int64_t i = 1; i < array[0].l; ++i)
 		putchar(array[i].c);

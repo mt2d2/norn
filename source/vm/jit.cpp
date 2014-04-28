@@ -29,7 +29,7 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 
 	Compiler c;
 	FileLogger logger(stderr);
-	c.setLogger(&logger);
+	// c.setLogger(&logger);
 
 	// Tell compiler the function prototype we want. It allocates variables representing
 	// function arguments that can be accessed through Compiler or Function instance.
@@ -598,16 +598,22 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				c.comment("NEW_ARY");
 				GPVar managerReg(c.newGP());
 				c.mov(managerReg, (uintptr_t)&manager);
-
+				GPVar sizeToMalloc(c.newGP());
+				c.mov(sizeToMalloc, instr->arg.l);
 				GPVar newArray(c.newGP());
-				ECall *ctx = c.call(imm((sysint_t)&Memory_allocate));
+
+				ECall *ctx = c.call(imm((uintptr_t)&Memory_new_lang_array));
 				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<void*, void*, int>());
 				ctx->setArgument(0, managerReg);
-				ctx->setArgument(1, instr->arg.l);
+				ctx->setArgument(1, sizeToMalloc);
 				ctx->setReturn(newArray);
 
 				c.add(stackTop, 8);
 				c.mov(qword_ptr(stackTop), newArray);
+
+				c.unuse(managerReg);
+				c.unuse(sizeToMalloc);
+				c.unuse(newArray);
 				}
 				break;
 			case CPY_ARY_CHAR:
@@ -617,15 +623,19 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				GPVar programReg(c.newGP());
 				c.mov(programReg, (uintptr_t)&program);
 				
+				GPVar stringNumber(c.newGP());
+				c.mov(stringNumber, instr->arg.l);
+
 				GPVar str(c.newGP());
 				c.mov(str, qword_ptr(stackTop));
 
 				ECall *ctx = c.call(imm((uintptr_t)&Program_copy_array_char));
-				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<Void, void*, int>());
+				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder3<Void, void*, int, void*>());
 				ctx->setArgument(0, programReg);
-				ctx->setArgument(1, instr->arg.l);
+				ctx->setArgument(1, stringNumber);
 				ctx->setArgument(2, str);
 
+				c.unuse(stringNumber);
 				c.unuse(programReg);
 				c.unuse(str);
 				}
@@ -633,20 +643,15 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 			case PRINT_ARY_CHAR:
 				{
 				c.comment("PRINT_ARY_CHAR");
-
-				GPVar programReg(c.newGP());
-				c.mov(programReg, (uintptr_t)&program);
 				
 				GPVar str(c.newGP());
 				c.mov(str, qword_ptr(stackTop));
 				c.sub(stackTop, 8);
 
 				ECall *ctx = c.call(imm((uintptr_t)&Program_print_array_char));
-				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder2<Void, void*, void*>());
-				ctx->setArgument(0, programReg);
-				ctx->setArgument(1, str);
+				ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder1<Void, void*>());
+				ctx->setArgument(0, str);
 
-				c.unuse(programReg);
 				c.unuse(str);
 				}
 				break;
