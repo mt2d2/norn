@@ -132,6 +132,7 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 			case STORE_INT:
 			case STORE_CHAR:
 			case STORE_FLOAT:
+			case STORE_ARY:
 				{
 				c.comment("STORE_INT/CHAR/FLOAT");
 				GPVar tmp(c.newGP());
@@ -701,6 +702,30 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				c.unuse(value);
 				}
 				break;
+
+			case LOAD_ARY_ELM_INT:
+				{	
+				c.comment("LOAD_ARY_ELM_INT");
+
+				GPVar index(c.newGP());
+				c.mov(index, qword_ptr(stackTop));
+				c.sub(stackTop, 8);						
+
+				GPVar array(c.newGP());
+				c.mov(array, qword_ptr(memoryTop, (instr->arg.l * 8)));
+
+				GPVar tmp(c.newGP());
+				c.mov(tmp, qword_ptr(array, index));
+				c.add(stackTop, 8);
+				c.mov(qword_ptr(stackTop), tmp);
+
+				c.unuse(index);
+				c.unuse(array);
+				c.unuse(tmp);
+				}
+				break;
+
+		
 
 			default:
 				raise_error("unimplemented opcode " + opcode_str[instr->op] + " in jit");
