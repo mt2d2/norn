@@ -703,6 +703,28 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				}
 				break;
 
+			case STORE_ARY_ELM_INT:
+				{
+				c.comment("STORE_ARY_ELM_INT");
+
+				GPVar index(c.newGP());
+				c.mov(index, qword_ptr(stackTop));
+				c.sub(stackTop, 8);						
+
+				GPVar value(c.newGP());
+				c.mov(value, qword_ptr(stackTop));
+				c.sub(stackTop, 8);		
+
+				GPVar array(c.newGP());
+				c.mov(array, qword_ptr(memoryTop, (instr->arg.l * 8)));
+
+				c.mov(qword_ptr(array, index), value);
+
+				c.unuse(index);
+				c.unuse(array);
+				c.unuse(value);
+				}
+				break;
 			case LOAD_ARY_ELM_INT:
 				{	
 				c.comment("LOAD_ARY_ELM_INT");
@@ -725,7 +747,43 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				}
 				break;
 
-		
+			case LOGICAL_AND:
+				{
+				c.comment("LOGICAL_AND");
+
+				Label L_Neq = c.newLabel();
+				Label L_after = c.newLabel();
+
+				GPVar a(c.newGP());
+				c.mov(a, qword_ptr(stackTop));
+				c.sub(a, 8);		
+
+				GPVar b(c.newGP());
+				c.mov(b, qword_ptr(stackTop, -8));
+				c.sub(b, 8);		
+
+				GPVar ret(c.newGP());
+				c.cmp(a, 1);
+				c.jne(L_Neq);
+				c.cmp(b, 1);
+				c.jne(L_Neq);
+
+				c.mov(ret, 1);
+				c.jmp(L_after);
+
+				c.bind(L_Neq);
+				c.mov(ret, 0);
+
+				c.bind(L_after);
+
+				c.add(stackTop, 8);
+				c.mov(qword_ptr(stackTop), ret);
+
+				c.unuse(a);
+				c.unuse(b);
+				c.unuse(ret);
+				}
+				break;
 
 			default:
 				raise_error("unimplemented opcode " + opcode_str[instr->op] + " in jit");
