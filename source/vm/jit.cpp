@@ -29,7 +29,7 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 
 	Compiler c;
 	FileLogger logger(stderr);
-	// c.setLogger(&logger);
+	c.setLogger(&logger);
 
 	// Tell compiler the function prototype we want. It allocates variables representing
 	// function arguments that can be accessed through Compiler or Function instance.
@@ -662,18 +662,16 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				// auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
 				GPVar ptr(c.newGP());
 				c.mov(ptr, qword_ptr(stackTop));
-				c.sub(stackTop, 8);	
 		        // return asBits & tagMask;
 				c.and_(ptr, TaggedPointer<void*, 8>().pointerMask);
 
 				// auto v = pop<int64_t>();
 				GPVar value(c.newGP());
-				c.mov(value, qword_ptr(stackTop));
-				c.sub(stackTop, 8);			
+				c.mov(value, qword_ptr(stackTop, -8));
+				c.sub(stackTop, 16);			
 
 				// memcpy(s + instr->arg.l, &v, sizeof(int64_t));
-				c.add(ptr, instr->arg.l);
-				c.mov(qword_ptr(ptr), value);
+				c.mov(qword_ptr(ptr, instr->arg.l), value);
 
 				c.unuse(ptr);
 				c.unuse(value);
@@ -685,7 +683,6 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				// auto s = reinterpret_cast<uint8_t*>(pop<AllocatedMemory*>()->data.getPointer());
 				GPVar ptr(c.newGP());
 				c.mov(ptr, qword_ptr(stackTop));
-				c.sub(stackTop, 8);	
 		        // return asBits & tagMask;
 				c.and_(ptr, TaggedPointer<void*, 8>().pointerMask);
 
@@ -693,9 +690,7 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				// memcpy(&p, s + instr->arg.l, sizeof(int64_t));
 				// push(p);
 				GPVar value(c.newGP());
-				c.add(ptr, instr->arg.l);
-				c.mov(value, qword_ptr(ptr));
-				c.add(stackTop, 8);
+				c.mov(value, qword_ptr(ptr, instr->arg.l));
 				c.mov(qword_ptr(stackTop), value);
 				
 				c.unuse(ptr);
@@ -708,14 +703,12 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				c.comment("STORE_ARY_ELM_INT");
 
 				// (get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()] = pop<int64_t>();
-
 				GPVar index(c.newGP());
 				c.mov(index, qword_ptr(stackTop));
-				c.sub(stackTop, 8);	
 
 				GPVar value(c.newGP());
-				c.mov(value, qword_ptr(stackTop));
-				c.sub(stackTop, 8);		
+				c.mov(value, qword_ptr(stackTop, -8));
+				c.sub(stackTop, 16);		
 
 				GPVar array(c.newGP());
 				c.mov(array, qword_ptr(memoryTop, (instr->arg.l * 8)));
@@ -734,14 +727,12 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				// push<int64_t>((get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()].l);
 				GPVar index(c.newGP());
 				c.mov(index, qword_ptr(stackTop));
-				c.sub(stackTop, 8);		
 
 				GPVar array(c.newGP());
 				c.mov(array, qword_ptr(memoryTop, (instr->arg.l * 8)));
 
 				GPVar tmp(c.newGP());
 				c.mov(tmp, qword_ptr(array, index, TIMES_8, 8));
-				c.add(stackTop, 8);
 				c.mov(qword_ptr(stackTop), tmp);
 
 				c.unuse(index);
@@ -760,31 +751,25 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				GPVar a(c.newGP());
 				c.mov(a, qword_ptr(stackTop));
 				c.sub(stackTop, 8);		
-
 				GPVar b(c.newGP());
 				c.mov(b, qword_ptr(stackTop));
-				c.sub(stackTop, 8);		
+				// replace last value on stack with the ret
 
-				GPVar ret(c.newGP());
 				c.cmp(a, 1);
 				c.jne(L_Neq);
 				c.cmp(b, 1);
 				c.jne(L_Neq);
 
-				c.mov(ret, 1);
+				c.mov(qword_ptr(stackTop), 1);
 				c.jmp(L_after);
 
 				c.bind(L_Neq);
-				c.mov(ret, 0);
+				c.mov(qword_ptr(stackTop), 0);
 
 				c.bind(L_after);
 
-				c.add(stackTop, 8);
-				c.mov(qword_ptr(stackTop), ret);
-
 				c.unuse(a);
 				c.unuse(b);
-				c.unuse(ret);
 				}
 				break;
 
