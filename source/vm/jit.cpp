@@ -707,9 +707,11 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				{
 				c.comment("STORE_ARY_ELM_INT");
 
+				// (get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()] = pop<int64_t>();
+
 				GPVar index(c.newGP());
 				c.mov(index, qword_ptr(stackTop));
-				c.sub(stackTop, 8);						
+				c.sub(stackTop, 8);	
 
 				GPVar value(c.newGP());
 				c.mov(value, qword_ptr(stackTop));
@@ -718,7 +720,7 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				GPVar array(c.newGP());
 				c.mov(array, qword_ptr(memoryTop, (instr->arg.l * 8)));
 
-				c.mov(qword_ptr(array, index), value);
+				c.mov(qword_ptr(array, index, TIMES_8, 8), value);
 
 				c.unuse(index);
 				c.unuse(array);
@@ -729,15 +731,16 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 				{	
 				c.comment("LOAD_ARY_ELM_INT");
 
+				// push<int64_t>((get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()].l);
 				GPVar index(c.newGP());
 				c.mov(index, qword_ptr(stackTop));
-				c.sub(stackTop, 8);						
+				c.sub(stackTop, 8);		
 
 				GPVar array(c.newGP());
 				c.mov(array, qword_ptr(memoryTop, (instr->arg.l * 8)));
 
 				GPVar tmp(c.newGP());
-				c.mov(tmp, qword_ptr(array, index));
+				c.mov(tmp, qword_ptr(array, index, TIMES_8, 8));
 				c.add(stackTop, 8);
 				c.mov(qword_ptr(stackTop), tmp);
 
@@ -756,11 +759,11 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 
 				GPVar a(c.newGP());
 				c.mov(a, qword_ptr(stackTop));
-				c.sub(a, 8);		
+				c.sub(stackTop, 8);		
 
 				GPVar b(c.newGP());
-				c.mov(b, qword_ptr(stackTop, -8));
-				c.sub(b, 8);		
+				c.mov(b, qword_ptr(stackTop));
+				c.sub(stackTop, 8);		
 
 				GPVar ret(c.newGP());
 				c.cmp(a, 1);
