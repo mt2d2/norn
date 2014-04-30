@@ -29,7 +29,7 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 
 	Compiler c;
 	FileLogger logger(stderr);
-	c.setLogger(&logger);
+	// c.setLogger(&logger);
 
 	// Tell compiler the function prototype we want. It allocates variables representing
 	// function arguments that can be accessed through Compiler or Function instance.
@@ -765,6 +765,37 @@ void Block::jit(const Program& program, Memory& manager, unsigned int start_from
 
 				c.bind(L_Neq);
 				c.mov(qword_ptr(stackTop), 0);
+
+				c.bind(L_after);
+
+				c.unuse(a);
+				c.unuse(b);
+				}
+				break;
+			case LOGICAL_OR:
+				{
+				c.comment("LOGICAL_OR");
+
+				Label L_Eq = c.newLabel();
+				Label L_after = c.newLabel();
+
+				GPVar a(c.newGP());
+				c.mov(a, qword_ptr(stackTop));
+				c.sub(stackTop, 8);		
+				GPVar b(c.newGP());
+				c.mov(b, qword_ptr(stackTop));
+				// replace last value on stack with the ret
+
+				c.cmp(a, 1);
+				c.je(L_Eq);
+				c.cmp(b, 1);
+				c.je(L_Eq);
+
+				c.mov(qword_ptr(stackTop), 0);
+				c.jmp(L_after);
+
+				c.bind(L_Eq);
+				c.mov(qword_ptr(stackTop), 1);
 
 				c.bind(L_after);
 
