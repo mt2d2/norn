@@ -3,7 +3,7 @@ ECHO=/bin/echo
 
 EXE=norn
 SRC=source/vm/common.cpp source/vm/opcode.cpp source/vm/memory.cpp source/vm/block.cpp source/vm/optimizer.cpp source/vm/jit.cpp source/vm/program.cpp  \
- 	source/vm/machine.cpp source/tree.cpp source/generate.cpp source/type.cpp source/lexer.cpp source/parser.cpp source/main.cpp 
+ 	source/vm/machine.cpp source/tree.cpp source/generate.cpp source/type.cpp source/lexer.cpp source/parser.cpp source/main.cpp
 OBJ=${SRC:.cpp=.o}
 
 LIBASMJIT=source/vm/AsmJit/libasmjit.a
@@ -49,5 +49,8 @@ realclean: clean
 test: ${EXE}
 	python test/runner.py
 
-.PHONY: clean realclean test
+format:
+	find . -name '*.cpp' ! -path "./source/vm/AsmJit/*" ! -path "./source/vm/dlmalloc/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
+	find . -name '*.h' ! -path "./source/vm/AsmJit/*" ! -path "./source/vm/dlmalloc/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
 
+.PHONY: clean realclean test format
