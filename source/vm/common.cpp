@@ -8,21 +8,19 @@
 #include <cstdlib>
 
 /* Obtain a backtrace and print it to stdout. */
-void print_trace()
-{
-	void *array[10];
-	size_t size = backtrace(array, 10);
-	char **strings = backtrace_symbols(array, size);
+void print_trace() {
+  void *array[10];
+  size_t size = backtrace(array, 10);
+  char **strings = backtrace_symbols(array, size);
 
-	for (size_t i = 0; i < size; i++)
-		std::cerr << strings[i] << std::endl;
+  for (size_t i = 0; i < size; i++)
+    std::cerr << strings[i] << std::endl;
 
-	free(strings);
+  free(strings);
 }
 
-void raise_error(const std::string& message)
-{
-	std::cerr << message << std::endl;
-	print_trace();
-    exit(1);
+void raise_error(const std::string &message) {
+  std::cerr << message << std::endl;
+  print_trace();
+  exit(1);
 }

@@ -49,7 +49,7 @@ Machine::~Machine() {
 }
 
 void Machine::execute() {
-  
+
 #if COMPUTED_GOTO
 #include "goto.h"
 #endif

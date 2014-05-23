@@ -3,12 +3,11 @@
 
 class Block;
 
-struct Frame
-{
-	Frame() { }
-	Frame(int ip, Block* block) : ip(ip), block(block) { }
-	int ip;
-	Block* block;
+struct Frame {
+  Frame() {}
+  Frame(int ip, Block *block) : ip(ip), block(block) {}
+  int ip;
+  Block *block;
 };
 
 #endif

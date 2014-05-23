@@ -1,7 +1,7 @@
-/* 
-Constant folding in source/vm/optimizer.cpp was heavily influenced by Objeck 
-(http://objeck-lang.sourceforge.net/), whose LICENSE is as follows. 
- 
+/*
+Constant folding in source/vm/optimizer.cpp was heavily influenced by Objeck
+(http://objeck-lang.sourceforge.net/), whose LICENSE is as follows.
+
  **************************************************************************
  * Copyright (c) 2008-2011, Randy Hollines
  * All rights reserved.
@@ -35,309 +35,271 @@ Constant folding in source/vm/optimizer.cpp was heavily influenced by Objeck
 
 #include <cmath> // fmod
 
-void Block::store_load_elimination()
-{
-	int line_number = 0;
-	for (auto i = instructions.begin(); i != instructions.end(); ++i)
-	{
-		++line_number;
+void Block::store_load_elimination() {
+  int line_number = 0;
+  for (auto i = instructions.begin(); i != instructions.end(); ++i) {
+    ++line_number;
 
-		if (i->op == STORE_INT)
-			if ((i+1)->op == LOAD_INT && (i->arg.l == (i+1)->arg.l))
-				instructions.erase(i, i+1+1); // exclusive, i.e., upto
+    if (i->op == STORE_INT)
+      if ((i + 1)->op == LOAD_INT && (i->arg.l == (i + 1)->arg.l))
+        instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
 
-		if (i->op == STORE_FLOAT)
-			if ((i+1)->op == LOAD_FLOAT && (i->arg.l == (i+1)->arg.l))
-				instructions.erase(i, i+1+1); // exclusive, i.e., upto
-		
-		if (i->op == STORE_CHAR)
-			if ((i+1)->op == LOAD_CHAR && (i->arg.l == (i+1)->arg.l))
-				instructions.erase(i, i+1+1); // exclusive, i.e., upto
-		
-		if (i->op == STORE_ARY)
-			if ((i+1)->op == LOAD_ARY && (i->arg.l == (i+1)->arg.l))
-				instructions.erase(i, i+1+1); // exclusive, i.e., upto
-	}
+    if (i->op == STORE_FLOAT)
+      if ((i + 1)->op == LOAD_FLOAT && (i->arg.l == (i + 1)->arg.l))
+        instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
+
+    if (i->op == STORE_CHAR)
+      if ((i + 1)->op == LOAD_CHAR && (i->arg.l == (i + 1)->arg.l))
+        instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
+
+    if (i->op == STORE_ARY)
+      if ((i + 1)->op == LOAD_ARY && (i->arg.l == (i + 1)->arg.l))
+        instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
+  }
 }
 
-void Block::calculate_int_fold(Instruction instr, std::list<Instruction>& calc_stack, std::list<Instruction>& outputs)
-{
-	if (calc_stack.size() == 1) 
-	{
-		outputs.push_back(calc_stack.front());
-		calc_stack.pop_front();
-		outputs.push_back(instr);
-	} 
-	else if (calc_stack.size() > 1) 
-	{
-		Instruction& left = calc_stack.front();
-		calc_stack.pop_front();
+void Block::calculate_int_fold(Instruction instr,
+                               std::list<Instruction> &calc_stack,
+                               std::list<Instruction> &outputs) {
+  if (calc_stack.size() == 1) {
+    outputs.push_back(calc_stack.front());
+    calc_stack.pop_front();
+    outputs.push_back(instr);
+  } else if (calc_stack.size() > 1) {
+    Instruction &left = calc_stack.front();
+    calc_stack.pop_front();
 
-		Instruction& right = calc_stack.front();
-		calc_stack.pop_front();
+    Instruction &right = calc_stack.front();
+    calc_stack.pop_front();
 
-		switch (instr.op) 
-		{
-			case ADD_INT:
-				calc_stack.push_front(Instruction(LIT_INT, left.arg.l + right.arg.l));
-				break;
+    switch (instr.op) {
+    case ADD_INT:
+      calc_stack.push_front(Instruction(LIT_INT, left.arg.l + right.arg.l));
+      break;
 
-			case SUB_INT:
-				calc_stack.push_front(Instruction(LIT_INT, left.arg.l - right.arg.l));
-				break;
+    case SUB_INT:
+      calc_stack.push_front(Instruction(LIT_INT, left.arg.l - right.arg.l));
+      break;
 
-			case MUL_INT:
-				calc_stack.push_front(Instruction(LIT_INT, left.arg.l * right.arg.l));
-				break;
+    case MUL_INT:
+      calc_stack.push_front(Instruction(LIT_INT, left.arg.l * right.arg.l));
+      break;
 
-			case DIV_INT:
-				calc_stack.push_front(Instruction(LIT_INT, left.arg.l / right.arg.l));
-				break;
+    case DIV_INT:
+      calc_stack.push_front(Instruction(LIT_INT, left.arg.l / right.arg.l));
+      break;
 
-			case MOD_INT:
-				calc_stack.push_front(Instruction(LIT_INT, left.arg.l + right.arg.l));
-				break;
-		}
-	} 
-	else 
-	{
-		outputs.push_back(instr);
-	}
+    case MOD_INT:
+      calc_stack.push_front(Instruction(LIT_INT, left.arg.l + right.arg.l));
+      break;
+    }
+  } else {
+    outputs.push_back(instr);
+  }
 }
 
-void Block::calculate_float_fold(Instruction instr, std::list<Instruction>& calc_stack, std::list<Instruction>& outputs)
-{
-	if (calc_stack.size() == 1) 
-	{
-		outputs.push_back(calc_stack.front());
-		calc_stack.pop_front();
-		outputs.push_back(instr);
-	} 
-	else if (calc_stack.size() > 1) 
-	{
-		Instruction& left = calc_stack.front();
-		calc_stack.pop_front();
+void Block::calculate_float_fold(Instruction instr,
+                                 std::list<Instruction> &calc_stack,
+                                 std::list<Instruction> &outputs) {
+  if (calc_stack.size() == 1) {
+    outputs.push_back(calc_stack.front());
+    calc_stack.pop_front();
+    outputs.push_back(instr);
+  } else if (calc_stack.size() > 1) {
+    Instruction &left = calc_stack.front();
+    calc_stack.pop_front();
 
-		Instruction& right = calc_stack.front();
-		calc_stack.pop_front();
+    Instruction &right = calc_stack.front();
+    calc_stack.pop_front();
 
-		switch (instr.op) 
-		{
-			case ADD_FLOAT:
-				calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d + right.arg.d));
-				break;
+    switch (instr.op) {
+    case ADD_FLOAT:
+      calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d + right.arg.d));
+      break;
 
-			case SUB_FLOAT:
-				calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d - right.arg.d));
-				break;
+    case SUB_FLOAT:
+      calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d - right.arg.d));
+      break;
 
-			case MUL_FLOAT:
-				calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d * right.arg.d));
-				break;
+    case MUL_FLOAT:
+      calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d * right.arg.d));
+      break;
 
-			case DIV_FLOAT:
-				calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d / right.arg.d));
-				break;
+    case DIV_FLOAT:
+      calc_stack.push_front(Instruction(LIT_FLOAT, left.arg.d / right.arg.d));
+      break;
 
-			case MOD_FLOAT:
-				calc_stack.push_front(Instruction(LIT_FLOAT, fmod(left.arg.d, right.arg.d)));
-				break;
-		}
-	} 
-	else 
-	{
-		outputs.push_back(instr);
-	}
+    case MOD_FLOAT:
+      calc_stack.push_front(
+          Instruction(LIT_FLOAT, fmod(left.arg.d, right.arg.d)));
+      break;
+    }
+  } else {
+    outputs.push_back(instr);
+  }
 }
 
-void Block::fold_ints()
-{
-	std::list<Instruction> outputs;
-	std::list<Instruction> calc_stack;
-	
-	for (auto & elem : instructions)
-	{
-		switch (elem.op)
-		{
-			case LIT_INT:
-				calc_stack.push_front(elem);
-				break;
+void Block::fold_ints() {
+  std::list<Instruction> outputs;
+  std::list<Instruction> calc_stack;
 
-			case ADD_INT:
-			case SUB_INT:
-			case MUL_INT:
-			case DIV_INT:
-			case MOD_INT:
-				calculate_int_fold(elem, calc_stack, outputs);
-				break;
+  for (auto &elem : instructions) {
+    switch (elem.op) {
+    case LIT_INT:
+      calc_stack.push_front(elem);
+      break;
 
-			default:
-				// add back in reverse order
-				while(!calc_stack.empty()) 
-				{
-					outputs.push_back(calc_stack.back());
-					calc_stack.pop_back();
-				}
-				
-				outputs.push_back(elem);
-				break;
-		}
-	}
+    case ADD_INT:
+    case SUB_INT:
+    case MUL_INT:
+    case DIV_INT:
+    case MOD_INT:
+      calculate_int_fold(elem, calc_stack, outputs);
+      break;
 
-	// order matters...
-	while (!calc_stack.empty())
-	{
-		outputs.push_back(calc_stack.back());
-		calc_stack.pop_back();
-	}
-	
-	instructions.clear();
-	for (auto & output : outputs)
-		instructions.push_back(output);
+    default:
+      // add back in reverse order
+      while (!calc_stack.empty()) {
+        outputs.push_back(calc_stack.back());
+        calc_stack.pop_back();
+      }
+
+      outputs.push_back(elem);
+      break;
+    }
+  }
+
+  // order matters...
+  while (!calc_stack.empty()) {
+    outputs.push_back(calc_stack.back());
+    calc_stack.pop_back();
+  }
+
+  instructions.clear();
+  for (auto &output : outputs)
+    instructions.push_back(output);
 }
 
-void Block::fold_floats()
-{
-	std::list<Instruction> outputs;
-	std::list<Instruction> calc_stack;
-	
-	for (auto & elem : instructions)
-	{
-		switch (elem.op)
-		{
-			case LIT_FLOAT:
-				calc_stack.push_front(elem);
-				break;
+void Block::fold_floats() {
+  std::list<Instruction> outputs;
+  std::list<Instruction> calc_stack;
 
-			case ADD_FLOAT:
-			case SUB_FLOAT:
-			case MUL_FLOAT:
-			case DIV_FLOAT:
-			case MOD_FLOAT:
-				calculate_float_fold(elem, calc_stack, outputs);
-				break;
+  for (auto &elem : instructions) {
+    switch (elem.op) {
+    case LIT_FLOAT:
+      calc_stack.push_front(elem);
+      break;
 
-			default:
-				// add back in reverse order
-				while(!calc_stack.empty()) 
-				{
-					outputs.push_back(calc_stack.back());
-					calc_stack.pop_back();
-				}
-				
-				outputs.push_back(elem);
-				break;
-		}
-	}
+    case ADD_FLOAT:
+    case SUB_FLOAT:
+    case MUL_FLOAT:
+    case DIV_FLOAT:
+    case MOD_FLOAT:
+      calculate_float_fold(elem, calc_stack, outputs);
+      break;
 
-	// order matters...
-	while (!calc_stack.empty())
-	{
-		outputs.push_back(calc_stack.back());
-		calc_stack.pop_back();
-	}
-	
-	instructions.clear();
-	for (auto & output : outputs)
-		instructions.push_back(output);
+    default:
+      // add back in reverse order
+      while (!calc_stack.empty()) {
+        outputs.push_back(calc_stack.back());
+        calc_stack.pop_back();
+      }
+
+      outputs.push_back(elem);
+      break;
+    }
+  }
+
+  // order matters...
+  while (!calc_stack.empty()) {
+    outputs.push_back(calc_stack.back());
+    calc_stack.pop_back();
+  }
+
+  instructions.clear();
+  for (auto &output : outputs)
+    instructions.push_back(output);
 }
 
-void Block::fold_constants()
-{
-	fold_ints();
-	fold_floats();
+void Block::fold_constants() {
+  fold_ints();
+  fold_floats();
 }
 
-void Block::inline_calls()
-{
-	for (unsigned int i = 0; i < instructions.size(); i++)
-	{
-		if (instructions[i].op == CALL || instructions[i].op == CALL_NATIVE)
-		{
-			Block* callee = reinterpret_cast<Block*>(instructions[i].arg.p);
-			
-			if (callee->get_size() <= 3)
-			{
-				//std::cout << "Inlining: " << callee->get_name() << std::endl;
+void Block::inline_calls() {
+  for (unsigned int i = 0; i < instructions.size(); i++) {
+    if (instructions[i].op == CALL || instructions[i].op == CALL_NATIVE) {
+      Block *callee = reinterpret_cast<Block *>(instructions[i].arg.p);
 
-				instructions.erase(instructions.begin()+i, instructions.begin()+i+1);
-				instructions.insert(instructions.begin()+i, callee->get_instructions().begin(), callee->get_instructions().end()-1);		
-			}
-		}
-	}
+      if (callee->get_size() <= 3) {
+        // std::cout << "Inlining: " << callee->get_name() << std::endl;
+
+        instructions.erase(instructions.begin() + i,
+                           instructions.begin() + i + 1);
+        instructions.insert(instructions.begin() + i,
+                            callee->get_instructions().begin(),
+                            callee->get_instructions().end() - 1);
+      }
+    }
+  }
 }
 
-void Block::lit_load_add()
-{
-	int line_number = 0;
-	for (auto i = instructions.begin(); i != instructions.end(); ++i)
-	{
-		++line_number;
+void Block::lit_load_add() {
+  int line_number = 0;
+  for (auto i = instructions.begin(); i != instructions.end(); ++i) {
+    ++line_number;
 
-		if (i->op == LIT_INT)
-		{
-			if ((i+1)->op == LOAD_INT)
-			{
-				if ((i+1+1)->op == ADD_INT)
-				{
-					Instruction newInstr(LIT_LOAD_ADD);
-					newInstr.arg = (i+1)->arg.l;
-					newInstr.arg2 = i->arg.l;
+    if (i->op == LIT_INT) {
+      if ((i + 1)->op == LOAD_INT) {
+        if ((i + 1 + 1)->op == ADD_INT) {
+          Instruction newInstr(LIT_LOAD_ADD);
+          newInstr.arg = (i + 1)->arg.l;
+          newInstr.arg2 = i->arg.l;
 
-					instructions.erase(i, i+1+1+1); // exclusive, i.e., upto
-					instructions.insert(i, newInstr);
-				}
-			}
-		}
-	}
+          instructions.erase(i, i + 1 + 1 + 1); // exclusive, i.e., upto
+          instructions.insert(i, newInstr);
+        }
+      }
+    }
+  }
 }
 
-void Block::lit_load_sub()
-{
-	int line_number = 0;
-	for (auto i = instructions.begin(); i != instructions.end(); ++i)
-	{
-		++line_number;
+void Block::lit_load_sub() {
+  int line_number = 0;
+  for (auto i = instructions.begin(); i != instructions.end(); ++i) {
+    ++line_number;
 
-		if (i->op == LIT_INT)
-		{
-			if ((i+1)->op == LOAD_INT)
-			{
-				if ((i+1+1)->op == SUB_INT)
-				{
-					Instruction newInstr(LIT_LOAD_SUB);
-					newInstr.arg = (i+1)->arg.l;
-					newInstr.arg2 = i->arg.l;
+    if (i->op == LIT_INT) {
+      if ((i + 1)->op == LOAD_INT) {
+        if ((i + 1 + 1)->op == SUB_INT) {
+          Instruction newInstr(LIT_LOAD_SUB);
+          newInstr.arg = (i + 1)->arg.l;
+          newInstr.arg2 = i->arg.l;
 
-					instructions.erase(i, i+1+1+1); // exclusive, i.e., upto
-					instructions.insert(i, newInstr);
-				}
-			}
-		}
-	}
+          instructions.erase(i, i + 1 + 1 + 1); // exclusive, i.e., upto
+          instructions.insert(i, newInstr);
+        }
+      }
+    }
+  }
 }
 
-void Block::lit_load_le()
-{
-	int line_number = 0;
-	for (auto i = instructions.begin(); i != instructions.end(); ++i)
-	{
-		++line_number;
+void Block::lit_load_le() {
+  int line_number = 0;
+  for (auto i = instructions.begin(); i != instructions.end(); ++i) {
+    ++line_number;
 
-		if (i->op == LIT_INT)
-		{
-			if ((i+1)->op == LOAD_INT)
-			{
-				if ((i+1+1)->op == LE_INT)
-				{
-					Instruction newInstr(LIT_LOAD_LE);
-					newInstr.arg = (i+1)->arg.l;
-					newInstr.arg2 = i->arg.l;
+    if (i->op == LIT_INT) {
+      if ((i + 1)->op == LOAD_INT) {
+        if ((i + 1 + 1)->op == LE_INT) {
+          Instruction newInstr(LIT_LOAD_LE);
+          newInstr.arg = (i + 1)->arg.l;
+          newInstr.arg2 = i->arg.l;
 
-					instructions.erase(i, i+1+1+1); // exclusive, i.e., upto
-					instructions.insert(i, newInstr);
-				}
-			}
-		}
-	}
+          instructions.erase(i, i + 1 + 1 + 1); // exclusive, i.e., upto
+          instructions.insert(i, newInstr);
+        }
+      }
+    }
+  }
 }

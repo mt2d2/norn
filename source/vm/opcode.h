@@ -4,12 +4,11 @@
 #include <map>
 #include <string>
 
-enum Opcode
-{
-#	define op(x) x,
-#	include "opcode.def"
-#	undef op
-	OPCODE_COUNT
+enum Opcode {
+#define op(x) x,
+#include "opcode.def"
+#undef op
+  OPCODE_COUNT
 };
 
 std::map<long, std::string> opcode_str_map();
