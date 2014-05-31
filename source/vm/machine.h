@@ -16,7 +16,11 @@
 
 class Machine {
 public:
-  Machine(const Program &program, bool debug = false, bool nojit = false);
+  Machine(const Program &program
+#if !NOJIT
+          ,
+          bool debug = false, bool nojit = false);
+#endif
   ~Machine();
   void execute();
 
