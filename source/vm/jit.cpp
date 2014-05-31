@@ -62,7 +62,7 @@ void Block::jit(const Program &program, Memory &manager,
     c.unuse(tmp);
   }
 
-  int instr_count = 0;
+  unsigned int instr_count = 0;
   for (auto instr = instructions.begin(); instr != instructions.end();
        ++instr) {
     if (start_from_ip > 0 && instr_count == start_from_ip)
@@ -779,7 +779,7 @@ void Block::jit(const Program &program, Memory &manager,
   this->set_jit_type(BASIC);
 }
 
-void Block::optimizing_jit(const Program &program, unsigned int start_from_ip) {
+void Block::optimizing_jit(const Program &program) {
   const auto &blocks = program.get_blocks();
 
   Compiler c;

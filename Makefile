@@ -9,7 +9,7 @@ OBJ=${SRC:.cpp=.o}
 LIBASMJIT=source/vm/AsmJit/libasmjit.a
 LIBDLMALLOC=source/vm/dlmalloc/dlmalloc.a
 
-CFLAGS=-std=c++11 -Wall -Werror -pipe -g -O2
+CFLAGS=-std=c++11 -Wall -Wextra -Werror -g -O2
 ${EXE}_nojit: CFLAGS += -DNOJIT=1
 
 CFLAGS += -Isource/vm/dlmalloc -DUSE_DL_PREFIX

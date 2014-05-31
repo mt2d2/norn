@@ -307,7 +307,7 @@ Type CallExprAST::resolve_return_type(BuildContext &out) {
 }
 
 void CallExprAST::emit_bytecode(BuildContext &out) {
-  int block_id = this->get_block_id(out, out.get_block());
+  int block_id = this->get_block_id(out);
   // std::cout << "Calling: " <<  out.get_block_ptr(block_id)->get_name() << "
   // block_id: " << block_id << std::endl;
 

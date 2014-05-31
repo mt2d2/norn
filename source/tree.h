@@ -223,7 +223,7 @@ public:
     type = TypeFactory::get_instance().get(VOID);
   }
   virtual void emit_bytecode(BuildContext &out);
-  int get_block_id(BuildContext &out, Block *block);
+  int get_block_id(BuildContext &out);
   std::string callee_signature(BuildContext &out);
   Type resolve_return_type(BuildContext &out);
   virtual ~CallExprAST() {
@@ -380,7 +380,7 @@ public:
   virtual ~ProgramAST();
   void add_struct(StructAST *s) { structs.push_back(s); }
   void add_function(FunctionAST *f) { functions.push_back(f); }
-  void install_types(BuildContext &out);
+  void install_types();
   void register_functions(BuildContext &out);
   void emit_bytecode(BuildContext &out);
 

@@ -540,7 +540,7 @@ BuildContext Parser::parse(BuildContext &build, int optimize) {
   while (CurToken == tok_struct || CurToken == tok_def) {
     if (CurToken == tok_struct) {
       HandleStruct(ast);
-      ast.install_types(build);
+      ast.install_types();
     } else {
       HandleDefinition(ast);
       ast.register_functions(build);

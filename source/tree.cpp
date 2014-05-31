@@ -87,11 +87,11 @@ std::string CallExprAST::callee_signature(BuildContext &out) {
   return block_name;
 }
 
-int CallExprAST::get_block_id(BuildContext &out, Block *block) {
+int CallExprAST::get_block_id(BuildContext &out) {
   return out.get_program().get_block_id(callee_signature(out));
 }
 
-void ProgramAST::install_types(BuildContext &out) {
+void ProgramAST::install_types() {
   for (auto &elem : structs) {
     std::vector<std::string> fields;
     std::vector<Type> types;

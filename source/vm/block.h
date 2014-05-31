@@ -59,7 +59,7 @@ public:
 #if !NOJIT
   void jit(const Program &blocks, Memory &manager,
            unsigned int start_from_ip = 0);
-  void optimizing_jit(const Program &program, unsigned int start_from_ip = 0);
+  void optimizing_jit(const Program &program);
 #endif
 
   native_ptr native;
