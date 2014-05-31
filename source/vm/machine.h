@@ -55,7 +55,7 @@ private:
 };
 
 template <typename T> inline T Machine::get_memory(int key) {
-  return (T)memory[key];
+  return reinterpret_cast<T>(memory[key]);
 }
 
 template <> inline double Machine::get_memory(int key) {

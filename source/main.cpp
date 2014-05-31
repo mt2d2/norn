@@ -41,7 +41,12 @@ int main(int argc, char *argv[]) {
   if (params.bytecode)
     std::cout << program << std::endl;
   else
-    Machine(program, params.debug, params.nojit).execute();
+    Machine(program
+#if !NOJIT
+            ,
+            params.debug, params.nojit
+#endif
+            ).execute();
 }
 
 Params parse_params(int argc, char **argv) {
