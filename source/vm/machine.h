@@ -19,8 +19,9 @@ public:
   Machine(const Program &program
 #if !NOJIT
           ,
-          bool debug = false, bool nojit = false);
+          bool debug = false, bool nojit = false
 #endif
+          );
   ~Machine();
   void execute();
 
