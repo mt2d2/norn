@@ -31,7 +31,12 @@
 // TODO test perf of switch root_arrays to vectors, would make a lot simpler!
 // TODO refactor Opcode so reapir_disp_table isn't needed
 // TODO reference things by frame, push inital frame for main, too
-Machine::Machine(const Program &program, bool debug, bool nojit)
+Machine::Machine(const Program &program
+#if !NOJIT
+                 ,
+                 bool debug, bool nojit
+#endif
+                 )
     : program(program), block(nullptr), instr(nullptr), ip(0),
 #if !NOJIT
       debug(debug), nojit(nojit),
