@@ -56,7 +56,7 @@ public:
   double get_number();
   char get_char();
   bool get_bool();
-  std::string &get_string();
+  const std::string &get_string();
 
 private:
   char lex_escape(char escape);

@@ -180,7 +180,7 @@ char Lexer::get_char() { return character; }
 
 bool Lexer::get_bool() { return boolean; }
 
-std::string &Lexer::get_string() { return string; }
+const std::string &Lexer::get_string() { return string; }
 
 char Lexer::lex_escape(char escape) {
   char c = '\0';
