@@ -11,6 +11,7 @@
 #include "memory.h"
 #include "program.h"
 #include "variant.h"
+#include "trace.h"
 
 #define STACK_SIZE 256
 
@@ -52,6 +53,8 @@ private:
   Frame *frames_start;
   int64_t *memory;
   Memory manager;
+  Trace trace;
+  bool is_tracing;
 };
 
 template <typename T> inline T Machine::get_memory(int key) {

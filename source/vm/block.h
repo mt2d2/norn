@@ -36,10 +36,8 @@ public:
   void free_native_code();
   JITType get_jit_type() const;
   void set_jit_type(JITType needs_jit);
-  unsigned int get_hotness() const;
-  void add_hotness();
-  unsigned int get_backedge_hotness(const Instruction *i) const;
-  void add_backedge_hotness(const Instruction *i);
+  unsigned int get_loop_hotness(const Instruction *i) const;
+  void add_loop_hotness(const Instruction *i);
 #endif
 
   // TODO, rename, repairs
@@ -79,7 +77,7 @@ private:
 #if !NOJIT
   JITType jit_type;
   unsigned int hotness;
-  std::map<const Instruction *, unsigned int> backedge_hotness;
+  std::map<const Instruction *, unsigned int> loop_hotness;
 #endif
 
   friend std::ostream &operator<<(std::ostream &os, Block &b) {
