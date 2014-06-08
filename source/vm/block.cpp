@@ -11,7 +11,7 @@ Block::Block(const std::string &name)
 #if !NOJIT
       ,
       jit_type(NONE), hotness(0),
-      backedge_hotness(std::map<const Instruction *, unsigned int>())
+      loop_hotness(std::map<const Instruction *, unsigned int>())
 #endif
 {
 }
@@ -41,17 +41,11 @@ JITType Block::get_jit_type() const { return this->jit_type; }
 
 void Block::set_jit_type(JITType jit_type) { this->jit_type = jit_type; }
 
-unsigned int Block::get_hotness() const { return this->hotness; }
-
-void Block::add_hotness() { this->hotness += 1; }
-
-unsigned int Block::get_backedge_hotness(const Instruction *i) const {
-  return this->backedge_hotness.at(i);
+unsigned int Block::get_loop_hotness(const Instruction *i) const {
+  return this->loop_hotness.at(i);
 }
 
-void Block::add_backedge_hotness(const Instruction *i) {
-  this->backedge_hotness[i]++;
-}
+void Block::add_loop_hotness(const Instruction *i) { this->loop_hotness[i]++; }
 #endif
 
 void Block::add_instruction(const Instruction &instruction) {

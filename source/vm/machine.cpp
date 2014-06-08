@@ -2,13 +2,15 @@
 #include <cmath>  // fmod
 #include <cstdio> // printf
 
-#define BACKEDGE_HOTNESS 40
-#define CALL_HOTNESS 40
+#define LOOP_HOTNESS 56
 
 #define COMPUTED_GOTO __GNUC__
 #if COMPUTED_GOTO
 #define DISPATCH NEXT
-#define OP(x) x:
+#define OP(x)                                                                  \
+  trace_##x : { trace.record(instr); }                                         \
+  x:
+
 #define NEXT                                                                   \
   instr = block->get_instruction(ip++);                                        \
   goto *disp_table[instr->op];
@@ -28,7 +30,8 @@
   }
 #endif
 
-// TODO test perf of switch root_arrays to vectors, would make a lot simpler!
+// TODO test perf of switch root_arrays to vectors, would make a lot
+// simpler!
 // TODO refactor Opcode so reapir_disp_table isn't needed
 // TODO reference things by frame, push inital frame for main, too
 Machine::Machine(const Program &program
@@ -44,7 +47,7 @@ Machine::Machine(const Program &program
       stack(new int64_t[STACK_SIZE]), stack_start(stack),
       frames(new Frame[STACK_SIZE]), frames_start(frames),
       memory(new int64_t[STACK_SIZE * this->program.get_memory_slots()]),
-      manager(Memory(stack_start, memory)) {
+      manager(Memory(stack_start, memory)), trace(Trace()), is_tracing(false) {
 }
 
 Machine::~Machine() {
@@ -57,6 +60,7 @@ void Machine::execute() {
 
 #if COMPUTED_GOTO
 #include "goto.h"
+  void **disp_table = op_disp_table;
 #endif
 
   block = this->program.get_block_ptr(this->program.get_block_id("main"));
@@ -241,29 +245,6 @@ void Machine::execute() {
   }
 
   OP(UJMP) {
-#if !NOJIT
-    if (likely(!this->nojit) && instr->arg.l < ip) {
-      block->add_backedge_hotness(instr);
-
-      if (block->get_backedge_hotness(instr) == BACKEDGE_HOTNESS) {
-        if (unlikely(this->debug))
-          fprintf(stderr, "hot backedge at %s:%d\n", block->get_name().c_str(),
-                  ip);
-
-        // compile a special version of the block
-        // that bounces to the correct spot in the compiled code
-        block->jit(this->program, this->manager, instr->arg.l);
-        block->native(&stack, &memory);
-
-        // now throw away the previous compiled code
-        // recompile the whole block and don't bounce in
-        block->free_native_code();
-        block->jit(this->program, this->manager);
-        goto return_opcode;
-      }
-    }
-#endif
-
     ip = instr->arg.l;
     NEXT
   }
@@ -378,41 +359,11 @@ void Machine::execute() {
     push_frame(Frame(ip, block));
     block = reinterpret_cast<Block *>(instr->arg.p);
     ip = 0;
-
-#if !NOJIT
-    if (likely(!this->nojit) &&
-        unlikely(block->get_hotness()) == CALL_HOTNESS) {
-      if (unlikely(this->debug))
-        fprintf(stderr, "hot call %s\n", block->get_name().c_str());
-
-      block->jit(this->program, this->manager);
-    }
-
-    block->add_hotness();
-#endif
-
     NEXT
   }
 
-  OP(CALL_NATIVE) {
-    Block *callee = reinterpret_cast<Block *>(instr->arg.p);
-    memory += block->get_memory_slots();
+  OP(CALL_NATIVE) { raise_error("CALL_NATIVE disabled"); }
 
-#if !NOJIT
-    int64_t ret = callee->native(&stack, &memory);
-    if (callee->get_jit_type() == OPTIMIZING)
-      push<int64_t>(ret);
-#else
-    callee->native(&stack, &memory);
-#endif
-
-    memory -= block->get_memory_slots();
-    NEXT
-  }
-
-#if !NOJIT
-return_opcode:
-#endif
   OP(RTRN) {
     if (likely(!frames_is_empty())) {
       Frame f = pop_frame();
@@ -483,6 +434,39 @@ return_opcode:
 
   OP(LBL) {
     raise_error("fatal label encounter in virtual machine");
+    NEXT
+  }
+
+  OP(LOOP) {
+    if (!nojit) {
+      if (is_tracing && trace.is_head(instr)) {
+        disp_table = op_disp_table;
+        is_tracing = false;
+
+        if (debug) {
+          printf("trace finished\n");
+          trace.debug();
+        }
+
+        NEXT
+      }
+
+      block->add_loop_hotness(instr);
+
+      if (block->get_loop_hotness(instr) == LOOP_HOTNESS) {
+        if (debug) {
+          printf("trace started\n");
+        }
+
+        // disp_table = trace_disp_table
+        disp_table = trace_disp_table;
+        is_tracing = true;
+
+        // hack to record first LOOP
+        trace.record(instr);
+      }
+    }
+
     NEXT
   }
 
