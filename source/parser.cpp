@@ -550,12 +550,12 @@ BuildContext Parser::parse(BuildContext &build, int optimize) {
   ast.emit_bytecode(build);
 
   if (optimize >= 1) {
-    build.get_program().store_load_elimination();
+    // build.get_program().store_load_elimination();
     build.get_program().fold_constants();
     // build.get_program().inline_calls();
-    build.get_program().lit_load_add();
-    build.get_program().lit_load_sub();
-    build.get_program().lit_load_le();
+    // build.get_program().lit_load_add();
+    // build.get_program().lit_load_sub();
+    // build.get_program().lit_load_le();
   }
 
   return build;
