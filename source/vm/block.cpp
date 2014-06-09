@@ -1,8 +1,8 @@
 #include "block.h"
 
 #if !NOJIT
-#include "AsmJit/AsmJit.h"
-using namespace AsmJit;
+#include "asmjit/asmjit.h"
+using namespace asmjit;
 #endif
 
 Block::Block(const std::string &name)
@@ -32,9 +32,9 @@ int Block::get_size() const { return this->instructions.size(); }
 
 #if !NOJIT
 void Block::free_native_code() {
-  if (this->native &&
-      (this->get_jit_type() == BASIC || this->get_jit_type() == OPTIMIZING))
-    MemoryManager::getGlobal()->free((void *)this->native);
+  // if (this->native &&
+  //     (this->get_jit_type() == BASIC || this->get_jit_type() == OPTIMIZING))
+  //   MemoryManager::getGlobal()->free((void *)this->native);
 }
 
 JITType Block::get_jit_type() const { return this->jit_type; }

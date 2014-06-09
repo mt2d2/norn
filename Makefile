@@ -10,10 +10,10 @@ OBJ=${SRC:.cpp=.o}
 LIBASMJIT=source/vm/AsmJit/libasmjit.a
 LIBDLMALLOC=source/vm/dlmalloc/dlmalloc.a
 
-CFLAGS=-std=c++11 -Wall -Wextra -Werror -g -O2
+CFLAGS=-std=c++11 -Wall -g -O2
 ${EXE}_nojit: CFLAGS += -DNOJIT=1
 
-CFLAGS += -Isource/vm/dlmalloc -DUSE_DL_PREFIX
+CFLAGS += -Isource/vm/dlmalloc -Isource/vm/asmjit/src -DUSE_DL_PREFIX
 
 all: ${SRC} ${EXE}
 
@@ -46,6 +46,10 @@ realclean: clean
 	@${ECHO} RM profile data, libasmjit.a, libdlmalloc.a
 	@rm -f source/*gc* source/vm/*gc*
 	@make -C source/vm/asmjit clean
+	@rm -f source/vm/asmjit/CMakeCache.txt
+	@rm -rf source/vm/asmjit/CMakeFiles
+	@rm -rf source/vm/asmjit/cmake_install.cmake
+	@rm -rf source/vm/asmjit/Makefile
 	@make -C source/vm/dlmalloc clean
 
 test: ${EXE}
