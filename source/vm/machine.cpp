@@ -446,6 +446,7 @@ void Machine::execute() {
         if (debug) {
           printf("trace finished\n");
           trace.debug();
+          trace.jit();
         }
 
         NEXT
