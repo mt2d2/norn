@@ -10,7 +10,7 @@ public:
   Trace();
   ~Trace();
   void record(const Instruction *i);
-  bool is_head(const Instruction* i);
+  bool is_head(const Instruction *i);
   void debug();
 
 private:

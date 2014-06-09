@@ -95,7 +95,7 @@ template <> inline void Machine::push(double element) {
   *++stack = tmp;
 }
 
-template <typename T> inline T Machine::pop() { return (T) * stack--; }
+template <typename T> inline T Machine::pop() { return (T)*stack--; }
 
 template <> inline double Machine::pop() {
   double ret;
