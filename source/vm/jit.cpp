@@ -8,8 +8,8 @@
 #include "memory.h"
 
 #if !NOJIT
-#include "AsmJit/AsmJit.h"
-using namespace AsmJit;
+#include "asmjit/asmjit.h"
+using namespace asmjit;
 
 void putdouble(long l) {
   double n;
@@ -21,7 +21,7 @@ void putint(int n) { printf("%d", n); }
 
 void Block::jit(const Program &program, Memory &manager,
                 unsigned int start_from_ip) {
-  const auto &blocks = program.get_blocks();
+  /*const auto &blocks = program.get_blocks();
 
   Compiler c;
   FileLogger logger(stderr);
@@ -783,10 +783,12 @@ void Block::jit(const Program &program, Memory &manager,
 
   // mark native segment as BASIC JIT compiled
   this->set_jit_type(BASIC);
+
+  */
 }
 
 void Block::optimizing_jit(const Program &program) {
-  const auto &blocks = program.get_blocks();
+  /*const auto &blocks = program.get_blocks();
 
   Compiler c;
   FileLogger logger(stderr);
@@ -1057,7 +1059,7 @@ void Block::optimizing_jit(const Program &program) {
     raise_error("unable to create jit'd block");
 
   // mark native segment as OPTIMIZING JIT compiled
-  this->set_jit_type(OPTIMIZING);
+  this->set_jit_type(OPTIMIZING);*/
 }
 
 #endif //!NOJIT
