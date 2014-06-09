@@ -1,5 +1,6 @@
 CXX=clang++
 ECHO=/bin/echo
+CMAKE=cmake
 
 EXE=norn
 SRC=source/vm/common.cpp source/vm/opcode.cpp source/vm/memory.cpp source/vm/block.cpp source/vm/optimizer.cpp source/vm/jit.cpp source/vm/program.cpp  \
@@ -26,7 +27,8 @@ ${EXE}_nojit: ${OBJ} ${LIBDLMALLOC}
 
 ${LIBASMJIT}:
 	@${ECHO} MAKE libasmjit
-	@+${MAKE} -C source/vm/AsmJit
+	@cd source/vm/asmjit && ${CMAKE} -DASMJIT_STATIC=1
+	@+${MAKE} -C source/vm/asmjit
 
 ${LIBDLMALLOC}:
 	@${ECHO} MAKE libdlmalloc
@@ -43,7 +45,7 @@ clean:
 realclean: clean
 	@${ECHO} RM profile data, libasmjit.a, libdlmalloc.a
 	@rm -f source/*gc* source/vm/*gc*
-	@make -C source/vm/AsmJit clean
+	@make -C source/vm/asmjit clean
 	@make -C source/vm/dlmalloc clean
 
 test: ${EXE}
