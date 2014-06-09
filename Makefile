@@ -56,7 +56,7 @@ test: ${EXE}
 	python test/runner.py
 
 format:
-	find . -name '*.cpp' ! -path "./source/vm/AsmJit/*" ! -path "./source/vm/dlmalloc/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
-	find . -name '*.h' ! -path "./source/vm/AsmJit/*" ! -path "./source/vm/dlmalloc/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
+	find . -name '*.cpp' ! -path "./source/vm/asmjit/*" ! -path "./source/vm/dlmalloc/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
+	find . -name '*.h' ! -path "./source/vm/asmjit/*" ! -path "./source/vm/dlmalloc/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
 
 .PHONY: clean realclean test format
