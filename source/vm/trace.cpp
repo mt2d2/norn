@@ -184,12 +184,7 @@ void Trace::jit(bool debug) {
     } break;
 
     case UJMP: {
-      c.comment("jmp causes a crash here :(");
-      auto a = asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "TMP");
-      c.xor_(a, a);
-      c.cmp(a, 0);
-      c.jz(L_traceEntry);
-      c.unuse(a);
+      c.jmp(L_traceEntry);
     } break;
 
     case LOOP:
