@@ -1,10 +1,5 @@
 #include "block.h"
 
-#if !NOJIT
-#include "asmjit/asmjit.h"
-using namespace asmjit;
-#endif
-
 Block::Block(const std::string &name)
     : name(name), instructions(std::vector<Instruction>()), memory_slots(0)
 #if !NOJIT
