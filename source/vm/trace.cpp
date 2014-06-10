@@ -5,32 +5,40 @@
 #include <sstream>
 #include <stack>
 
+#include "../common.h"
 #include "../block.h"
 #include "instruction.h"
 
-Trace::Trace() : instructions(std::vector<const Instruction *>()) {}
+Trace::Trace()
+    : instructions(std::vector<const Instruction *>()), nativePtr(nullptr) {}
 
-Trace::~Trace() {}
+Trace::~Trace() {
+  if (this->nativePtr)
+    runtime.release((void *)this->nativePtr);
+}
 
 void Trace::record(const Instruction *i) {
   if (!is_head(i))
     instructions.push_back(i);
 }
 
-bool Trace::is_head(const Instruction *i) {
+bool Trace::is_head(const Instruction *i) const {
   return instructions.size() > 0 && i == instructions[0];
 }
 
-void Trace::debug() {
+void Trace::debug() const {
   for (auto *i : instructions) {
     std::cout << *i << std::endl;
   }
 }
 
+nativeTraceType Trace::get_native_ptr() const { return this->nativePtr; }
+
 static asmjit::host::GpVar pop(asmjit::BaseCompiler &c,
-                               std::stack<asmjit::host::GpVar> immStack) {
+                               std::stack<asmjit::host::GpVar> &immStack) {
   if (immStack.size() == 0) {
     // need to load from lang stack!
+    raise_error("implement lang stack access");
     return asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "LANG_STACK_");
   } else {
     auto ret = immStack.top();
@@ -39,110 +47,7 @@ static asmjit::host::GpVar pop(asmjit::BaseCompiler &c,
   }
 }
 
-std::stack<asmjit::host::GpVar>
-Trace::identifyValuesToRetrieveFromLangStack(asmjit::host::Compiler &c) {
-  std::stack<asmjit::host::GpVar> immStack;
-  for (auto *i : instructions) {
-    switch (i->op) {
-
-    // push 1
-    case LIT_INT:
-    case LIT_CHAR:
-    case LIT_FLOAT:
-    case NEW_ARY:
-      immStack.push(asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "LIT_"));
-      break;
-
-    // memory, push 1
-    case LOAD_INT:
-    case LOAD_CHAR:
-    case LOAD_FLOAT:
-    case LOAD_ARY:
-      immStack.push(locals[i]);
-      break;
-
-    // pop 2, push 1
-    case LE_INT:
-    case LEQ_INT:
-    case GE_INT:
-    case GEQ_INT:
-    case EQ_INT:
-    case NEQ_INT:
-    case LE_FLOAT:
-    case LEQ_FLOAT:
-    case GE_FLOAT:
-    case GEQ_FLOAT:
-    case EQ_FLOAT:
-    case NEQ_FLOAT:
-    case ADD_INT:
-    case SUB_INT:
-    case MUL_INT:
-    case DIV_INT:
-    case MOD_INT:
-    case ADD_FLOAT:
-    case SUB_FLOAT:
-    case MUL_FLOAT:
-    case DIV_FLOAT:
-    case MOD_FLOAT:
-    case AND_INT:
-    case OR_INT: {
-      pop(c, immStack);
-      pop(c, immStack);
-      immStack.push(asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "BIN_"));
-    } break;
-
-    // pop 1, push 1
-    case LOAD_ARY_ELM_CHAR:
-    case LOAD_ARY_ELM_INT:
-    case LOAD_ARY_ELM_FLOAT:
-    case STRUCT_LOAD_INT:
-    case STRUCT_LOAD_FLOAT:
-    case STRUCT_LOAD_CHAR: {
-      pop(c, immStack);
-    } break;
-
-    // pop 2
-    case STRUCT_STORE_INT:
-    case STRUCT_STORE_FLOAT:
-    case STRUCT_STORE_CHAR:
-    case STORE_ARY_ELM_CHAR:
-    case STORE_ARY_ELM_INT:
-    case STORE_ARY_ELM_FLOAT:
-      pop(c, immStack);
-      pop(c, immStack);
-      break;
-
-    // pop 1
-    case STORE_ARY:
-    case PRINT_INT:
-    case PRINT_FLOAT:
-    case PRINT_CHAR:
-    case PRINT_ARY_CHAR:
-    case CPY_ARY_CHAR:
-    case TJMP:
-    case FJMP:
-    case UJMP:
-    case MALLOC:
-      pop(c, immStack);
-      break;
-
-    // no effect
-    case CALL:
-    case CALL_NATIVE:
-    case RTRN:
-    case I2F:
-    case F2I:
-    case LBL:
-    case LOOP:
-      break;
-    }
-  }
-
-  return immStack;
-}
-
 void Trace::load_locals(asmjit::host::Compiler &c,
-                        const asmjit::host::GpVar &sp,
                         const asmjit::host::GpVar &mp) {
   // load locals from memory
   auto memOffset = 0;
@@ -156,23 +61,28 @@ void Trace::load_locals(asmjit::host::Compiler &c,
       memOffset -= lastMemoryOffset;
     }
 
+    // TODO memory, floats
+    if (i->op == LOAD_FLOAT || i->op == STRUCT_LOAD_INT)
+      raise_error("unimplemented memory access");
+
     if (i->op == LOAD_INT || i->op == LOAD_CHAR) {
       std::stringstream ss;
       ss << i->arg.l;
 
-      // TODO memory
-      // TODO floats
-
-      locals[i] =
-          asmjit::host::GpVar(c, asmjit::kVarTypeInt64,
-                              std::string("local_mem_" + ss.str()).c_str());
-      c.mov(locals[i], asmjit::host::qword_ptr(mp, (i->arg.l * 8) + memOffset));
+      if (locals.find(i->arg.l) == locals.end()) {
+        locals[i->arg.l] =
+            asmjit::host::GpVar(c, asmjit::kVarTypeInt64,
+                                std::string("local_mem_" + ss.str()).c_str());
+        c.mov(locals[i->arg.l],
+              asmjit::host::qword_ptr(mp, (i->arg.l * 8) + memOffset));
+      }
     }
   }
 }
 
 void Trace::jit() {
-  asmjit::JitRuntime runtime;
+  std::stack<asmjit::host::GpVar> immStack;
+
   asmjit::host::Compiler c(&runtime);
   asmjit::FileLogger logger(stdout);
   c.setLogger(&logger);
@@ -182,15 +92,92 @@ void Trace::jit() {
 
   asmjit::host::GpVar stack(c, asmjit::kVarTypeIntPtr, "stack");
   asmjit::host::GpVar memory(c, asmjit::kVarTypeIntPtr, "memory");
-
   c.setArg(0, stack);
   c.setArg(1, memory);
 
-  load_locals(c, stack, memory);
+  asmjit::Label L_traceEntry = c.newLabel();
+  asmjit::Label L_traceExit = c.newLabel();
+
+  load_locals(c, memory);
+
+  c.bind(L_traceEntry);
+
+  for (auto *i : instructions) {
+    switch (i->op) {
+    case LIT_INT: {
+      auto a = asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "LIT_");
+      c.mov(a, i->arg.l);
+      immStack.push(a);
+    } break;
+
+    case LOAD_INT: {
+      immStack.push(locals.at(i->arg.l));
+    } break;
+
+    case STORE_INT: {
+      auto a = pop(c, immStack);
+      locals[i->arg.l] = a;
+    } break;
+
+    case LE_INT: {
+      auto a = pop(c, immStack);
+      auto b = pop(c, immStack);
+      auto ret = asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "LE_");
+
+      asmjit::Label L_LT = c.newLabel();
+      asmjit::Label L_Exit = c.newLabel();
+
+      c.cmp(a, b);
+      c.jl(L_LT);
+
+      c.mov(ret, 0);
+      c.jmp(L_Exit);
+
+      c.bind(L_LT);
+      c.mov(ret, 1);
+      c.bind(L_Exit);
+
+      immStack.push(ret);
+    } break;
+
+    case ADD_INT: {
+      auto a = pop(c, immStack);
+      auto b = pop(c, immStack);
+      c.add(a, b);
+      immStack.push(a);
+    } break;
+
+    case FJMP: {
+      auto a = pop(c, immStack);
+      c.cmp(a, 0);
+      c.jz(L_traceExit);
+    } break;
+
+    case UJMP: {
+      c.comment("jmp causes a crash here :(");
+      auto a = asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "TMP");
+      c.xor_(a, a);
+      c.cmp(a, 0);
+      c.jz(L_traceEntry);
+      c.unuse(a);
+    } break;
+
+    case LOOP:
+    case CALL:
+    case RTRN:
+      break;
+
+    default:
+      raise_error("unhandled opcode");
+      break;
+    }
+  }
+
+  c.bind(L_traceExit);
+  c.int3();
 
   c.ret();
   c.endFunc();
 
-  c.make();
-  // need to release make
+  this->nativePtr = asmjit_cast<nativeTraceType>(c.make());
 }

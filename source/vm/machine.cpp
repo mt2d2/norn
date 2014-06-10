@@ -47,7 +47,7 @@ Machine::Machine(const Program &program
       stack(new int64_t[STACK_SIZE]), stack_start(stack),
       frames(new Frame[STACK_SIZE]), frames_start(frames),
       memory(new int64_t[STACK_SIZE * this->program.get_memory_slots()]),
-      manager(Memory(stack_start, memory)), trace(Trace()), is_tracing(false) {
+      manager(Memory(stack_start, memory)), is_tracing(false) {
 }
 
 Machine::~Machine() {
@@ -439,17 +439,22 @@ void Machine::execute() {
 
   OP(LOOP) {
     if (!nojit) {
-      if (is_tracing && trace.is_head(instr)) {
-        disp_table = op_disp_table;
-        is_tracing = false;
+      auto nativePtr = trace.get_native_ptr();
+      if (nativePtr != nullptr) {
+        nativePtr(stack, memory);
+      } else {
+        if (is_tracing && trace.is_head(instr)) {
+          disp_table = op_disp_table;
+          is_tracing = false;
 
-        if (debug) {
-          printf("trace finished\n");
-          trace.debug();
-          trace.jit();
+          if (debug) {
+            printf("trace finished\n");
+            trace.debug();
+            trace.jit();
+          }
+
+          NEXT
         }
-
-        NEXT
       }
 
       block->add_loop_hotness(instr);
