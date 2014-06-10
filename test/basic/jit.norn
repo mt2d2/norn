@@ -3,12 +3,12 @@ def maths(): Int
 end
 
 def jit_test(m: Int, t: Int): Int
-	ret: Int = 0 
-	
+	ret: Int = 0
+
 	for i: Int = 0, i < 10000000, i=i+1 in
 		ret = ret + m + t + maths()
 	end
-	
+
 	return ret
 end
 
