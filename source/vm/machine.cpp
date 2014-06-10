@@ -438,7 +438,7 @@ void Machine::execute() {
   }
 
   OP(LOOP) {
-    if (!nojit) {
+    if (unlikely(!nojit)) {
       auto nativePtr = trace.get_native_ptr();
       if (nativePtr != nullptr) {
         nativePtr(stack, memory);
