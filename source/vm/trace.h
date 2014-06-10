@@ -31,8 +31,7 @@ public:
 private:
   void identify_locals(asmjit::host::Compiler &c);
   void load_locals(asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
-  void store_locals(asmjit::host::Compiler &c,
-                           const asmjit::host::GpVar &mp);
+  void store_locals(asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
   std::stack<asmjit::host::GpVar>
   identifyValuesToRetrieveFromLangStack(asmjit::host::Compiler &c);
 
