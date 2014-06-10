@@ -10,7 +10,8 @@
 #include "instruction.h"
 
 Trace::Trace()
-    : instructions(std::vector<const Instruction *>()), nativePtr(nullptr) {}
+    : instructions(std::vector<const Instruction *>()), nativePtr(nullptr),
+      rootFunctionSize(0), callDepth(0) {}
 
 Trace::~Trace() {
   if (this->nativePtr)
@@ -20,11 +21,21 @@ Trace::~Trace() {
 void Trace::record(const Instruction *i) {
   if (!is_head(i))
     instructions.push_back(i);
+
+  if (i->op == CALL)
+    ++callDepth;
+  else if (i->op == RTRN)
+    --callDepth;
+
+  if (i->op != RTRN && callDepth == 0)
+    ++rootFunctionSize;
 }
 
 bool Trace::is_head(const Instruction *i) const {
   return instructions.size() > 0 && i == instructions[0];
 }
+
+size_t Trace::root_function_size() const { return rootFunctionSize; }
 
 void Trace::debug() const {
   for (auto *i : instructions) {
@@ -47,11 +58,9 @@ static asmjit::host::GpVar pop(asmjit::BaseCompiler &c,
   }
 }
 
-void Trace::load_locals(asmjit::host::Compiler &c,
-                        const asmjit::host::GpVar &mp) {
-  // load locals from memory
-  auto memOffset = 0;
-  auto lastMemoryOffset = 0;
+void Trace::identify_locals(asmjit::host::Compiler &c) {
+  unsigned int memOffset = 0;
+  unsigned int lastMemoryOffset = 0;
   for (auto *i : instructions) {
     if (i->op == CALL) {
       lastMemoryOffset =
@@ -70,22 +79,42 @@ void Trace::load_locals(asmjit::host::Compiler &c,
       ss << i->arg.l;
 
       if (locals.find(i->arg.l) == locals.end()) {
-        locals[i->arg.l] =
+        locals[i->arg.l] = LangLocal{
+            static_cast<unsigned int>(i->arg.l), memOffset,
             asmjit::host::GpVar(c, asmjit::kVarTypeInt64,
-                                std::string("local_mem_" + ss.str()).c_str());
-        c.mov(locals[i->arg.l],
-              asmjit::host::qword_ptr(mp, (i->arg.l * 8) + memOffset));
+                                std::string("local_mem_" + ss.str()).c_str())};
       }
     }
   }
 }
 
-void Trace::jit() {
+void Trace::load_locals(asmjit::host::Compiler &c,
+                        const asmjit::host::GpVar &mp) {
+  for (auto &kv : locals) {
+    auto local = kv.second;
+    c.mov(local.cVar,
+          asmjit::host::qword_ptr(mp, (local.memPosition * 8) +
+                                          local.memOffsetPosition * 8));
+  }
+}
+
+void Trace::store_locals(asmjit::host::Compiler &c,
+                         const asmjit::host::GpVar &mp) {
+  for (auto &kv : locals) {
+    auto local = kv.second;
+    c.mov(asmjit::host::qword_ptr(mp, (local.memPosition * 8) +
+                                          local.memOffsetPosition * 8),
+          local.cVar);
+  }
+}
+
+void Trace::jit(bool debug) {
   std::stack<asmjit::host::GpVar> immStack;
 
   asmjit::host::Compiler c(&runtime);
   asmjit::FileLogger logger(stdout);
-  c.setLogger(&logger);
+  if (debug)
+    c.setLogger(&logger);
 
   c.addFunc(asmjit::host::kFuncConvHost,
             asmjit::FuncBuilder2<asmjit::FnVoid, int64_t *, int64_t *>());
@@ -98,6 +127,7 @@ void Trace::jit() {
   asmjit::Label L_traceEntry = c.newLabel();
   asmjit::Label L_traceExit = c.newLabel();
 
+  identify_locals(c);
   load_locals(c, memory);
 
   c.bind(L_traceEntry);
@@ -111,12 +141,12 @@ void Trace::jit() {
     } break;
 
     case LOAD_INT: {
-      immStack.push(locals.at(i->arg.l));
+      immStack.push(locals.at(i->arg.l).cVar);
     } break;
 
     case STORE_INT: {
       auto a = pop(c, immStack);
-      locals[i->arg.l] = a;
+      locals[i->arg.l].cVar = a;
     } break;
 
     case LE_INT: {
@@ -174,7 +204,11 @@ void Trace::jit() {
   }
 
   c.bind(L_traceExit);
-  c.int3();
+
+  if (immStack.size() > 0)
+    raise_error("need to convert to stack layout");
+
+  store_locals(c, memory);
 
   c.ret();
   c.endFunc();

@@ -442,15 +442,16 @@ void Machine::execute() {
       auto nativePtr = trace.get_native_ptr();
       if (nativePtr != nullptr) {
         nativePtr(stack, memory);
+        ip += trace.root_function_size() - 1 /* for LOOP */;
       } else {
         if (is_tracing && trace.is_head(instr)) {
           disp_table = op_disp_table;
           is_tracing = false;
+          trace.jit(debug);
 
           if (debug) {
             printf("trace finished\n");
             trace.debug();
-            trace.jit();
           }
 
           NEXT
