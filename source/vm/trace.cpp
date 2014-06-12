@@ -60,9 +60,34 @@ static asmjit::host::GpVar pop(asmjit::BaseCompiler &c,
   }
 }
 
-void Trace::identify_locals(asmjit::host::Compiler &c) {
+std::map<int64_t, asmjit::host::GpVar>
+Trace::identify_literals(asmjit::host::Compiler &c) {
+  std::map<int64_t, asmjit::host::GpVar> locals;
+
+  for (const auto *i : instructions) {
+    if (i->op == LIT_INT) {
+      locals[i->arg.l] = asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "local");
+    }
+  }
+
+  return locals;
+}
+
+void
+Trace::load_literals(const std::map<int64_t, asmjit::host::GpVar> &literals,
+                     asmjit::host::Compiler &c) {
+  for (const auto &kv : literals) {
+    auto literalConst = kv.first;
+    auto literalReg = kv.second;
+    c.mov(literalReg, literalConst);
+  }
+}
+
+std::map<int64_t, LangLocal> Trace::identify_locals(asmjit::host::Compiler &c) {
+  std::map<int64_t, LangLocal> locals;
   unsigned int memOffset = 0;
   unsigned int lastMemoryOffset = 0;
+
   for (auto *i : instructions) {
     if (i->op == CALL) {
       lastMemoryOffset =
@@ -88,9 +113,12 @@ void Trace::identify_locals(asmjit::host::Compiler &c) {
       }
     }
   }
+
+  return locals;
 }
 
-void Trace::load_locals(asmjit::host::Compiler &c,
+void Trace::load_locals(const std::map<int64_t, LangLocal> &locals,
+                        asmjit::host::Compiler &c,
                         const asmjit::host::GpVar &mp) {
   for (auto &kv : locals) {
     auto local = kv.second;
@@ -100,7 +128,8 @@ void Trace::load_locals(asmjit::host::Compiler &c,
   }
 }
 
-void Trace::store_locals(asmjit::host::Compiler &c,
+void Trace::store_locals(const std::map<int64_t, LangLocal> &locals,
+                         asmjit::host::Compiler &c,
                          const asmjit::host::GpVar &mp) {
   for (auto &kv : locals) {
     auto local = kv.second;
@@ -129,8 +158,11 @@ void Trace::jit(bool debug) {
   asmjit::Label L_traceEntry = c.newLabel();
   asmjit::Label L_traceExit = c.newLabel();
 
-  identify_locals(c);
-  load_locals(c, memory);
+  auto locals = identify_locals(c);
+  load_locals(locals, c, memory);
+
+  auto literals = identify_literals(c);
+  load_literals(literals, c);
 
   c.bind(L_traceEntry);
 
@@ -138,9 +170,7 @@ void Trace::jit(bool debug) {
   for (auto *i : instructions) {
     switch (i->op) {
     case LIT_INT: {
-      auto a = asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "LIT_");
-      c.mov(a, i->arg.l);
-      immStack.push(a);
+      immStack.push(literals[i->arg.l]);
     } break;
 
     case LOAD_INT: {
@@ -198,7 +228,7 @@ void Trace::jit(bool debug) {
   if (immStack.size() > 0)
     raise_error("need to convert to stack layout");
 
-  store_locals(c, memory);
+  store_locals(locals, c, memory);
 
   c.ret();
   c.endFunc();
