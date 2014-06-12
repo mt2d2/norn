@@ -9,25 +9,27 @@
 #include "../block.h"
 #include "instruction.h"
 
-Trace::Trace()
-    : instructions(std::vector<const Instruction *>()), nativePtr(nullptr),
-      rootFunctionSize(0), callDepth(0) {}
+Trace::Trace(asmjit::JitRuntime *runtime)
+    : instructions(std::vector<const Instruction *>()), runtime(runtime),
+      nativePtr(nullptr), rootFunctionSize(0), callDepth(0) {}
 
 Trace::~Trace() {
-  if (this->nativePtr)
-    runtime.release((void *)this->nativePtr);
+  if (nativePtr != nullptr)
+    runtime->release(reinterpret_cast<void *>(nativePtr));
 }
 
 void Trace::record(const Instruction *i) {
-  if (!is_head(i))
-    instructions.push_back(i);
+  if (is_head(i))
+    return;
+
+  instructions.push_back(i);
 
   if (i->op == CALL)
     ++callDepth;
   else if (i->op == RTRN)
     --callDepth;
 
-  if (i->op != RTRN && callDepth == 0)
+  if (callDepth == 0)
     ++rootFunctionSize;
 }
 
@@ -111,7 +113,7 @@ void Trace::store_locals(asmjit::host::Compiler &c,
 void Trace::jit(bool debug) {
   std::stack<asmjit::host::GpVar> immStack;
 
-  asmjit::host::Compiler c(&runtime);
+  asmjit::host::Compiler c(runtime);
   asmjit::FileLogger logger(stdout);
   if (debug)
     c.setLogger(&logger);

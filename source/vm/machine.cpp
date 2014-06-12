@@ -1,6 +1,9 @@
-#include "machine.h"
+#include <map>
+#include <utility>
 #include <cmath>  // fmod
 #include <cstdio> // printf
+
+#include "machine.h"
 
 #define LOOP_HOTNESS 56
 
@@ -47,7 +50,8 @@ Machine::Machine(const Program &program
       stack(new int64_t[STACK_SIZE]), stack_start(stack),
       frames(new Frame[STACK_SIZE]), frames_start(frames),
       memory(new int64_t[STACK_SIZE * this->program.get_memory_slots()]),
-      manager(Memory(stack_start, memory)), is_tracing(false) {
+      manager(Memory(stack_start, memory)), trace(&jitRuntime),
+      is_tracing(false) {
 }
 
 Machine::~Machine() {
@@ -57,6 +61,8 @@ Machine::~Machine() {
 }
 
 void Machine::execute() {
+
+  std::map<const Instruction *, Trace> traces;
 
 #if COMPUTED_GOTO
 #include "goto.h"
@@ -439,15 +445,31 @@ void Machine::execute() {
 
   OP(LOOP) {
     if (unlikely(!nojit)) {
-      auto nativePtr = trace.get_native_ptr();
-      if (nativePtr != nullptr) {
+      auto traceIter = traces.find(instr);
+      if (traceIter != traces.end()) {
+        // trace found
+        auto nativePtr = traceIter->second.get_native_ptr();
+        if (nativePtr == nullptr)
+          raise_error("no machine code for trace");
+
         nativePtr(stack, memory);
-        ip += trace.root_function_size() - 1 /* for LOOP */;
+
+        // dispatch
+        ip += trace.root_function_size();
+        instr = block->get_instruction(ip);
+        goto *disp_table[instr->op];
       } else {
+        // no trace installed yet
+
         if (is_tracing && trace.is_head(instr)) {
+          // tracing mode, trace is isolated
+
           disp_table = op_disp_table;
           is_tracing = false;
           trace.jit(debug);
+
+          traces[instr] = trace;
+          trace = Trace(&jitRuntime);
 
           if (debug) {
             printf("trace finished\n");
@@ -455,22 +477,25 @@ void Machine::execute() {
           }
 
           NEXT
+        } else {
+          // profiling mode, add loop hotness, dispatch to tracer
+          block->add_loop_hotness(instr);
+
+          if (block->get_loop_hotness(instr) == LOOP_HOTNESS) {
+            if (debug) {
+              printf("trace started\n");
+            }
+
+            // disp_table = trace_disp_table
+            disp_table = trace_disp_table;
+            is_tracing = true;
+
+            // hack to record first LOOP
+            trace.record(instr);
+
+            NEXT
+          }
         }
-      }
-
-      block->add_loop_hotness(instr);
-
-      if (block->get_loop_hotness(instr) == LOOP_HOTNESS) {
-        if (debug) {
-          printf("trace started\n");
-        }
-
-        // disp_table = trace_disp_table
-        disp_table = trace_disp_table;
-        is_tracing = true;
-
-        // hack to record first LOOP
-        trace.record(instr);
       }
     }
 

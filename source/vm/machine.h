@@ -4,6 +4,8 @@
 #include <cstdio>  // printf
 #include <cstring> // memcpy
 
+#include <asmjit/asmjit.h>
+
 #include "block.h"
 #include "common.h"
 #include "frame.h"
@@ -53,6 +55,7 @@ private:
   Frame *frames_start;
   int64_t *memory;
   Memory manager;
+  asmjit::JitRuntime jitRuntime;
   Trace trace;
   bool is_tracing;
 };

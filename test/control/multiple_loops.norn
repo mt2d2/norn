@@ -1,0 +1,17 @@
+def main(): Void
+  i: Int = 0
+
+  for i: Int = 0, i < 10000000, i=i+1 in
+    i = i +1
+  end
+
+  println(i)
+
+  i = 0
+
+  for i: Int = 0, i < 8888, i=i+1 in
+    i = i +1
+  end
+
+  println(i)
+end
