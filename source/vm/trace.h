@@ -30,13 +30,18 @@ public:
   nativeTraceType get_native_ptr() const;
 
 private:
-  void identify_locals(asmjit::host::Compiler &c);
-  void load_locals(asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
-  void store_locals(asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
+  std::map<int64_t, asmjit::host::GpVar>
+  identify_literals(asmjit::host::Compiler &c);
+  void load_literals(const std::map<int64_t, asmjit::host::GpVar> &literals,
+                     asmjit::host::Compiler &c);
+  std::map<int64_t, LangLocal> identify_locals(asmjit::host::Compiler &c);
+  void load_locals(const std::map<int64_t, LangLocal> &locals,
+                   asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
+  void store_locals(const std::map<int64_t, LangLocal> &locals,
+                    asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
   std::stack<asmjit::host::GpVar>
   identifyValuesToRetrieveFromLangStack(asmjit::host::Compiler &c);
 
-  std::map<int64_t, LangLocal> locals;
   std::vector<const Instruction *> instructions;
   asmjit::JitRuntime *runtime;
   nativeTraceType nativePtr;
