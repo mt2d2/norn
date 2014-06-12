@@ -19,7 +19,8 @@ struct LangLocal {
 
 class Trace {
 public:
-  Trace();
+  Trace() {}
+  Trace(asmjit::JitRuntime *runtime);
   ~Trace();
   void record(const Instruction *i);
   bool is_head(const Instruction *i) const;
@@ -37,7 +38,7 @@ private:
 
   std::map<int64_t, LangLocal> locals;
   std::vector<const Instruction *> instructions;
-  asmjit::JitRuntime runtime;
+  asmjit::JitRuntime *runtime;
   nativeTraceType nativePtr;
   size_t rootFunctionSize;
   size_t callDepth;
