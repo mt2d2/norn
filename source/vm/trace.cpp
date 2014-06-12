@@ -1,9 +1,8 @@
 #include "trace.h"
 
 #include <iostream>
-#include <string>
-#include <sstream>
 #include <stack>
+#include <string>
 
 #include "../common.h"
 #include "../block.h"
@@ -66,7 +65,9 @@ Trace::identify_literals(asmjit::host::Compiler &c) {
 
   for (const auto *i : instructions) {
     if (i->op == LIT_INT) {
-      locals[i->arg.l] = asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "local");
+      locals[i->arg.l] = asmjit::host::GpVar(
+          c, asmjit::kVarTypeInt64,
+          std::string("literal_" + std::to_string(i->arg.l)).c_str());
     }
   }
 
@@ -102,14 +103,12 @@ std::map<int64_t, LangLocal> Trace::identify_locals(asmjit::host::Compiler &c) {
       raise_error("unimplemented memory access");
 
     if (i->op == LOAD_INT || i->op == LOAD_CHAR) {
-      std::stringstream ss;
-      ss << i->arg.l;
-
       if (locals.find(i->arg.l) == locals.end()) {
         locals[i->arg.l] = LangLocal{
             static_cast<unsigned int>(i->arg.l), memOffset,
-            asmjit::host::GpVar(c, asmjit::kVarTypeInt64,
-                                std::string("local_mem_" + ss.str()).c_str())};
+            asmjit::host::GpVar(
+                c, asmjit::kVarTypeInt64,
+                std::string("local_" + std::to_string(i->arg.l)).c_str())};
       }
     }
   }
