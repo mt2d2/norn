@@ -197,7 +197,7 @@ void Trace::jit(bool debug) {
     case FJMP: {
       switch (lastInstruction->op) {
       case LE_INT:
-        c.jz(L_traceExit);
+        c.jge(L_traceExit);
         break;
       default:
         raise_error("unknown condition in fjmp");
