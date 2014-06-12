@@ -134,6 +134,7 @@ void Trace::jit(bool debug) {
 
   c.bind(L_traceEntry);
 
+  const Instruction *lastInstruction = nullptr;
   for (auto *i : instructions) {
     switch (i->op) {
     case LIT_INT: {
@@ -154,22 +155,7 @@ void Trace::jit(bool debug) {
     case LE_INT: {
       auto a = pop(c, immStack);
       auto b = pop(c, immStack);
-      auto ret = asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "LE_");
-
-      asmjit::Label L_LT = c.newLabel();
-      asmjit::Label L_Exit = c.newLabel();
-
       c.cmp(a, b);
-      c.jl(L_LT);
-
-      c.mov(ret, 0);
-      c.jmp(L_Exit);
-
-      c.bind(L_LT);
-      c.mov(ret, 1);
-      c.bind(L_Exit);
-
-      immStack.push(ret);
     } break;
 
     case ADD_INT: {
@@ -180,9 +166,14 @@ void Trace::jit(bool debug) {
     } break;
 
     case FJMP: {
-      auto a = pop(c, immStack);
-      c.cmp(a, 0);
-      c.jz(L_traceExit);
+      switch (lastInstruction->op) {
+      case LE_INT:
+        c.jz(L_traceExit);
+        break;
+      default:
+        raise_error("unknown condition in fjmp");
+        break;
+      }
     } break;
 
     case UJMP: {
@@ -198,6 +189,8 @@ void Trace::jit(bool debug) {
       raise_error("unhandled opcode");
       break;
     }
+
+    lastInstruction = i;
   }
 
   c.bind(L_traceExit);
