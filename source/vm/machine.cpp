@@ -452,7 +452,14 @@ void Machine::execute() {
         if (nativePtr == nullptr)
           raise_error("no machine code for trace");
 
-        nativePtr(stack, memory);
+        unsigned int traceExit;
+        nativePtr(&traceExit, stack, memory);
+
+        {
+          const auto &traceExits = traceIter->second.get_trace_exits();
+          printf("exit %d bytecode offset %d\n", traceExit,
+                 traceExits.at(traceExit));
+        }
 
         // dispatch
         ip += trace.root_function_size();
