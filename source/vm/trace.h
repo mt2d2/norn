@@ -7,7 +7,7 @@
 
 #include <asmjit/asmjit.h>
 
-typedef void (*nativeTraceType)(int64_t *, int64_t *);
+typedef void (*nativeTraceType)(unsigned int *, int64_t *, int64_t *);
 
 struct Instruction;
 
@@ -28,6 +28,7 @@ public:
   void debug() const;
   void jit(bool debug);
   nativeTraceType get_native_ptr() const;
+  std::map<unsigned int, unsigned int> get_trace_exits() const;
 
 private:
   std::map<int64_t, asmjit::host::GpVar>

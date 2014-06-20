@@ -46,6 +46,28 @@ void Trace::debug() const {
 
 nativeTraceType Trace::get_native_ptr() const { return this->nativePtr; }
 
+std::map<unsigned int, unsigned int> Trace::get_trace_exits() const {
+  std::map<unsigned int, unsigned int> ret;
+
+  // precompute this value
+  // restore all bytecode values up to the point of the trace exit
+  // use a map of bytecode* to GpVar and do a c.mov();
+  // restore any missing stack fromes from time of launch to exit
+
+  unsigned int currentTraceNumber = 0;
+  unsigned int bytecodePosition = 0;
+
+  for (const auto *i : instructions) {
+    if (i->op == FJMP || i->op == TJMP) {
+      ret[currentTraceNumber++] = bytecodePosition;
+    }
+
+    ++bytecodePosition;
+  }
+
+  return ret;
+}
+
 static asmjit::host::GpVar pop(asmjit::BaseCompiler &c,
                                std::stack<asmjit::host::GpVar> &immStack) {
   if (immStack.size() == 0) {
@@ -146,13 +168,16 @@ void Trace::jit(bool debug) {
   if (debug)
     c.setLogger(&logger);
 
-  c.addFunc(asmjit::host::kFuncConvHost,
-            asmjit::FuncBuilder2<asmjit::FnVoid, int64_t *, int64_t *>());
+  c.addFunc(
+      asmjit::host::kFuncConvHost,
+      asmjit::FuncBuilder3<asmjit::FnVoid, uint64_t *, int64_t *, int64_t *>());
 
+  asmjit::host::GpVar traceExit(c, asmjit::kVarTypeIntPtr, "traceExit");
   asmjit::host::GpVar stack(c, asmjit::kVarTypeIntPtr, "stack");
   asmjit::host::GpVar memory(c, asmjit::kVarTypeIntPtr, "memory");
-  c.setArg(0, stack);
-  c.setArg(1, memory);
+  c.setArg(0, traceExit);
+  c.setArg(1, stack);
+  c.setArg(2, memory);
 
   asmjit::Label L_traceEntry = c.newLabel();
   asmjit::Label L_traceExit = c.newLabel();
@@ -165,6 +190,7 @@ void Trace::jit(bool debug) {
 
   c.bind(L_traceEntry);
 
+  unsigned int traceExitNo = 0;
   const Instruction *lastInstruction = nullptr;
   for (auto *i : instructions) {
     switch (i->op) {
@@ -195,6 +221,9 @@ void Trace::jit(bool debug) {
     } break;
 
     case FJMP: {
+      // save the trace exit
+      c.mov(qword_ptr(traceExit), traceExitNo++);
+
       switch (lastInstruction->op) {
       case LE_INT:
         c.jge(L_traceExit);
