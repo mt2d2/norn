@@ -78,13 +78,15 @@ void Block::absolute_jumps() {
   std::map<long, long> jmp_map;
   long instr_count = 0;
 
-  for (auto i = instructions.begin(); i != instructions.end(); ++i) {
+  auto i = instructions.begin();
+  while (i != instructions.end()) {
     if (i->op == LBL) {
       jmp_map[i->arg.l] = instr_count;
-      instructions.erase(i, i + 1); // exclusive, i.e., upto
+      i = instructions.erase(i, i + 1); // exclusive, i.e., upto
+    } else {
+      ++i;
+      ++instr_count;
     }
-
-    ++instr_count;
   }
 
   for (auto &i : instructions)
