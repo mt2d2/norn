@@ -185,11 +185,11 @@ void Trace::restore_stack(
     c.cmp(bytecodeExit, instructionCounter);
     c.jz(L_restorationComplete);
 
-    if (stackMap.find(i) != stackMap.end() || i->op == LE_INT) {
+    if (stackMap.find(i) != stackMap.end() || is_condition(i->op)) {
       c.add(stack, 8);
       c.add(qword_ptr(stackAdjust), 1);
 
-      if (i->op == LE_INT) {
+      if (is_condition(i->op)) {
         // TODO, hack, find real value of LE_INT
         // the real value of LE_INT is also related to how we should jump
         // for FJMP and TJMP, and must be recorded from interpreter

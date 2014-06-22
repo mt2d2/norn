@@ -6,6 +6,8 @@
 
 #include <iostream>
 
+bool is_condition(const long op);
+
 struct Instruction {
   Instruction(Opcode op, const Variant &arg = Variant()) : op(op), arg(arg) {}
 
