@@ -187,7 +187,7 @@ void Trace::restore_stack(
 
     if (stackMap.find(i) != stackMap.end() || is_condition(i->op)) {
       c.add(stack, 8);
-      c.add(qword_ptr(stackAdjust), 1);
+      c.inc(qword_ptr(stackAdjust));
 
       if (is_condition(i->op)) {
         // TODO, hack, find real value of LE_INT
