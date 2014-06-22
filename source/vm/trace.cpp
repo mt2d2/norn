@@ -9,7 +9,7 @@
 #include "instruction.h"
 
 Trace::Trace(asmjit::JitRuntime *runtime)
-    : instructions(std::vector<const Instruction *>()), runtime(runtime),
+    : runtime(runtime), instructions(std::vector<const Instruction *>()),
       nativePtr(nullptr), rootFunctionSize(0), callDepth(0) {}
 
 Trace::~Trace() {
@@ -44,28 +44,28 @@ void Trace::debug() const {
   }
 }
 
-nativeTraceType Trace::get_native_ptr() const { return this->nativePtr; }
+void Trace::compile(const bool debug) {
+  identify_trace_exits();
+  jit(debug);
+}
 
-std::map<unsigned int, unsigned int> Trace::get_trace_exits() const {
-  std::map<unsigned int, unsigned int> ret;
+nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 
-  // precompute this value
+std::vector<unsigned int> Trace::get_trace_exits() const { return traceExits; }
+
+void Trace::identify_trace_exits() {
   // restore all bytecode values up to the point of the trace exit
   // use a map of bytecode* to GpVar and do a c.mov();
   // restore any missing stack fromes from time of launch to exit
-
-  unsigned int currentTraceNumber = 0;
   unsigned int bytecodePosition = 0;
 
   for (const auto *i : instructions) {
     if (i->op == FJMP || i->op == TJMP) {
-      ret[currentTraceNumber++] = bytecodePosition;
+      traceExits.push_back(bytecodePosition);
     }
 
     ++bytecodePosition;
   }
-
-  return ret;
 }
 
 static asmjit::host::GpVar pop(asmjit::BaseCompiler &c,
@@ -192,7 +192,7 @@ void Trace::jit(bool debug) {
 
   unsigned int traceExitNo = 0;
   const Instruction *lastInstruction = nullptr;
-  for (auto *i : instructions) {
+  for (const auto *i : instructions) {
     switch (i->op) {
     case LIT_INT: {
       immStack.push(literals[i->arg.l]);

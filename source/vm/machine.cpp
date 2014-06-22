@@ -458,7 +458,7 @@ void Machine::execute() {
         {
           const auto &traceExits = traceIter->second.get_trace_exits();
           printf("exit %d bytecode offset %d\n", traceExit,
-                 traceExits.at(traceExit));
+                 traceExits[traceExit]);
         }
 
         // dispatch
@@ -473,7 +473,8 @@ void Machine::execute() {
 
           disp_table = op_disp_table;
           is_tracing = false;
-          trace.jit(debug);
+
+          trace.compile(debug);
 
           traces[instr] = trace;
           trace = Trace(&jitRuntime);

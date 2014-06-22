@@ -26,11 +26,13 @@ public:
   bool is_head(const Instruction *i) const;
   size_t root_function_size() const;
   void debug() const;
-  void jit(bool debug);
+  void compile(const bool debug);
   nativeTraceType get_native_ptr() const;
-  std::map<unsigned int, unsigned int> get_trace_exits() const;
+  std::vector<unsigned int> get_trace_exits() const;
 
 private:
+  void jit(const bool debug);
+  void identify_trace_exits();
   std::map<int64_t, asmjit::host::GpVar>
   identify_literals(asmjit::host::Compiler &c);
   void load_literals(const std::map<int64_t, asmjit::host::GpVar> &literals,
@@ -40,11 +42,10 @@ private:
                    asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
   void store_locals(const std::map<int64_t, LangLocal> &locals,
                     asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
-  std::stack<asmjit::host::GpVar>
-  identifyValuesToRetrieveFromLangStack(asmjit::host::Compiler &c);
 
-  std::vector<const Instruction *> instructions;
   asmjit::JitRuntime *runtime;
+  std::vector<const Instruction *> instructions;
+  std::vector<unsigned int> traceExits;
   nativeTraceType nativePtr;
   size_t rootFunctionSize;
   size_t callDepth;
