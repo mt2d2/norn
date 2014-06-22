@@ -168,21 +168,21 @@ void Trace::restore_stack(
   asmjit::Label L_restorationComplete = c.newLabel();
 
   asmjit::host::GpVar traceExit(c, asmjit::kVarTypeInt64, "traceExit");
-  c.mov(traceExit, qword_ptr(traceExitPtr));
-
   asmjit::host::GpVar traceExits(c, asmjit::kVarTypeIntPtr, "traceExits");
-  c.mov(traceExits,
-        asmjit::imm(reinterpret_cast<uintptr_t>(this->traceExits.data())));
-
-  asmjit::host::GpVar instructionCounter(c, asmjit::kVarTypeInt64,
-                                         "instructionCounter");
-  c.xor_(instructionCounter, instructionCounter);
-
   asmjit::host::GpVar bytecodeExit(c, asmjit::kVarTypeInt64, "bytecodeExit");
-  c.mov(bytecodeExit, qword_ptr(traceExits, traceExit));
-
   asmjit::host::GpVar totalStackAdjustment(c, asmjit::kVarTypeInt64,
                                            "totalStackAdjustment");
+  asmjit::host::GpVar instructionCounter(c, asmjit::kVarTypeInt64,
+                                         "instructionCounter");
+
+  c.mov(traceExit, qword_ptr(traceExitPtr));
+  c.mov(traceExits,
+        asmjit::imm(reinterpret_cast<uintptr_t>(this->traceExits.data())));
+  c.mov(bytecodeExit, qword_ptr(traceExits, traceExit));
+  c.unuse(traceExit);
+  c.unuse(traceExits);
+
+  c.xor_(instructionCounter, instructionCounter);
   c.xor_(totalStackAdjustment, totalStackAdjustment);
 
   for (const auto *i : instructions) {
