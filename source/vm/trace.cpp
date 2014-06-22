@@ -49,7 +49,7 @@ nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 std::vector<uint64_t> Trace::get_trace_exits() const { return traceExits; }
 
 void Trace::identify_trace_exits() {
-  // restore any missing stack fromes from time of launch to exit
+  // TODO restore any missing stack fromes from time of launch to exit
   unsigned int bytecodePosition = 0;
 
   for (const auto *i : instructions) {
@@ -190,7 +190,7 @@ void Trace::restore_stack(
       c.add(qword_ptr(stackAdjust), 1);
 
       if (i->op == LE_INT) {
-        // todo, hack, find real value of LE_INT
+        // TODO, hack, find real value of LE_INT
         // the real value of LE_INT is also related to how we should jump
         // for FJMP and TJMP, and must be recorded from interpreter
         c.mov(qword_ptr(stack), 0);
