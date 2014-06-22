@@ -181,21 +181,24 @@ void Trace::restore_stack(
   asmjit::host::GpVar bytecodeExit(c, asmjit::kVarTypeInt64, "bytecodeExit");
   c.mov(bytecodeExit, qword_ptr(traceExits, traceExit));
 
+  asmjit::host::GpVar totalStackAdjustment(c, asmjit::kVarTypeInt64,
+                                           "totalStackAdjustment");
+  c.xor_(totalStackAdjustment, totalStackAdjustment);
+
   for (const auto *i : instructions) {
     c.cmp(bytecodeExit, instructionCounter);
     c.jz(L_restorationComplete);
 
     if (stackMap.find(i) != stackMap.end() || is_condition(i->op)) {
-      c.add(stack, 8);
-      c.inc(qword_ptr(stackAdjust));
+      c.inc(totalStackAdjustment);
 
       if (is_condition(i->op)) {
         // TODO, hack, find real value of LE_INT
         // the real value of LE_INT is also related to how we should jump
         // for FJMP and TJMP, and must be recorded from interpreter
-        c.mov(qword_ptr(stack), 0);
+        c.mov(qword_ptr(stack, totalStackAdjustment, 3), 0);
       } else {
-        c.mov(qword_ptr(stack), stackMap.at(i));
+        c.mov(qword_ptr(stack, totalStackAdjustment, 3), stackMap.at(i));
       }
     }
 
@@ -203,6 +206,7 @@ void Trace::restore_stack(
   }
 
   c.bind(L_restorationComplete);
+  c.mov(qword_ptr(stackAdjust), totalStackAdjustment);
 }
 
 void Trace::jit(bool debug) {
