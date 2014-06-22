@@ -10,7 +10,7 @@
 
 Trace::Trace(asmjit::JitRuntime *runtime)
     : runtime(runtime), instructions(std::vector<const Instruction *>()),
-      nativePtr(nullptr), rootFunctionSize(0), callDepth(0) {}
+      nativePtr(nullptr), callDepth(0) {}
 
 Trace::~Trace() {
   if (nativePtr != nullptr)
@@ -27,16 +27,11 @@ void Trace::record(const Instruction *i) {
     ++callDepth;
   else if (i->op == RTRN)
     --callDepth;
-
-  if (callDepth == 0)
-    ++rootFunctionSize;
 }
 
 bool Trace::is_head(const Instruction *i) const {
   return instructions.size() > 0 && i == instructions[0];
 }
-
-size_t Trace::root_function_size() const { return rootFunctionSize; }
 
 void Trace::debug() const {
   for (auto *i : instructions) {

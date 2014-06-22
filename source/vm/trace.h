@@ -24,7 +24,6 @@ public:
   ~Trace();
   void record(const Instruction *i);
   bool is_head(const Instruction *i) const;
-  size_t root_function_size() const;
   void debug() const;
   void compile(const bool debug);
   nativeTraceType get_native_ptr() const;
@@ -51,7 +50,6 @@ private:
   std::vector<const Instruction *> instructions;
   std::vector<uint64_t> traceExits;
   nativeTraceType nativePtr;
-  size_t rootFunctionSize;
   size_t callDepth;
 };
 
