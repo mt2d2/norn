@@ -7,7 +7,7 @@
 
 #include <asmjit/asmjit.h>
 
-typedef void (*nativeTraceType)(unsigned int *, int64_t *, int64_t *);
+typedef void (*nativeTraceType)(int64_t *, int64_t *, int64_t *, int64_t *);
 
 struct Instruction;
 
@@ -28,7 +28,7 @@ public:
   void debug() const;
   void compile(const bool debug);
   nativeTraceType get_native_ptr() const;
-  std::vector<unsigned int> get_trace_exits() const;
+  std::vector<uint64_t> get_trace_exits() const;
 
 private:
   void jit(const bool debug);
@@ -40,12 +40,16 @@ private:
   std::map<int64_t, LangLocal> identify_locals(asmjit::host::Compiler &c);
   void load_locals(const std::map<int64_t, LangLocal> &locals,
                    asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
-  void store_locals(const std::map<int64_t, LangLocal> &locals,
-                    asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
+  void restore_locals(const std::map<int64_t, LangLocal> &locals,
+                      asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
+  void restore_stack(
+      const std::map<const Instruction *, asmjit::host::GpVar> &stackMap,
+      asmjit::host::Compiler &c, const asmjit::host::GpVar &traceExitPtr,
+      const asmjit::host::GpVar &stack, const asmjit::host::GpVar &stackAdjust);
 
   asmjit::JitRuntime *runtime;
   std::vector<const Instruction *> instructions;
-  std::vector<unsigned int> traceExits;
+  std::vector<uint64_t> traceExits;
   nativeTraceType nativePtr;
   size_t rootFunctionSize;
   size_t callDepth;

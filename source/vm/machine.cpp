@@ -452,17 +452,22 @@ void Machine::execute() {
         if (nativePtr == nullptr)
           raise_error("no machine code for trace");
 
-        unsigned int traceExit;
-        nativePtr(&traceExit, stack, memory);
+        int64_t traceExit = 0, stackAdjust = 0;
+        nativePtr(&traceExit, &stackAdjust, stack, memory);
 
-        {
-          const auto &traceExits = traceIter->second.get_trace_exits();
-          printf("exit %d bytecode offset %d\n", traceExit,
-                 traceExits[traceExit]);
+        const unsigned int advanceIp =
+            traceIter->second.get_trace_exits()[traceExit];
+
+        if (debug) {
+          printf("advancing stack by %lld\n", stackAdjust);
+          printf("advancing ip by %d-1\n", advanceIp);
         }
 
+        // adjust stack offset
+        stack += stackAdjust;
+
         // dispatch
-        ip += trace.root_function_size();
+        ip += advanceIp - 1 /* offset 1 */;
         instr = block->get_instruction(ip);
         goto *disp_table[instr->op];
       } else {
@@ -470,6 +475,10 @@ void Machine::execute() {
 
         if (is_tracing && trace.is_head(instr)) {
           // tracing mode, trace is isolated
+          if (debug) {
+            printf("trace finished\n");
+            trace.debug();
+          }
 
           disp_table = op_disp_table;
           is_tracing = false;
@@ -478,11 +487,6 @@ void Machine::execute() {
 
           traces[instr] = trace;
           trace = Trace(&jitRuntime);
-
-          if (debug) {
-            printf("trace finished\n");
-            trace.debug();
-          }
 
           NEXT
         } else {

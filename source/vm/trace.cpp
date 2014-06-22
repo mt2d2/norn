@@ -51,11 +51,9 @@ void Trace::compile(const bool debug) {
 
 nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 
-std::vector<unsigned int> Trace::get_trace_exits() const { return traceExits; }
+std::vector<uint64_t> Trace::get_trace_exits() const { return traceExits; }
 
 void Trace::identify_trace_exits() {
-  // restore all bytecode values up to the point of the trace exit
-  // use a map of bytecode* to GpVar and do a c.mov();
   // restore any missing stack fromes from time of launch to exit
   unsigned int bytecodePosition = 0;
 
@@ -99,6 +97,8 @@ Trace::identify_literals(asmjit::host::Compiler &c) {
 void
 Trace::load_literals(const std::map<int64_t, asmjit::host::GpVar> &literals,
                      asmjit::host::Compiler &c) {
+  c.comment("loading literals");
+
   for (const auto &kv : literals) {
     auto literalConst = kv.first;
     auto literalReg = kv.second;
@@ -141,6 +141,8 @@ std::map<int64_t, LangLocal> Trace::identify_locals(asmjit::host::Compiler &c) {
 void Trace::load_locals(const std::map<int64_t, LangLocal> &locals,
                         asmjit::host::Compiler &c,
                         const asmjit::host::GpVar &mp) {
+  c.comment("loading locals");
+
   for (auto &kv : locals) {
     auto local = kv.second;
     c.mov(local.cVar,
@@ -149,9 +151,11 @@ void Trace::load_locals(const std::map<int64_t, LangLocal> &locals,
   }
 }
 
-void Trace::store_locals(const std::map<int64_t, LangLocal> &locals,
-                         asmjit::host::Compiler &c,
-                         const asmjit::host::GpVar &mp) {
+void Trace::restore_locals(const std::map<int64_t, LangLocal> &locals,
+                           asmjit::host::Compiler &c,
+                           const asmjit::host::GpVar &mp) {
+  c.comment("restoring locals");
+
   for (auto &kv : locals) {
     auto local = kv.second;
     c.mov(asmjit::host::qword_ptr(mp, (local.memPosition * 8) +
@@ -160,24 +164,74 @@ void Trace::store_locals(const std::map<int64_t, LangLocal> &locals,
   }
 }
 
+void Trace::restore_stack(
+    const std::map<const Instruction *, asmjit::host::GpVar> &stackMap,
+    asmjit::host::Compiler &c, const asmjit::host::GpVar &traceExitPtr,
+    const asmjit::host::GpVar &stack, const asmjit::host::GpVar &stackAdjust) {
+  c.comment("restoring stack");
+
+  asmjit::Label L_restorationComplete = c.newLabel();
+
+  asmjit::host::GpVar traceExit(c, asmjit::kVarTypeInt64, "traceExit");
+  c.mov(traceExit, qword_ptr(traceExitPtr));
+
+  asmjit::host::GpVar traceExits(c, asmjit::kVarTypeIntPtr, "traceExits");
+  c.mov(traceExits,
+        asmjit::imm(reinterpret_cast<uintptr_t>(this->traceExits.data())));
+
+  asmjit::host::GpVar instructionCounter(c, asmjit::kVarTypeInt64,
+                                         "instructionCounter");
+  c.xor_(instructionCounter, instructionCounter);
+
+  asmjit::host::GpVar bytecodeExit(c, asmjit::kVarTypeInt64, "bytecodeExit");
+  c.mov(bytecodeExit, qword_ptr(traceExits, traceExit));
+
+  for (const auto *i : instructions) {
+    c.cmp(bytecodeExit, instructionCounter);
+    c.jz(L_restorationComplete);
+
+    if (stackMap.find(i) != stackMap.end() || i->op == LE_INT) {
+      c.add(stack, 8);
+      c.add(qword_ptr(stackAdjust), 1);
+
+      if (i->op == LE_INT) {
+        // todo, hack, find real value of LE_INT
+        // the real value of LE_INT is also related to how we should jump
+        // for FJMP and TJMP, and must be recorded from interpreter
+        c.mov(qword_ptr(stack), 0);
+      } else {
+        c.mov(qword_ptr(stack), stackMap.at(i));
+      }
+    }
+
+    c.inc(instructionCounter);
+  }
+
+  c.bind(L_restorationComplete);
+}
+
 void Trace::jit(bool debug) {
   std::stack<asmjit::host::GpVar> immStack;
+  std::map<const Instruction *, asmjit::host::GpVar> stackMap;
 
   asmjit::host::Compiler c(runtime);
   asmjit::FileLogger logger(stdout);
   if (debug)
     c.setLogger(&logger);
 
-  c.addFunc(
-      asmjit::host::kFuncConvHost,
-      asmjit::FuncBuilder3<asmjit::FnVoid, uint64_t *, int64_t *, int64_t *>());
+  c.addFunc(asmjit::host::kFuncConvHost,
+            asmjit::FuncBuilder4<asmjit::FnVoid, int64_t *, int64_t *,
+                                 int64_t *, int64_t *>());
+  c.comment("trace");
 
   asmjit::host::GpVar traceExit(c, asmjit::kVarTypeIntPtr, "traceExit");
+  asmjit::host::GpVar stackAdjust(c, asmjit::kVarTypeIntPtr, "stackAdjust");
   asmjit::host::GpVar stack(c, asmjit::kVarTypeIntPtr, "stack");
   asmjit::host::GpVar memory(c, asmjit::kVarTypeIntPtr, "memory");
   c.setArg(0, traceExit);
-  c.setArg(1, stack);
-  c.setArg(2, memory);
+  c.setArg(1, stackAdjust);
+  c.setArg(2, stack);
+  c.setArg(3, memory);
 
   asmjit::Label L_traceEntry = c.newLabel();
   asmjit::Label L_traceExit = c.newLabel();
@@ -249,6 +303,10 @@ void Trace::jit(bool debug) {
     }
 
     lastInstruction = i;
+
+    // record the GpVar location of the result of every instruction
+    if (immStack.size() > 0)
+      stackMap[i] = immStack.top();
   }
 
   c.bind(L_traceExit);
@@ -256,7 +314,8 @@ void Trace::jit(bool debug) {
   if (immStack.size() > 0)
     raise_error("need to convert to stack layout");
 
-  store_locals(locals, c, memory);
+  restore_locals(locals, c, memory);
+  restore_stack(stackMap, c, traceExit, stack, stackAdjust);
 
   c.ret();
   c.endFunc();
