@@ -10,7 +10,8 @@
 
 Trace::Trace(asmjit::JitRuntime *runtime)
     : runtime(runtime), instructions(std::vector<const Instruction *>()),
-      nativePtr(nullptr), callDepth(0) {}
+      traceExits(std::vector<uint64_t>()), calls(std::vector<const Block *>()),
+      nativePtr(nullptr) {}
 
 Trace::~Trace() {
   if (nativePtr != nullptr)
@@ -22,11 +23,6 @@ void Trace::record(const Instruction *i) {
     return;
 
   instructions.push_back(i);
-
-  if (i->op == CALL)
-    ++callDepth;
-  else if (i->op == RTRN)
-    --callDepth;
 }
 
 bool Trace::is_head(const Instruction *i) const {
@@ -41,6 +37,7 @@ void Trace::debug() const {
 
 void Trace::compile(const bool debug) {
   identify_trace_exits();
+  identify_trace_calls();
   jit(debug);
 }
 
@@ -48,8 +45,9 @@ nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 
 std::vector<uint64_t> Trace::get_trace_exits() const { return traceExits; }
 
+std::vector<const Block *> Trace::get_trace_calls() const { return calls; }
+
 void Trace::identify_trace_exits() {
-  // TODO restore any missing stack fromes from time of launch to exit
   unsigned int bytecodePosition = 0;
 
   for (const auto *i : instructions) {
@@ -58,6 +56,14 @@ void Trace::identify_trace_exits() {
     }
 
     ++bytecodePosition;
+  }
+}
+
+void Trace::identify_trace_calls() {
+  for (const auto *i : instructions) {
+    if (i->op == CALL) {
+      calls.push_back(reinterpret_cast<Block *>(i->arg.p));
+    }
   }
 }
 

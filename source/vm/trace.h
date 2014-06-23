@@ -10,6 +10,7 @@
 typedef void (*nativeTraceType)(int64_t *, int64_t *, int64_t *, int64_t *);
 
 struct Instruction;
+class Block;
 
 struct LangLocal {
   unsigned int memPosition;
@@ -28,10 +29,12 @@ public:
   void compile(const bool debug);
   nativeTraceType get_native_ptr() const;
   std::vector<uint64_t> get_trace_exits() const;
+  std::vector<const Block*> get_trace_calls() const;
 
 private:
   void jit(const bool debug);
   void identify_trace_exits();
+  void identify_trace_calls();
   std::map<int64_t, asmjit::host::GpVar>
   identify_literals(asmjit::host::Compiler &c);
   void load_literals(const std::map<int64_t, asmjit::host::GpVar> &literals,
@@ -49,8 +52,8 @@ private:
   asmjit::JitRuntime *runtime;
   std::vector<const Instruction *> instructions;
   std::vector<uint64_t> traceExits;
+  std::vector<const Block*> calls;
   nativeTraceType nativePtr;
-  size_t callDepth;
 };
 
 #endif // TRACE_H
