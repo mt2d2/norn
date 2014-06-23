@@ -60,7 +60,8 @@ void Trace::identify_trace_exits() {
 }
 
 void Trace::identify_trace_calls() {
-  // TODO need to count how many instructions into a call to properly restore frame!
+  // TODO need to count how many instructions into a call to properly restore
+  // frame!
   for (const auto *i : instructions) {
     if (i->op == CALL) {
       calls.push_back(reinterpret_cast<Block *>(i->arg.p));

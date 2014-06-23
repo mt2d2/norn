@@ -29,7 +29,7 @@ public:
   void compile(const bool debug);
   nativeTraceType get_native_ptr() const;
   std::vector<uint64_t> get_trace_exits() const;
-  std::vector<const Block*> get_trace_calls() const;
+  std::vector<const Block *> get_trace_calls() const;
 
 private:
   void jit(const bool debug);
@@ -52,7 +52,7 @@ private:
   asmjit::JitRuntime *runtime;
   std::vector<const Instruction *> instructions;
   std::vector<uint64_t> traceExits;
-  std::vector<const Block*> calls;
+  std::vector<const Block *> calls;
   nativeTraceType nativePtr;
 };
 
