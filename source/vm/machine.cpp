@@ -12,9 +12,8 @@
 #define DISPATCH NEXT
 #define OP(x)                                                                  \
   trace_##x : {                                                                \
-    if (trace.record(instr) != Trace::State::TRACING) {                                          \
+    if (trace.record(instr) != Trace::State::TRACING) {                        \
       disp_table = op_disp_table;                                              \
-      is_tracing = false;                                                      \
     }                                                                          \
   }                                                                            \
   x:
@@ -55,8 +54,7 @@ Machine::Machine(const Program &program
       stack(new int64_t[STACK_SIZE]), stack_start(stack),
       frames(new Frame[STACK_SIZE]), frames_start(frames),
       memory(new int64_t[STACK_SIZE * this->program.get_memory_slots()]),
-      manager(Memory(stack_start, memory)), trace(&jitRuntime),
-      is_tracing(false) {
+      manager(Memory(stack_start, memory)), trace(&jitRuntime) {
 }
 
 Machine::~Machine() {
@@ -500,9 +498,7 @@ void Machine::execute() {
               printf("trace started\n");
             }
 
-            // disp_table = trace_disp_table
             disp_table = trace_disp_table;
-            is_tracing = true;
 
             // hack to record first LOOP
             trace.record(instr);

@@ -57,7 +57,6 @@ private:
   Memory manager;
   asmjit::JitRuntime jitRuntime;
   Trace trace;
-  bool is_tracing;
 };
 
 template <typename T> inline T Machine::get_memory(int key) {
