@@ -1,5 +1,7 @@
 #include "trace.h"
 
+#if !NOJIT
+
 #include <iostream>
 #include <stack>
 #include <string>
@@ -345,3 +347,5 @@ void Trace::jit(bool debug) {
 
   this->nativePtr = asmjit_cast<nativeTraceType>(c.make());
 }
+
+#endif // !NOJIT

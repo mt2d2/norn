@@ -55,8 +55,11 @@ private:
   Frame *frames_start;
   int64_t *memory;
   Memory manager;
+
+#if !NOJIT
   asmjit::JitRuntime jitRuntime;
   Trace trace;
+#endif
 };
 
 template <typename T> inline T Machine::get_memory(int key) {

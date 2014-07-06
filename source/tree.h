@@ -22,7 +22,9 @@ public:
   int get_mem_id(const std::string &key);
   bool variable_exists(const std::string &key);
   int get_and_increment_seed();
+#if !NOJIT
   int get_and_increment_loop_count();
+#endif
 
 private:
   Program program;
@@ -31,7 +33,9 @@ private:
   std::map<std::string, Type> block_types;
   std::map<std::string, Type> variable_types;
   int seed;
+#if !NOJIT
   int loop_count;
+#endif
 };
 
 /// ExprAST - Base class for all expression nodes.

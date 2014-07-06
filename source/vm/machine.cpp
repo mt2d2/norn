@@ -10,6 +10,8 @@
 #define COMPUTED_GOTO __GNUC__
 #if COMPUTED_GOTO
 #define DISPATCH NEXT
+
+#if !NOJIT
 #define OP(x)                                                                  \
   trace_##x : {                                                                \
     if (trace.record(instr) != Trace::State::TRACING) {                        \
@@ -17,12 +19,17 @@
     }                                                                          \
   }                                                                            \
   x:
+#else
+#define OP(x) x:
+#endif
 
 #define NEXT                                                                   \
   instr = block->get_instruction(ip++);                                        \
   goto *disp_table[instr->op];
 #define END_DISPATCH
+
 #else
+
 #define DISPATCH                                                               \
   while (true) {                                                               \
     instr = block->get_instruction(ip++);                                      \
@@ -54,7 +61,12 @@ Machine::Machine(const Program &program
       stack(new int64_t[STACK_SIZE]), stack_start(stack),
       frames(new Frame[STACK_SIZE]), frames_start(frames),
       memory(new int64_t[STACK_SIZE * this->program.get_memory_slots()]),
-      manager(Memory(stack_start, memory)), trace(&jitRuntime) {
+      manager(Memory(stack_start, memory))
+#if !NOJIT
+      ,
+      trace(&jitRuntime)
+#endif
+{
 }
 
 Machine::~Machine() {
@@ -64,8 +76,9 @@ Machine::~Machine() {
 }
 
 void Machine::execute() {
-
+#if !NOJIT
   std::map<const Instruction *, Trace> traces;
+#endif
 
 #if COMPUTED_GOTO
 #include "goto.h"
@@ -446,6 +459,7 @@ void Machine::execute() {
     NEXT
   }
 
+#if !NOJIT
   OP(LOOP) {
     if (unlikely(!nojit)) {
       auto traceIter = traces.find(instr);
@@ -511,6 +525,7 @@ void Machine::execute() {
 
     NEXT
   }
+#endif
 
   OP(LOGICAL_AND) {
     push<bool>(pop<bool>() && pop<bool>());

@@ -1,6 +1,8 @@
 #ifndef TRACE_H
 #define TRACE_H
 
+#if !NOJIT
+
 #include <vector>
 #include <map>
 #include <stack>
@@ -63,5 +65,7 @@ private:
   std::vector<const Block *> calls;
   nativeTraceType nativePtr;
 };
+
+#endif // !NOJIT
 
 #endif // TRACE_H
