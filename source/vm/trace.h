@@ -20,11 +20,17 @@ struct LangLocal {
 
 class Trace {
 public:
+  enum State {
+    ABORT,
+    TRACING,
+    COMPLETE,
+  };
+
   Trace() {}
   Trace(asmjit::JitRuntime *runtime);
   ~Trace();
-  void record(const Instruction *i);
-  bool is_head(const Instruction *i) const;
+  State record(const Instruction *i);
+  bool is_complete() const;
   void debug() const;
   void compile(const bool debug);
   nativeTraceType get_native_ptr() const;
@@ -32,6 +38,7 @@ public:
   std::vector<const Block *> get_trace_calls() const;
 
 private:
+  bool is_head(const Instruction *i) const;
   void jit(const bool debug);
   void identify_trace_exits();
   void identify_trace_calls();
@@ -49,6 +56,7 @@ private:
       asmjit::host::Compiler &c, const asmjit::host::GpVar &traceExitPtr,
       const asmjit::host::GpVar &stack, const asmjit::host::GpVar &stackAdjust);
 
+  State last_state;
   asmjit::JitRuntime *runtime;
   std::vector<const Instruction *> instructions;
   std::vector<uint64_t> traceExits;

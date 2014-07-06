@@ -9,7 +9,8 @@
 #include "instruction.h"
 
 Trace::Trace(asmjit::JitRuntime *runtime)
-    : runtime(runtime), instructions(std::vector<const Instruction *>()),
+    : last_state(Trace::State::ABORT), runtime(runtime),
+      instructions(std::vector<const Instruction *>()),
       traceExits(std::vector<uint64_t>()), calls(std::vector<const Block *>()),
       nativePtr(nullptr) {}
 
@@ -18,12 +19,27 @@ Trace::~Trace() {
     runtime->release(reinterpret_cast<void *>(nativePtr));
 }
 
-void Trace::record(const Instruction *i) {
-  if (is_head(i))
-    return;
+Trace::State Trace::record(const Instruction *i) {
+  if (is_head(i)) {
+    last_state = Trace::State::COMPLETE;
+    goto exit;
+  }
+
+  if (i->op == LOOP && instructions.size() > 0 &&
+      i->arg.l != instructions[0]->arg.l) {
+    // encountered another loop, abort
+    last_state = Trace::State::ABORT;
+    goto exit;
+  }
 
   instructions.push_back(i);
+  last_state = Trace::State::TRACING;
+
+exit:
+  return last_state;
 }
+
+bool Trace::is_complete() const { return last_state == Trace::State::COMPLETE; }
 
 bool Trace::is_head(const Instruction *i) const {
   return instructions.size() > 0 && i == instructions[0];

@@ -11,7 +11,13 @@
 #if COMPUTED_GOTO
 #define DISPATCH NEXT
 #define OP(x)                                                                  \
-  trace_##x : { trace.record(instr); }                                         \
+  trace_##x : {                                                                \
+    auto s = trace.record(instr);                                              \
+    if (s != Trace::State::TRACING) {                                          \
+      disp_table = op_disp_table;                                              \
+      is_tracing = false;                                                      \
+    }                                                                          \
+  }                                                                            \
   x:
 
 #define NEXT                                                                   \
@@ -458,10 +464,10 @@ void Machine::execute() {
         const unsigned int advanceIp =
             traceIter->second.get_trace_exits()[traceExit];
 
-        if (debug) {
-          printf("advancing stack by %lld\n", stackAdjust);
-          printf("advancing ip by %d-1\n", advanceIp);
-        }
+        // if (debug) {
+        // printf("advancing stack by %lld\n", stackAdjust);
+        // printf("advancing ip by %d-1\n", advanceIp);
+        // }
 
         // adjust stack offset
         stack += stackAdjust;
@@ -473,7 +479,7 @@ void Machine::execute() {
       } else {
         // no trace installed yet
 
-        if (is_tracing && trace.is_head(instr)) {
+        if (trace.is_complete()) {
           // tracing mode, trace is isolated
           if (debug) {
             printf("trace finished\n");
