@@ -465,8 +465,8 @@ void Machine::execute() {
             traceIter->second.get_trace_exits()[traceExit];
 
         if (debug) {
-        printf("advancing stack by %lld\n", stackAdjust);
-        printf("advancing ip by %d-1\n", advanceIp);
+          printf("advancing stack by %lld\n", stackAdjust);
+          printf("advancing ip by %d-1\n", advanceIp);
         }
 
         // adjust stack offset
@@ -485,9 +485,6 @@ void Machine::execute() {
             printf("trace finished\n");
             trace.debug();
           }
-
-          disp_table = op_disp_table;
-          is_tracing = false;
 
           trace.compile(debug);
 
