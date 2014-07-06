@@ -464,10 +464,10 @@ void Machine::execute() {
         const unsigned int advanceIp =
             traceIter->second.get_trace_exits()[traceExit];
 
-        // if (debug) {
-        // printf("advancing stack by %lld\n", stackAdjust);
-        // printf("advancing ip by %d-1\n", advanceIp);
-        // }
+        if (debug) {
+        printf("advancing stack by %lld\n", stackAdjust);
+        printf("advancing ip by %d-1\n", advanceIp);
+        }
 
         // adjust stack offset
         stack += stackAdjust;
