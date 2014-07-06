@@ -12,8 +12,7 @@
 #define DISPATCH NEXT
 #define OP(x)                                                                  \
   trace_##x : {                                                                \
-    auto s = trace.record(instr);                                              \
-    if (s != Trace::State::TRACING) {                                          \
+    if (trace.record(instr) != Trace::State::TRACING) {                                          \
       disp_table = op_disp_table;                                              \
       is_tracing = false;                                                      \
     }                                                                          \
