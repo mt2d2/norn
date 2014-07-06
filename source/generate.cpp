@@ -407,7 +407,8 @@ void ForExprAST::emit_bytecode(BuildContext &out) {
 
   // End and JMP if true
   out.get_block()->add_instruction(Instruction(LBL, step_label));
-  out.get_block()->add_instruction(Instruction(LOOP));
+  out.get_block()->add_instruction(
+      Instruction(LOOP, out.get_and_increment_loop_count()));
   End->emit_bytecode(out);
   out.get_block()->add_instruction(Instruction(FJMP, end_label));
 

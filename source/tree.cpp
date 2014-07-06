@@ -18,8 +18,9 @@ void BuildContext::set_block(Block *block) {
   // now reset the block
   working_block = block;
 
-  // reset seed
+  // reset seed, loop_count
   seed = 0;
+  loop_count = 0;
 }
 
 int BuildContext::get_mem_id(const std::string &key) {
@@ -54,6 +55,8 @@ bool BuildContext::variable_exists(const std::string &key) {
 }
 
 int BuildContext::get_and_increment_seed() { return this->seed++; }
+
+int BuildContext::get_and_increment_loop_count() { return this->loop_count++; }
 
 std::string CallExprAST::callee_signature(BuildContext &out) {
   std::string block_name = this->callee;
