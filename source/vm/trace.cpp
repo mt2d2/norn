@@ -330,6 +330,10 @@ void Trace::jit(bool debug) {
     lastInstruction = i;
 
     // record the GpVar location of the result of every instruction
+
+    // todo
+    // full map of stack needs taken at every trace exit point
+
     if (immStack.size() > 0)
       stackMap[i] = immStack.top();
   }
