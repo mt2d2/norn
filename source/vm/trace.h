@@ -5,7 +5,6 @@
 
 #include <vector>
 #include <map>
-#include <stack>
 
 #include <asmjit/asmjit.h>
 
@@ -54,7 +53,8 @@ private:
   void restore_locals(const std::map<int64_t, LangLocal> &locals,
                       asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
   void restore_stack(
-      const std::map<const Instruction *, asmjit::host::GpVar> &stackMap,
+      const std::vector<std::vector<
+          std::pair<const Instruction *, asmjit::host::GpVar>>> &stackMap,
       asmjit::host::Compiler &c, const asmjit::host::GpVar &traceExitPtr,
       const asmjit::host::GpVar &stack, const asmjit::host::GpVar &stackAdjust);
 
