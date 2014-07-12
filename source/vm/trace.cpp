@@ -179,6 +179,7 @@ void Trace::restore_locals(const std::map<int64_t, LangLocal> &locals,
                            const asmjit::host::GpVar &mp) {
   c.comment("restoring locals");
 
+  // todo, don't restore locals past exit taken
   for (auto &kv : locals) {
     auto local = kv.second;
     c.mov(asmjit::host::qword_ptr(mp, (local.memPosition * 8) +
