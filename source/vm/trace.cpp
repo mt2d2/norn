@@ -216,7 +216,7 @@ void Trace::restore_stack(
   c.xor_(instructionCounter, instructionCounter);
   c.xor_(totalStackAdjustment, totalStackAdjustment);
 
-  assert(stackMap.size() == get_trace_exits().size());
+  assert(stackMap.size() == this->traceExits.size());
   std::vector<asmjit::Label> compensationBlockLabels;
   for (int i = 0; i < stackMap.size(); ++i)
     compensationBlockLabels.push_back(c.newLabel());
