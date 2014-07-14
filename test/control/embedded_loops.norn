@@ -5,7 +5,7 @@ end
 def jit_test(m: Int, t: Int): Int
   ret: Int = 0
 
-  for i: Int = 0, i < 1000, i=i+1 in
+  for i: Int = 0, i < 100, i=i+1 in
 
     for j: Int = 0, j < 888888, j=j+1 in
       ret = ret + m + t + maths()
