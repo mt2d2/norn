@@ -230,7 +230,6 @@ void Trace::restore_stack(
   auto guardCompensationCount = 0;
   for (const auto &snapshot : stackMap) {
     c.bind(compensationBlockLabels[guardCompensationCount]);
-
     c.comment(("guard compensation " + std::to_string(guardCompensationCount))
                   .c_str());
 
