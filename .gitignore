@@ -1,0 +1,5 @@
+*.o
+*.a
+norn
+source/vm/asmit/*
+.DS_Store
