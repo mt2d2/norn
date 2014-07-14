@@ -1,4 +1,4 @@
-#include <map>
+#include <unordered_map>
 #include <utility>
 #include <cmath>  // fmod
 #include <cstdio> // printf
@@ -79,7 +79,7 @@ Machine::~Machine() {
 
 void Machine::execute() {
 #if !NOJIT
-  std::map<const Instruction *, Trace> traces;
+  std::unordered_map<const Instruction *, Trace> traces;
 #endif
 
 #if COMPUTED_GOTO
@@ -507,9 +507,10 @@ void Machine::execute() {
           NEXT
         } else {
           // profiling mode, add loop hotness, dispatch to tracer
-          block->add_loop_hotness(instr);
 
-          if (block->get_loop_hotness(instr) == LOOP_HOTNESS) {
+          if (block->get_loop_hotness(instr) < LOOP_HOTNESS)
+            block->add_loop_hotness(instr);
+          else if (block->get_loop_hotness(instr) == LOOP_HOTNESS) {
             if (debug) {
               printf("trace started\n");
             }

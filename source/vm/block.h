@@ -5,7 +5,6 @@
 #include <string>
 #include <vector>
 #include <list>
-#include <map>
 #include <unordered_map>
 
 #include "instruction.h"
@@ -28,7 +27,7 @@ public:
   int get_memory_slots() const { return this->memory_slots; }
 
 #if !NOJIT
-  unsigned int get_loop_hotness(const Instruction *i) const;
+  unsigned int get_loop_hotness(const Instruction *i);
   void add_loop_hotness(const Instruction *i);
 #endif
 

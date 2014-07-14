@@ -7,6 +7,9 @@ Block::Block(const std::string &name)
       loop_hotness(std::unordered_map<const Instruction *, unsigned int>())
 #endif
 {
+  for (const auto &i : instructions) {
+    loop_hotness[&i] = 0;
+  }
 }
 
 Block::~Block() {}
@@ -20,8 +23,8 @@ const std::vector<Instruction> &Block::get_instructions() const {
 int Block::get_size() const { return this->instructions.size(); }
 
 #if !NOJIT
-unsigned int Block::get_loop_hotness(const Instruction *i) const {
-  return this->loop_hotness.at(i);
+unsigned int Block::get_loop_hotness(const Instruction *i) {
+  return this->loop_hotness[i];
 }
 
 void Block::add_loop_hotness(const Instruction *i) { this->loop_hotness[i]++; }
