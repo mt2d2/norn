@@ -4,7 +4,7 @@ Block::Block(const std::string &name)
     : name(name), instructions(std::vector<Instruction>()), memory_slots(0)
 #if !NOJIT
       ,
-      loop_hotness(std::map<const Instruction *, unsigned int>())
+      loop_hotness(std::unordered_map<const Instruction *, unsigned int>())
 #endif
 {
 }

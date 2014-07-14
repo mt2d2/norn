@@ -62,7 +62,7 @@ void Trace::compile(const bool debug) {
 
 nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 
-std::vector<uint64_t> Trace::get_trace_exits() const { return traceExits; }
+uint64_t Trace::get_trace_exit(int offset) const { return traceExits[offset]; }
 
 std::vector<const Block *> Trace::get_trace_calls() const { return calls; }
 

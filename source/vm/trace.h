@@ -35,7 +35,7 @@ public:
   void debug() const;
   void compile(const bool debug);
   nativeTraceType get_native_ptr() const;
-  std::vector<uint64_t> get_trace_exits() const;
+  uint64_t get_trace_exit(int offset) const;
   std::vector<const Block *> get_trace_calls() const;
 
 private:

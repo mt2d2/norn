@@ -6,6 +6,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <unordered_map>
 
 #include "instruction.h"
 #include "variant.h"
@@ -58,8 +59,7 @@ private:
   std::vector<Instruction> instructions;
   unsigned int memory_slots;
 #if !NOJIT
-  unsigned int hotness;
-  std::map<const Instruction *, unsigned int> loop_hotness;
+  std::unordered_map<const Instruction *, unsigned int> loop_hotness;
 #endif
 
   friend std::ostream &operator<<(std::ostream &os, Block &b) {

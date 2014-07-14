@@ -475,7 +475,7 @@ void Machine::execute() {
         nativePtr(&traceExit, &stackAdjust, stack, memory);
 
         const unsigned int advanceIp =
-            traceIter->second.get_trace_exits()[traceExit];
+            traceIter->second.get_trace_exit(traceExit);
 
         // if (debug) {
         //   printf("advancing stack by %lld\n", stackAdjust);
