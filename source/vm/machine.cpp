@@ -15,6 +15,8 @@
 #define OP(x)                                                                  \
   trace_##x : {                                                                \
     if (trace.record(instr) != Trace::State::TRACING) {                        \
+      if (debug)                                                               \
+        printf("trace aborted\n");                                             \
       disp_table = op_disp_table;                                              \
     }                                                                          \
   }                                                                            \
