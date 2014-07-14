@@ -3,6 +3,7 @@
 #if !NOJIT
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <string>
 
@@ -215,11 +216,21 @@ void Trace::restore_stack(
   c.xor_(instructionCounter, instructionCounter);
   c.xor_(totalStackAdjustment, totalStackAdjustment);
 
-  // todo, need the ability to jump to a chunk of compensation code depending on
-  // traceExit
+  assert(stackMap.size() == get_trace_exits().size());
+  std::vector<asmjit::Label> compensationBlockLabels;
+  for (int i = 0; i < stackMap.size(); ++i)
+    compensationBlockLabels.push_back(c.newLabel());
+
+  c.comment("identifying compensation code jump");
+  for (int i = 0; i < stackMap.size(); ++i) {
+    c.cmp(traceExit, i);
+    c.jz(compensationBlockLabels[i]);
+  }
 
   auto guardCompensationCount = 0;
   for (const auto &snapshot : stackMap) {
+    c.bind(compensationBlockLabels[guardCompensationCount]);
+
     c.comment(("guard compensation " + std::to_string(guardCompensationCount))
                   .c_str());
 
