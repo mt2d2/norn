@@ -508,9 +508,10 @@ void Machine::execute() {
         } else {
           // profiling mode, add loop hotness, dispatch to tracer
 
-          if (block->get_loop_hotness(instr) < LOOP_HOTNESS)
+          if (block->get_loop_hotness(instr) <= LOOP_HOTNESS)
             block->add_loop_hotness(instr);
-          else if (block->get_loop_hotness(instr) == LOOP_HOTNESS) {
+
+          if (block->get_loop_hotness(instr) == LOOP_HOTNESS) {
             if (debug) {
               printf("trace started\n");
             }
