@@ -14,8 +14,8 @@
 Trace::Trace(asmjit::JitRuntime *runtime)
     : last_state(Trace::State::ABORT), runtime(runtime),
       instructions(std::vector<const Instruction *>()),
-      traceExits(std::vector<uint64_t>()), calls(std::vector<const Block *>()),
-      nativePtr(nullptr) {}
+      traceExits(std::vector<uint64_t>()),
+      calls(std::map<const Block *, unsigned int>()), nativePtr(nullptr) {}
 
 Trace::~Trace() {
   if (nativePtr != nullptr)
@@ -64,7 +64,9 @@ nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 
 uint64_t Trace::get_trace_exit(int offset) const { return traceExits[offset]; }
 
-std::vector<const Block *> Trace::get_trace_calls() const { return calls; }
+std::map<const Block *, unsigned int> Trace::get_trace_calls() const {
+  return calls;
+}
 
 void Trace::identify_trace_exits() {
   unsigned int bytecodePosition = 0;
@@ -79,11 +81,12 @@ void Trace::identify_trace_exits() {
 }
 
 void Trace::identify_trace_calls() {
-  // TODO need to count how many instructions into a call to properly restore
-  // frame!
+  auto instructionsTillCall = 0;
   for (const auto *i : instructions) {
+    instructionsTillCall++;
     if (i->op == CALL) {
-      calls.push_back(reinterpret_cast<Block *>(i->arg.p));
+      calls[reinterpret_cast<Block *>(i->arg.p)] = instructionsTillCall;
+      instructionsTillCall = 0;
     }
   }
 }

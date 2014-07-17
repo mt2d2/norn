@@ -36,7 +36,7 @@ public:
   void compile(const bool debug);
   nativeTraceType get_native_ptr() const;
   uint64_t get_trace_exit(int offset) const;
-  std::vector<const Block *> get_trace_calls() const;
+  std::map<const Block *, unsigned int> get_trace_calls() const;
 
 private:
   bool is_head(const Instruction *i) const;
@@ -62,7 +62,7 @@ private:
   asmjit::JitRuntime *runtime;
   std::vector<const Instruction *> instructions;
   std::vector<uint64_t> traceExits;
-  std::vector<const Block *> calls;
+  std::map<const Block *, unsigned int> calls;
   nativeTraceType nativePtr;
 };
 
