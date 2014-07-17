@@ -13,14 +13,14 @@ typedef void (*nativeTraceType)(int64_t *, int64_t *, int64_t *, int64_t *);
 struct Instruction;
 class Block;
 
-struct LangLocal {
-  unsigned int memPosition;
-  unsigned int memOffsetPosition;
-  asmjit::host::GpVar cVar;
-};
-
 class Trace {
 public:
+  struct LangLocal {
+    unsigned int memPosition;
+    unsigned int memOffsetPosition;
+    asmjit::host::GpVar cVar;
+  };
+
   enum State {
     ABORT,
     TRACING,

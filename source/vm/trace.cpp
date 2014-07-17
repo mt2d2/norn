@@ -133,8 +133,8 @@ Trace::load_literals(const std::map<int64_t, asmjit::host::GpVar> &literals,
   }
 }
 
-std::map<int64_t, LangLocal> Trace::identify_locals(asmjit::host::Compiler &c) {
-  std::map<int64_t, LangLocal> locals;
+std::map<int64_t, Trace::LangLocal> Trace::identify_locals(asmjit::host::Compiler &c) {
+  std::map<int64_t, Trace::LangLocal> locals;
   unsigned int memOffset = 0;
   unsigned int lastMemoryOffset = 0;
 
@@ -153,7 +153,7 @@ std::map<int64_t, LangLocal> Trace::identify_locals(asmjit::host::Compiler &c) {
 
     if (i->op == LOAD_INT || i->op == LOAD_CHAR) {
       if (locals.find(i->arg.l) == locals.end()) {
-        locals[i->arg.l] = LangLocal{
+        locals[i->arg.l] = Trace::LangLocal{
             static_cast<unsigned int>(i->arg.l), memOffset,
             asmjit::host::GpVar(
                 c, asmjit::kVarTypeInt64,
@@ -165,7 +165,7 @@ std::map<int64_t, LangLocal> Trace::identify_locals(asmjit::host::Compiler &c) {
   return locals;
 }
 
-void Trace::load_locals(const std::map<int64_t, LangLocal> &locals,
+void Trace::load_locals(const std::map<int64_t, Trace::LangLocal> &locals,
                         asmjit::host::Compiler &c,
                         const asmjit::host::GpVar &mp) {
   c.comment("loading locals");
@@ -178,7 +178,7 @@ void Trace::load_locals(const std::map<int64_t, LangLocal> &locals,
   }
 }
 
-void Trace::restore_locals(const std::map<int64_t, LangLocal> &locals,
+void Trace::restore_locals(const std::map<int64_t, Trace::LangLocal> &locals,
                            asmjit::host::Compiler &c,
                            const asmjit::host::GpVar &mp) {
   c.comment("restoring locals");
