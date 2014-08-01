@@ -14,8 +14,9 @@
 #if !NOJIT
 #define OP(x)                                                                  \
   trace_##x : {                                                                \
-    if (trace.record(instr) != Trace::State::TRACING) {                        \
-      if (debug)                                                               \
+    auto traceState = trace.record(instr);                                     \
+    if (traceState != Trace::State::TRACING) {                                 \
+      if (debug && traceState == Trace::State::ABORT)                          \
         printf("trace aborted\n");                                             \
       disp_table = op_disp_table;                                              \
     }                                                                          \
