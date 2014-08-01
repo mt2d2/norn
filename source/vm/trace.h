@@ -18,7 +18,11 @@ public:
   struct LangLocal {
     unsigned int memPosition;
     unsigned int memOffsetPosition;
-    asmjit::host::GpVar cVar;
+    std::vector<asmjit::host::GpVar> cVars;
+    const asmjit::host::GpVar &getRoot() { return cVars.at(0); }
+    const asmjit::host::GpVar &getRecentest() {
+      return cVars.at(cVars.size() - 1);
+    }
   };
 
   enum State {
@@ -57,6 +61,8 @@ private:
           std::pair<const Instruction *, asmjit::host::GpVar>>> &stackMap,
       asmjit::host::Compiler &c, const asmjit::host::GpVar &traceExitPtr,
       const asmjit::host::GpVar &stack, const asmjit::host::GpVar &stackAdjust);
+  void mergePhis(asmjit::host::Compiler &c,
+                 const std::map<int64_t, LangLocal> locals);
 
   State last_state;
   asmjit::JitRuntime *runtime;

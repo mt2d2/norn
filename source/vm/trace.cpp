@@ -133,7 +133,8 @@ Trace::load_literals(const std::map<int64_t, asmjit::host::GpVar> &literals,
   }
 }
 
-std::map<int64_t, Trace::LangLocal> Trace::identify_locals(asmjit::host::Compiler &c) {
+std::map<int64_t, Trace::LangLocal>
+Trace::identify_locals(asmjit::host::Compiler &c) {
   std::map<int64_t, Trace::LangLocal> locals;
   unsigned int memOffset = 0;
   unsigned int lastMemoryOffset = 0;
@@ -153,11 +154,12 @@ std::map<int64_t, Trace::LangLocal> Trace::identify_locals(asmjit::host::Compile
 
     if (i->op == LOAD_INT || i->op == LOAD_CHAR) {
       if (locals.find(i->arg.l) == locals.end()) {
+
         locals[i->arg.l] = Trace::LangLocal{
             static_cast<unsigned int>(i->arg.l), memOffset,
-            asmjit::host::GpVar(
+            std::vector<asmjit::host::GpVar>{asmjit::host::GpVar(
                 c, asmjit::kVarTypeInt64,
-                std::string("local_" + std::to_string(i->arg.l)).c_str())};
+                std::string("local_" + std::to_string(i->arg.l)).c_str())}};
       }
     }
   }
@@ -172,7 +174,7 @@ void Trace::load_locals(const std::map<int64_t, Trace::LangLocal> &locals,
 
   for (auto &kv : locals) {
     auto local = kv.second;
-    c.mov(local.cVar,
+    c.mov(local.getRoot(),
           asmjit::host::qword_ptr(mp, (local.memPosition * 8) +
                                           local.memOffsetPosition * 8));
   }
@@ -188,7 +190,7 @@ void Trace::restore_locals(const std::map<int64_t, Trace::LangLocal> &locals,
     auto local = kv.second;
     c.mov(asmjit::host::qword_ptr(mp, (local.memPosition * 8) +
                                           local.memOffsetPosition * 8),
-          local.cVar);
+          local.getRoot());
   }
 }
 
@@ -267,6 +269,24 @@ void Trace::restore_stack(
   c.mov(qword_ptr(stackAdjust), totalStackAdjustment);
 }
 
+void Trace::mergePhis(asmjit::host::Compiler &c,
+                      const std::map<int64_t, LangLocal> locals) {
+  c.comment("PHI");
+  for (auto kv : locals) {
+    auto local = kv.second;
+    auto cVars = local.cVars;
+
+    if (cVars.size() > 1) {
+      // need to merge phi
+      if (cVars.size() != 2) {
+        raise_error("cannot merge phi with more than two inputs");
+      }
+
+      c.mov(cVars.at(0), cVars.at(1));
+    }
+  }
+}
+
 void Trace::jit(bool debug) {
   std::vector<std::pair<const Instruction *, asmjit::host::GpVar>> immStack;
   std::vector<std::vector<std::pair<const Instruction *, asmjit::host::GpVar>>>
@@ -315,12 +335,12 @@ void Trace::jit(bool debug) {
     } break;
 
     case LOAD_INT: {
-      immStack.push_back(std::make_pair(i, locals.at(i->arg.l).cVar));
+      immStack.push_back(std::make_pair(i, locals.at(i->arg.l).getRecentest()));
     } break;
 
     case STORE_INT: {
       auto a = pop(c, immStack);
-      locals[i->arg.l].cVar = a;
+      locals[i->arg.l].cVars.push_back(a);
     } break;
 
     case LE_INT: {
@@ -334,11 +354,24 @@ void Trace::jit(bool debug) {
 
     } break;
 
-    case ADD_INT: {
+    case ADD_INT:
+    case MUL_INT: {
       auto a = pop(c, immStack);
       auto b = pop(c, immStack);
-      c.add(a, b);
-      immStack.push_back(std::make_pair(i, a));
+
+      auto binRet = asmjit::host::GpVar(c, asmjit::kVarTypeInt64, "bin_int");
+      c.mov(binRet, a);
+
+      switch (i->op) {
+      case ADD_INT:
+        c.add(binRet, b);
+        break;
+      case MUL_INT:
+        c.imul(binRet, b);
+        break;
+      }
+
+      immStack.push_back(std::make_pair(i, binRet));
     } break;
 
     case FJMP: {
@@ -359,6 +392,7 @@ void Trace::jit(bool debug) {
     } break;
 
     case UJMP: {
+      mergePhis(c, locals);
       c.jmp(L_traceEntry);
     } break;
 
