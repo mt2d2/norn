@@ -8,7 +8,10 @@
 
 #include <asmjit/asmjit.h>
 
-typedef void (*nativeTraceType)(int64_t *, int64_t *, int64_t *, int64_t *);
+typedef void (*nativeTraceType)(/*trace exit*/ int64_t *,
+                                /*stack adjust*/ int64_t *,
+                                /*stack*/ int64_t *,
+                                /*memory*/ int64_t *);
 
 struct Instruction;
 class Block;
