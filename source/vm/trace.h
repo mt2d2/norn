@@ -18,9 +18,9 @@ public:
   struct LangLocal {
     unsigned int memPosition;
     unsigned int memOffsetPosition;
-    std::vector<asmjit::host::GpVar> cVars;
-    const asmjit::host::GpVar &getRoot() { return cVars.at(0); }
-    const asmjit::host::GpVar &getRecentest() {
+    std::vector<asmjit::GpVar> cVars;
+    const asmjit::GpVar &getRoot() { return cVars.at(0); }
+    const const asmjit::GpVar &getRecentest() const {
       return cVars.at(cVars.size() - 1);
     }
   };
@@ -47,21 +47,20 @@ private:
   void jit(const bool debug);
   void identify_trace_exits();
   void identify_trace_calls();
-  std::map<int64_t, asmjit::host::GpVar>
-  identify_literals(asmjit::host::Compiler &c);
-  void load_literals(const std::map<int64_t, asmjit::host::GpVar> &literals,
-                     asmjit::host::Compiler &c);
-  std::map<int64_t, LangLocal> identify_locals(asmjit::host::Compiler &c);
+  std::map<int64_t, asmjit::GpVar> identify_literals(asmjit::X86Compiler &c);
+  void load_literals(const std::map<int64_t, asmjit::GpVar> &literals,
+                     asmjit::X86Compiler &c);
+  std::map<int64_t, LangLocal> identify_locals(asmjit::X86Compiler &c);
   void load_locals(const std::map<int64_t, LangLocal> &locals,
-                   asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
+                   asmjit::X86Compiler &c, const asmjit::GpVar &mp);
   void restore_locals(const std::map<int64_t, LangLocal> &locals,
-                      asmjit::host::Compiler &c, const asmjit::host::GpVar &mp);
+                      asmjit::X86Compiler &c, const asmjit::GpVar &mp);
   void restore_stack(
-      const std::vector<std::vector<
-          std::pair<const Instruction *, asmjit::host::GpVar>>> &stackMap,
-      asmjit::host::Compiler &c, const asmjit::host::GpVar &traceExitPtr,
-      const asmjit::host::GpVar &stack, const asmjit::host::GpVar &stackAdjust);
-  void mergePhis(asmjit::host::Compiler &c,
+      const std::vector<
+          std::vector<std::pair<const Instruction *, asmjit::GpVar>>> &stackMap,
+      asmjit::X86Compiler &c, const asmjit::GpVar &traceExitPtr,
+      const asmjit::GpVar &stack, const asmjit::GpVar &stackAdjust);
+  void mergePhis(asmjit::X86Compiler &c,
                  const std::map<int64_t, LangLocal> locals);
 
   State last_state;
