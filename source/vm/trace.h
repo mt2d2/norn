@@ -20,7 +20,7 @@ public:
     unsigned int memOffsetPosition;
     std::vector<asmjit::GpVar> cVars;
     const asmjit::GpVar &getRoot() { return cVars.at(0); }
-    const const asmjit::GpVar &getRecentest() const {
+    const asmjit::GpVar &getRecentest() const {
       return cVars.at(cVars.size() - 1);
     }
   };
