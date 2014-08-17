@@ -287,7 +287,7 @@ void Trace::mergePhis(asmjit::X86Compiler &c,
 void Trace::jit(bool debug) {
   std::vector<std::pair<const Instruction *, asmjit::GpVar>> immStack;
   std::vector<std::vector<std::pair<const Instruction *, asmjit::GpVar>>>
-  stackMap;
+      stackMap;
 
   asmjit::X86Compiler c(runtime);
   asmjit::FileLogger logger(stdout);
@@ -352,6 +352,7 @@ void Trace::jit(bool debug) {
     } break;
 
     case ADD_INT:
+    case SUB_INT:
     case MUL_INT: {
       auto a = pop(c, immStack);
       auto b = pop(c, immStack);
@@ -362,6 +363,9 @@ void Trace::jit(bool debug) {
       switch (i->op) {
       case ADD_INT:
         c.add(binRet, b);
+        break;
+      case SUB_INT:
+        c.sub(binRet, b);
         break;
       case MUL_INT:
         c.imul(binRet, b);
