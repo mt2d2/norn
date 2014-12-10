@@ -5,10 +5,12 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <map>
 #include <string>
 
 #include "../common.h"
 #include "../block.h"
+#include "../program.h"
 #include "instruction.h"
 
 Trace::Trace(asmjit::JitRuntime *runtime)
@@ -113,7 +115,11 @@ Trace::identify_literals(asmjit::X86Compiler &c) {
     if (i->op == LIT_INT) {
       locals[i->arg.l] = asmjit::GpVar(
           c, asmjit::kVarTypeInt64,
-          std::string("literal_" + std::to_string(i->arg.l)).c_str());
+          std::string("literal_int_" + std::to_string(i->arg.l)).c_str());
+    } else if (i->op == LIT_CHAR) {
+      locals[i->arg.c] = asmjit::GpVar(
+          c, asmjit::kVarTypeInt64,
+          (std::string("literal_char_") + std::to_string(i->arg.c)).c_str());
     }
   }
 
@@ -327,8 +333,10 @@ void Trace::jit(bool debug) {
     }
 
     switch (i->op) {
+    case LIT_CHAR:
     case LIT_INT: {
-      immStack.push_back(std::make_pair(i, literals[i->arg.l]));
+      auto key = i->op == LIT_CHAR ? i->arg.c : i->arg.l;
+      immStack.push_back(std::make_pair(i, literals[key]));
     } break;
 
     case LOAD_INT: {
@@ -337,7 +345,10 @@ void Trace::jit(bool debug) {
 
     case STORE_INT: {
       auto a = pop(c, immStack);
-      locals[i->arg.l].cVars.push_back(a);
+      // locals[i->arg.l].cVars.push_back(a);
+      // locals[i->arg.l].cVars[0] = a;
+      c.comment("STORE_INT");
+      c.mov(locals[i->arg.l].cVars[0], a);
     } break;
 
     case LE_INT: {
@@ -395,6 +406,18 @@ void Trace::jit(bool debug) {
     case UJMP: {
       mergePhis(c, locals);
       c.jmp(L_traceEntry);
+    } break;
+
+    case PRINT_CHAR:
+    case PRINT_INT: {
+      static std::map<long, void *> printers{
+          {PRINT_CHAR, reinterpret_cast<void *>(&putchar)},
+          {PRINT_INT, reinterpret_cast<void *>(&Program_print_int)}};
+
+      asmjit::X86CallNode *call = c.call(
+          reinterpret_cast<asmjit::Ptr>(printers[i->op]), asmjit::kFuncConvHost,
+          asmjit::FuncBuilder1<asmjit::Void, int64_t>());
+      call->setArg(0, pop(c, immStack));
     } break;
 
     case LOOP:

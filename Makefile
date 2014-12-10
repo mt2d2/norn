@@ -27,7 +27,7 @@ ${EXE}_nojit: ${OBJ} ${LIBDLMALLOC}
 
 ${LIBASMJIT}:
 	@${ECHO} MAKE libasmjit
-	@cd source/vm/asmjit && ${CMAKE} -DASMJIT_STATIC=1
+	@cd source/vm/asmjit && ${CMAKE} -DASMJIT_STATIC=1 
 	@+${MAKE} -C source/vm/asmjit
 
 ${LIBDLMALLOC}:

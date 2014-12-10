@@ -106,3 +106,5 @@ extern "C" void Program_print_array_char(Variant *array) {
   for (int64_t i = 1; i < array[0].l; ++i)
     putchar(array[i].c);
 }
+
+extern "C" void Program_print_int(int64_t v) { printf("%lld", v); }
