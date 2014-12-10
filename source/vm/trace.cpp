@@ -345,10 +345,7 @@ void Trace::jit(bool debug) {
 
     case STORE_INT: {
       auto a = pop(c, immStack);
-      // locals[i->arg.l].cVars.push_back(a);
-      // locals[i->arg.l].cVars[0] = a;
-      c.comment("STORE_INT");
-      c.mov(locals[i->arg.l].cVars[0], a);
+      locals[i->arg.l].cVars.push_back(a);
     } break;
 
     case LE_INT: {
