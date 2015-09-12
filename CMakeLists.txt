@@ -2,9 +2,6 @@ cmake_minimum_required(VERSION 3.1)
 
 project(norn)
 
-include_directories(source/vm/dlmalloc)
-add_library(dlmalloc STATIC source/vm/dlmalloc/dlmalloc.c)
-
 add_definitions(-DNOJIT)
 set(lang_src
   source/lexer.cpp
@@ -23,5 +20,4 @@ set(vm_src
   source/vm/machine.cpp
   source/vm/jit.cpp)
 add_executable(norn ${vm_src} ${lang_src})
-target_link_libraries(norn dlmalloc)
 set_property(TARGET norn PROPERTY CXX_STANDARD 11)

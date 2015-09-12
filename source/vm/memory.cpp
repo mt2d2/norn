@@ -1,22 +1,22 @@
 #include "memory.h"
 
+#include <cstdlib>
+
 #include "frame.h"
 #include "common.h"
-
-#include <dlmalloc.h>
 
 #define GC_THRESHOLD 100
 
 AllocatedMemory::AllocatedMemory(uint64_t size)
-    : data(TaggedPointer<void *, 8>(dlmalloc(size), 0)) {}
+    : data(TaggedPointer<void *, 8>(malloc(size), 0)) {}
 
-AllocatedMemory::~AllocatedMemory() { dlfree(this->data.getPointer()); }
+AllocatedMemory::~AllocatedMemory() { free(this->data.getPointer()); }
 
 void *AllocatedMemory::operator new(std::size_t n) throw(std::bad_alloc) {
-  return dlmalloc(n);
+  return malloc(n);
 }
 
-void AllocatedMemory::operator delete(void *p) throw() { dlfree(p); }
+void AllocatedMemory::operator delete(void *p) throw() { free(p); }
 
 Memory::Memory(int64_t *stack_start, int64_t *memory_start)
     : allocated(std::unordered_set<AllocatedMemory *>()),
@@ -90,18 +90,8 @@ void Memory::sweep() {
 }
 
 void Memory::gc() {
-  // std::cout << "GC" << std::endl;
-  // auto start = allocated.size();
-
   mark();
   sweep();
-
-  // auto finish = allocated.size();
-  // fprintf(stderr, "swept %lu objects, %lu remaining\n", start - finish,
-  // finish);
-
-  // dlmalloc_trim(0);
-  // dlmalloc_stats();
 }
 
 AllocatedMemory *Memory_allocate(Memory *memory, int64_t size) {

@@ -7,30 +7,23 @@ SRC=source/vm/common.cpp source/vm/opcode.cpp source/vm/memory.cpp source/vm/blo
 OBJ=${SRC:.cpp=.o}
 
 LIBASMJIT=source/vm/AsmJit/libasmjit.a
-LIBDLMALLOC=source/vm/dlmalloc/dlmalloc.a
 
 CFLAGS=-std=c++11 -Wall -Wextra -Werror -g -O2
 ${EXE}_nojit: CFLAGS += -DNOJIT=1
 
-CFLAGS += -Isource/vm/dlmalloc -DUSE_DL_PREFIX
-
 all: ${SRC} ${EXE}
 
-${EXE}: ${OBJ} ${LIBASMJIT} ${LIBDLMALLOC}
+${EXE}: ${OBJ} ${LIBASMJIT}
 	@${ECHO} LINK $@
-	@${CXX} ${LDFLAGS} ${OBJ} ${LIBASMJIT} ${LIBDLMALLOC} -o $@ ${LIB}
+	@${CXX} ${LDFLAGS} ${OBJ} ${LIBASMJIT} -o $@ ${LIB}
 
-${EXE}_nojit: ${OBJ} ${LIBDLMALLOC}
+${EXE}_nojit: ${OBJ}
 	@${ECHO} LINK $@
-	@${CXX} ${LDFLAGS} ${OBJ} ${LIBDLMALLOC} -o ${EXE} ${LIB}
+	@${CXX} ${LDFLAGS} ${OBJ} -o ${EXE} ${LIB}
 
 ${LIBASMJIT}:
 	@${ECHO} MAKE libasmjit
 	@+${MAKE} -C source/vm/AsmJit
-
-${LIBDLMALLOC}:
-	@${ECHO} MAKE libdlmalloc
-	@+${MAKE} -C source/vm/dlmalloc
 
 .cpp.o:
 	@${ECHO} CXX $<
@@ -41,16 +34,15 @@ clean:
 	@rm -f ${OBJ} ${EXE}
 
 realclean: clean
-	@${ECHO} RM profile data, libasmjit.a, libdlmalloc.a
+	@${ECHO} RM profile data, libasmjit.a
 	@rm -f source/*gc* source/vm/*gc*
 	@make -C source/vm/AsmJit clean
-	@make -C source/vm/dlmalloc clean
 
 test: ${EXE}
 	python test/runner.py
 
 format:
-	find . -name '*.cpp' ! -path "./source/vm/AsmJit/*" ! -path "./source/vm/dlmalloc/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
-	find . -name '*.h' ! -path "./source/vm/AsmJit/*" ! -path "./source/vm/dlmalloc/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
+	find . -name '*.cpp' ! -path "./source/vm/AsmJit/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
+	find . -name '*.h' ! -path "./source/vm/AsmJit/*" -print0 | xargs -0 -n 1 clang-format -i -style llvm
 
 .PHONY: clean realclean test format
