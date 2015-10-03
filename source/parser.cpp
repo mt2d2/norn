@@ -11,7 +11,7 @@ Parser::Parser(std::istream &stream)
   BinopPrecedence['>'] = 10;
   BinopPrecedence['g'] = 10;
   BinopPrecedence['!'] = 10;
-  BinopPrecedence['='] = 10;
+  BinopPrecedence['e'] = 10;
   BinopPrecedence['+'] = 20;
   BinopPrecedence['-'] = 20;
   BinopPrecedence['/'] = 40;
@@ -259,7 +259,7 @@ ExprAST *Parser::ParseBinOpRHS(int ExprPrec, ExprAST *LHS) {
     // Okay, we know this is a binop.
     int BinOp = CurToken;
     getNextToken(); // eat binop
-
+    
     // Parse the primary expression after the binary operator.
     ExprAST *RHS = ParsePrimary();
     if (!RHS)

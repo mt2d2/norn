@@ -231,7 +231,7 @@ void BinaryExprAST::emit_bytecode(BuildContext &out) {
     case '>':
       out.get_block()->add_instruction(Instruction(GE_INT));
       break;
-    case '=':
+    case 'e':
       out.get_block()->add_instruction(Instruction(EQ_INT));
       break;
     case '!':
@@ -282,7 +282,7 @@ void BinaryExprAST::emit_bytecode(BuildContext &out) {
     case '>':
       out.get_block()->add_instruction(Instruction(GE_FLOAT));
       break;
-    case '=':
+    case 'e':
       out.get_block()->add_instruction(Instruction(EQ_FLOAT));
       break;
     case '!':
@@ -293,6 +293,9 @@ void BinaryExprAST::emit_bytecode(BuildContext &out) {
       break;
     case 'g':
       out.get_block()->add_instruction(Instruction(GEQ_FLOAT));
+      break;
+    default:
+      raise_error("unknown binop for floats");
       break;
     }
     break;

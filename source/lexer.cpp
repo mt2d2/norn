@@ -70,6 +70,12 @@ whitespace:
     return '!';
   }
 
+  if (current == '=' && source[pos + 1] == '=') {
+    pos += 2;
+    current = source[pos];
+    return 'e';
+  }
+
   if (current == '\'') {
     current = source[++pos]; // eat '
     // capture char, handle escape sequences

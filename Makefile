@@ -8,7 +8,7 @@ OBJ=${SRC:.cpp=.o}
 
 LIBASMJIT=source/vm/AsmJit/libasmjit.a
 
-CFLAGS=-std=c++11 -Wall -Wextra -Werror -g -O2
+CFLAGS=-std=c++11 -Wall -Wextra -Werror -g -O0
 ${EXE}_nojit: CFLAGS += -DNOJIT=1
 
 all: ${SRC} ${EXE}
