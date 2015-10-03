@@ -60,6 +60,8 @@ void Machine::execute() {
 #endif
 
   block = this->program.get_block_ptr(this->program.get_block_id("main"));
+  if (block && block->get_size() == 0)
+    return;
 
   DISPATCH
 

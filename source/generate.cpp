@@ -363,10 +363,10 @@ void PrototypeAST::emit_bytecode(BuildContext &out) {
 void FunctionAST::emit_bytecode(BuildContext &out) {
   this->proto->emit_bytecode(out);
 
-  for (auto &elem : body)
+  for (const auto &elem : body)
     (elem)->emit_bytecode(out);
 
-  if (out.get_block()->get_instruction(out.get_block()->get_size() - 1)->op !=
+  if (out.get_block()->get_size() > 0 && out.get_block()->get_instruction(out.get_block()->get_size() - 1)->op !=
       RTRN)
     out.get_block()->add_instruction(Instruction(RTRN));
 }
