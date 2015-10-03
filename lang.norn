@@ -58,14 +58,24 @@ end
 
 def square_root(n: Float): Float
 	x: Float = 1.0
-	
+
 	for i: Float = 0.0, i < n, i=i+1.0 in
 		x = 0.5 * (x+n / x)
 	end
-	
+
 	return x
 end
 
 def square_root(n: Int): Float
 	return square_root(0.0 + n)
+end
+
+def pow(x: Float, y: Float): Float
+  temp: Float = 1.0
+
+  for i: Int = 0, i < y, i=i+1 in
+    temp = temp * x
+  end
+
+  return temp
 end
