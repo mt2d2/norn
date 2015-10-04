@@ -4,20 +4,20 @@ def iterate(x: Float, y: Float): Int
 	zi: Float = 0.0
 	zr: Float = 0.0
 	i: Int = 0
-	
+
 	while true in
 		i = i+1
 		temp: Float = zr * zi
 		zr2: Float = zr * zr
 		zi2: Float = zi * zi
-		
+
 		zr = zr2 - zi2 + cr
 		zi = temp + temp + ci
-		
+
 		if ((zi2 + zr2) > 16.0) then
 		    return i
 		end
-		
+
 		if (i > 1000) then
 			return 0
 		end
@@ -26,18 +26,17 @@ end
 
 def main(): Void
 	for i: Int = 0, i < 1, i=i+1 in
-		for y: Int = -39, y < 39, y=y+1 in		
-		
+		for y: Int = -39, y < 39, y=y+1 in
+
 			for x: Int = -39, x < 39, x=x+1 in
-				if iterate(x/40.0, y/40.0) = 0 then
+				if iterate(x/40.0, y/40.0) == 0 then
 					print('*')
 				else
 					print(' ')
 				end
 			end
-			
+
 			print('\n')
 		end
 	end
 end
-

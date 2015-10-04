@@ -175,7 +175,7 @@ void Block::jit(const Program &program, Memory &manager,
 
     case DIV_INT:
     case MOD_INT: {
-      c.comment("MOD_INT");
+      c.comment("DIV/MOD_INT");
       GPVar tmp0(c.newGP());
       GPVar tmp1(c.newGP());
       // GPVar tmp2(c.newGP());
@@ -235,6 +235,41 @@ void Block::jit(const Program &program, Memory &manager,
 
       c.sub(stackTop, 8);
       c.movsd(qword_ptr(stackTop), tmp1);
+
+      c.unuse(tmp1);
+      c.unuse(tmp2);
+
+    } break;
+
+    case MOD_FLOAT: {
+      // handle this separately so we can do conversions
+      c.comment("MOD_FLOAT");
+
+      GPVar quot(c.newGP());
+      GPVar remain(c.newGP());
+      GPVar source(c.newGP());
+
+      c.cvttsd2si(remain, qword_ptr(stackTop));
+      c.cvttsd2si(source, qword_ptr(stackTop, -8));
+
+      // make rdx 0, but really should sign extend it with cqo
+      GPVar t_rdx(c.newGP());
+      c.alloc(t_rdx, rdx);
+      c.xor_(t_rdx, t_rdx);
+      c.unuse(t_rdx);
+
+      c.idiv(quot, remain, source);
+
+      XMMVar tmp1_sd(c.newXMM());
+      c.cvtsi2sd(tmp1_sd, quot); // tmp1_si holds modulus
+
+      c.sub(stackTop, 8);
+      c.movsd(qword_ptr(stackTop), tmp1_sd);
+
+      c.unuse(tmp1_sd);
+      c.unuse(quot);
+      c.unuse(remain);
+      c.unuse(source);
     } break;
 
     case LEQ_INT:

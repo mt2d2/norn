@@ -1,5 +1,5 @@
 def test(x: Int): Int
-	if x = 9 then
+	if x == 8 then
 		x - 1 + 1
 	else
 		2

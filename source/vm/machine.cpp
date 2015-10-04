@@ -276,7 +276,7 @@ void Machine::execute() {
   }
 
   OP(PRINT_FLOAT) {
-    printf("%f", pop<double>());
+    printf("%g", pop<double>());
     NEXT
   }
 

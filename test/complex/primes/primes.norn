@@ -2,11 +2,11 @@ def isPrime(number: Int): Boolean
 	if number < 2 then return false end
 
 	for i: Int = 2, (i*i) <= number, i=i+1 in
-		if (number % i) = 0 then
+		if (number % i) == 0 then
 			return false
 		end
 	end
-	
+
 	return true
 end
 
