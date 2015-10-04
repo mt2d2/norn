@@ -1,0 +1,27 @@
+# adapted from http://www.gopherjs.org/blog/2015/09/28/surprises-in-gopherjs-performance/
+
+def term(k: Float): Float
+  ret: Float = 0.0
+  if k % 2 == 0.0 then
+    ret = 4.0 / (2.0 * k + 1.0)
+  else
+    ret = -4.0 / (2.0 * k + 1.0)
+  end
+  return ret
+end
+
+def pi(n: Float): Float
+  f: Float = 0.0
+
+  for i: Float = 0.0, i < n, i=i+1.0 in
+    f = f + term(i)
+  end
+
+  return f
+end
+
+def main(): Void
+  limit: Float = 10000000.0
+  ret: Float = pi(limit)
+  println(ret)
+end
