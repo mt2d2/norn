@@ -63,8 +63,7 @@ void Block::jit(const Program &program, Memory &manager,
   }
 
   unsigned int instr_count = 0;
-  for (auto instr = instructions.begin(); instr != instructions.end();
-       ++instr) {
+  for (const auto& instr : instructions) {
     if (start_from_ip > 0 && instr_count == start_from_ip)
       c.bind(bounceToIp);
 
@@ -74,18 +73,18 @@ void Block::jit(const Program &program, Memory &manager,
 
     ++instr_count;
 
-    switch (instr->op) {
+    switch (instr.op) {
     case LIT_INT:
     case LIT_CHAR: {
       c.comment("LIT_INT/CHAR");
 
       long lit = 0;
-      switch (instr->op) {
+      switch (instr.op) {
       case LIT_INT:
-        lit = instr->arg.l;
+        lit = instr.arg.l;
         break;
       case LIT_CHAR:
-        lit = instr->arg.c;
+        lit = instr.arg.c;
         break;
       }
 
@@ -99,7 +98,7 @@ void Block::jit(const Program &program, Memory &manager,
       GPVar tmp(c.newGP());
       GPVar address(c.newGP());
 
-      c.mov(address, imm((sysint_t)(void *)&instr->arg.d));
+      c.mov(address, imm((sysint_t)(void *)&instr.arg.d));
       c.mov(tmp, qword_ptr(address));
 
       c.add(stackTop, 8);
@@ -111,7 +110,7 @@ void Block::jit(const Program &program, Memory &manager,
     case LOAD_FLOAT: {
       c.comment("LOAD_INT/CHAR/FLOAT");
       GPVar tmp(c.newGP());
-      c.mov(tmp, qword_ptr(memoryTop, (instr->arg.l * 8)));
+      c.mov(tmp, qword_ptr(memoryTop, (instr.arg.l * 8)));
 
       c.add(stackTop, 8);
       c.mov(qword_ptr(stackTop), tmp);
@@ -128,7 +127,7 @@ void Block::jit(const Program &program, Memory &manager,
       c.mov(tmp, qword_ptr(stackTop));
       c.sub(stackTop, 8);
 
-      c.mov(qword_ptr(memoryTop, (instr->arg.l * 8)), tmp);
+      c.mov(qword_ptr(memoryTop, (instr.arg.l * 8)), tmp);
 
       c.unuse(tmp);
     } break;
@@ -154,7 +153,7 @@ void Block::jit(const Program &program, Memory &manager,
       c.mov(tmp1, qword_ptr(stackTop));
       c.mov(tmp2, qword_ptr(stackTop, -8));
 
-      switch (instr->op) {
+      switch (instr.op) {
       case MUL_INT:
         c.imul(tmp1, tmp2);
         break;
@@ -192,7 +191,7 @@ void Block::jit(const Program &program, Memory &manager,
 
       c.sub(stackTop, 8);
 
-      switch (instr->op) {
+      switch (instr.op) {
       case DIV_INT:
         c.mov(qword_ptr(stackTop), tmp1);
         break;
@@ -218,7 +217,7 @@ void Block::jit(const Program &program, Memory &manager,
       c.movsd(tmp1, qword_ptr(stackTop));
       c.movsd(tmp2, qword_ptr(stackTop, -8));
 
-      switch (instr->op) {
+      switch (instr.op) {
       case ADD_FLOAT:
         c.addsd(tmp1, tmp2);
         break;
@@ -293,7 +292,7 @@ void Block::jit(const Program &program, Memory &manager,
 
       c.cmp(tmp1, tmp2);
 
-      switch (instr->op) {
+      switch (instr.op) {
       case LEQ_INT:
         c.jle(L_LT);
         break;
@@ -347,7 +346,7 @@ void Block::jit(const Program &program, Memory &manager,
 
       c.comisd(tmp1, tmp2);
 
-      switch (instr->op) {
+      switch (instr.op) {
       case LEQ_FLOAT:
         c.jb(L_LT);
         break;
@@ -388,7 +387,7 @@ void Block::jit(const Program &program, Memory &manager,
       c.mov(tmp, qword_ptr(stackTop));
       c.sub(stackTop, 8);
 
-      switch (instr->op) {
+      switch (instr.op) {
       case TJMP:
         c.cmp(tmp, 1);
         break;
@@ -397,19 +396,19 @@ void Block::jit(const Program &program, Memory &manager,
         break;
       }
 
-      c.jz(label_positions[instr->arg.l]);
+      c.jz(label_positions[instr.arg.l]);
       c.unuse(tmp);
     } break;
 
     case UJMP:
       c.comment("UJMP");
-      c.jmp(label_positions[instr->arg.l]);
+      c.jmp(label_positions[instr.arg.l]);
       break;
 
     case CALL:
     case CALL_NATIVE: {
       auto callee =
-          std::find(blocks.begin(), blocks.end(), (Block *)instr->arg.p);
+          std::find(blocks.begin(), blocks.end(), (Block *)instr.arg.p);
       if (callee == blocks.end())
         raise_error("couldn't identify block for jit native call");
 
@@ -466,13 +465,8 @@ void Block::jit(const Program &program, Memory &manager,
     } break;
 
     case RTRN:
-      // would be better to have ret here, but weird bugs trying to finish jit'd
-      // function
-      // is it preferable to have a single exit?
       c.comment("RTRN");
-      if ((instr + 1) != instructions.end() ||
-          ((instr + 1)->op != RTRN && (instr + 1 + 1) == instructions.end()))
-        c.jmp(L_Return);
+      c.jmp(L_Return);
       break;
 
     case PRINT_INT:
@@ -484,9 +478,9 @@ void Block::jit(const Program &program, Memory &manager,
       c.sub(stackTop, 8);
 
       void *printFunction = nullptr;
-      if (instr->op == PRINT_INT)
+      if (instr.op == PRINT_INT)
         printFunction = reinterpret_cast<void *>(&putint);
-      else if (instr->op == PRINT_FLOAT)
+      else if (instr.op == PRINT_FLOAT)
         printFunction = reinterpret_cast<void *>(&putdouble);
       else
         printFunction = reinterpret_cast<void *>(&putchar);
@@ -502,14 +496,14 @@ void Block::jit(const Program &program, Memory &manager,
     case LIT_LOAD_SUB: {
       c.comment("LIT_LOAD_ADD/SUB");
       GPVar tmp(c.newGP());
-      c.mov(tmp, qword_ptr(memoryTop, (instr->arg.l * 8)));
+      c.mov(tmp, qword_ptr(memoryTop, (instr.arg.l * 8)));
 
-      switch (instr->op) {
+      switch (instr.op) {
       case LIT_LOAD_ADD:
-        c.add(tmp, instr->arg2.l);
+        c.add(tmp, instr.arg2.l);
         break;
       case LIT_LOAD_SUB:
-        c.sub(tmp, instr->arg2.l);
+        c.sub(tmp, instr.arg2.l);
         break;
       }
 
@@ -523,12 +517,12 @@ void Block::jit(const Program &program, Memory &manager,
       c.comment("LIT_LOAD_LE");
 
       GPVar tmp(c.newGP());
-      c.mov(tmp, qword_ptr(memoryTop, (instr->arg.l * 8)));
+      c.mov(tmp, qword_ptr(memoryTop, (instr.arg.l * 8)));
 
       Label L_LE = c.newLabel();
       Label L_Exit = c.newLabel();
 
-      c.cmp(tmp, instr->arg2.l);
+      c.cmp(tmp, instr.arg2.l);
       c.jl(L_LE);
 
       c.mov(tmp, 0);
@@ -594,7 +588,7 @@ void Block::jit(const Program &program, Memory &manager,
       GPVar managerReg(c.newGP());
       c.mov(managerReg, (uintptr_t) & manager);
       GPVar sizeToMalloc(c.newGP());
-      c.mov(sizeToMalloc, instr->arg.l);
+      c.mov(sizeToMalloc, instr.arg.l);
       GPVar newArray(c.newGP());
 
       ECall *ctx = c.call(imm((uintptr_t) & Memory_new_lang_array));
@@ -618,7 +612,7 @@ void Block::jit(const Program &program, Memory &manager,
       c.mov(programReg, (uintptr_t) & program);
 
       GPVar stringNumber(c.newGP());
-      c.mov(stringNumber, instr->arg.l);
+      c.mov(stringNumber, instr.arg.l);
 
       GPVar str(c.newGP());
       c.mov(str, qword_ptr(stackTop));
@@ -661,8 +655,8 @@ void Block::jit(const Program &program, Memory &manager,
       c.mov(value, qword_ptr(stackTop, -8));
       c.sub(stackTop, 16);
 
-      // memcpy(s + instr->arg.l, &v, sizeof(int64_t));
-      c.mov(qword_ptr(ptr, instr->arg.l), value);
+      // memcpy(s + instr.arg.l, &v, sizeof(int64_t));
+      c.mov(qword_ptr(ptr, instr.arg.l), value);
 
       c.unuse(ptr);
       c.unuse(value);
@@ -677,10 +671,10 @@ void Block::jit(const Program &program, Memory &manager,
       c.and_(ptr, TaggedPointer<void *, 8>().pointerMask);
 
       // int64_t p;
-      // memcpy(&p, s + instr->arg.l, sizeof(int64_t));
+      // memcpy(&p, s + instr.arg.l, sizeof(int64_t));
       // push(p);
       GPVar value(c.newGP());
-      c.mov(value, qword_ptr(ptr, instr->arg.l));
+      c.mov(value, qword_ptr(ptr, instr.arg.l));
       c.mov(qword_ptr(stackTop), value);
 
       c.unuse(ptr);
@@ -690,7 +684,7 @@ void Block::jit(const Program &program, Memory &manager,
     case STORE_ARY_ELM_INT: {
       c.comment("STORE_ARY_ELM_INT");
 
-      // (get_memory<Variant*>(instr->arg.l))[1 + pop<int64_t>()] =
+      // (get_memory<Variant*>(instr.arg.l))[1 + pop<int64_t>()] =
       // pop<int64_t>();
       GPVar index(c.newGP());
       c.mov(index, qword_ptr(stackTop));
@@ -700,7 +694,7 @@ void Block::jit(const Program &program, Memory &manager,
       c.sub(stackTop, 16);
 
       GPVar array(c.newGP());
-      c.mov(array, qword_ptr(memoryTop, (instr->arg.l * 8)));
+      c.mov(array, qword_ptr(memoryTop, (instr.arg.l * 8)));
 
       c.mov(qword_ptr(array, index, TIMES_8, 8), value);
 
@@ -711,13 +705,13 @@ void Block::jit(const Program &program, Memory &manager,
     case LOAD_ARY_ELM_INT: {
       c.comment("LOAD_ARY_ELM_INT");
 
-      // push<int64_t>((get_memory<Variant*>(instr->arg.l))[1 +
+      // push<int64_t>((get_memory<Variant*>(instr.arg.l))[1 +
       // pop<int64_t>()].l);
       GPVar index(c.newGP());
       c.mov(index, qword_ptr(stackTop));
 
       GPVar array(c.newGP());
-      c.mov(array, qword_ptr(memoryTop, (instr->arg.l * 8)));
+      c.mov(array, qword_ptr(memoryTop, (instr.arg.l * 8)));
 
       GPVar tmp(c.newGP());
       c.mov(tmp, qword_ptr(array, index, TIMES_8, 8));
@@ -788,7 +782,7 @@ void Block::jit(const Program &program, Memory &manager,
     } break;
 
     default:
-      raise_error("unimplemented opcode " + opcode_str[instr->op] + " in jit");
+      raise_error("unimplemented opcode " + opcode_str[instr.op] + " in jit");
       break;
     }
   }
