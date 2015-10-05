@@ -36,13 +36,7 @@ private:
   std::vector<std::string> strings;
   int memory_slots;
 
-  friend std::ostream &operator<<(std::ostream &os, Program &p) {
-    for (std::vector<Block *>::iterator b = p.blocks.begin();
-         b != p.blocks.end(); ++b)
-      std::cout << **b << std::endl;
-
-    return os;
-  }
+  friend std::ostream &operator<<(std::ostream &os, Program &p);
 };
 
 inline Block *Program::get_block_ptr(int key) const { return blocks[key]; }

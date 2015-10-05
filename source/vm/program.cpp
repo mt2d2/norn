@@ -95,6 +95,14 @@ void Program::lit_load_le() {
     b->lit_load_le();
 }
 
+std::ostream &operator<<(std::ostream &os, Program &p) {
+  for (std::vector<Block *>::iterator b = p.blocks.begin();
+       b != p.blocks.end(); ++b)
+    std::cout << **b << std::endl;
+
+  return os;
+}
+
 extern "C" void Program_copy_array_char(Program *program, int key,
                                         Variant *array) {
   const auto &string = program->get_string(key);
