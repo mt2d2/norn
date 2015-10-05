@@ -1,6 +1,8 @@
+#include "main.h"
+
 #include <cstdlib> // exit
 
-#include "main.h"
+#include "tree.h"
 
 int main(int argc, char *argv[]) {
   if (argc < 2)

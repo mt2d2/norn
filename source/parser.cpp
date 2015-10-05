@@ -1,5 +1,7 @@
 #include "parser.h"
 
+#include "tree.h"
+
 Parser::Parser(std::istream &stream)
     : lex(Lexer(stream)), CurToken(0), BinopPrecedence(std::map<char, int>()) {
   // Install standard binary operators.
@@ -259,7 +261,7 @@ ExprAST *Parser::ParseBinOpRHS(int ExprPrec, ExprAST *LHS) {
     // Okay, we know this is a binop.
     int BinOp = CurToken;
     getNextToken(); // eat binop
-    
+
     // Parse the primary expression after the binary operator.
     ExprAST *RHS = ParsePrimary();
     if (!RHS)

@@ -1,8 +1,17 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include <map>
+
 #include "lexer.h"
-#include "tree.h"
+
+class ExprAST;
+class PrototypeAST;
+class FunctionAST;
+class StructAST;
+class ProgramAST;
+
+class BuildContext;
 
 class Parser {
 public:
