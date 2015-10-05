@@ -3,6 +3,7 @@
 #include <cmath>   // sqrt
 #include <cstring> // memcpy
 #include <cstdio>  //putchar
+#include <ostream>
 
 #include "block.h"
 #include "common.h"

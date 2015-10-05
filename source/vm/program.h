@@ -1,6 +1,8 @@
 #ifndef PROGRAM_H
 #define PROGRAM_H
 
+#include <iosfwd>
+
 #include "block.h"
 
 class Program {

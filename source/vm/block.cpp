@@ -1,6 +1,6 @@
 #include "block.h"
 
-#include <iostream>
+#include <ostream>
 
 #include "memory.h"
 
