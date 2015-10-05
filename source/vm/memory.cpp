@@ -2,8 +2,9 @@
 
 #include <cstdlib>
 
-#include "frame.h"
 #include "common.h"
+#include "variant.h"
+#include "frame.h"
 
 #define GC_THRESHOLD 100
 

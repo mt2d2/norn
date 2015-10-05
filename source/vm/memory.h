@@ -3,7 +3,7 @@
 
 #include <unordered_set>
 
-#include "variant.h"
+union Variant;
 
 // Tagged pointer example from
 // http://nikic.github.io/2012/02/02/Pointer-magic-for-efficient-dynamic-value-representations.html
