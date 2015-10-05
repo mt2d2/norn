@@ -6,24 +6,24 @@
 #include <string>
 #include <vector>
 
-enum Primative {
-  BOOLEAN,
-  INT,
-  FLOAT,
-  CHAR,
-  INT_ARY,
-  FLOAT_ARY,
-  CHAR_ARY,
-  ARY,
-  VOID,
-  COMPLEX
-};
-
 class Type {
 public:
+  enum class Primative {
+    BOOLEAN,
+    INT,
+    FLOAT,
+    CHAR,
+    INT_ARY,
+    FLOAT_ARY,
+    CHAR_ARY,
+    ARY,
+    VOID,
+    COMPLEX
+  };
+
   // default
   Type()
-      : name("DEFAULT_TYPE"), size(-1), primative(VOID),
+      : name("DEFAULT_TYPE"), size(-1), primative(Primative::VOID),
         members(std::vector<Type>()), fields(std::vector<std::string>()) {}
 
   // primative constructor
@@ -36,7 +36,7 @@ public:
   // complex constructor
   Type(const std::string &name, std::vector<Type> members,
        std::vector<std::string> fields = std::vector<std::string>())
-      : name(name), primative(COMPLEX), members(members), fields(fields) {
+      : name(name), primative(Primative::COMPLEX), members(members), fields(fields) {
     for (const auto &i : members)
       size += i.get_size();
   }
@@ -46,7 +46,7 @@ public:
 
   const std::string &get_name() const { return name; }
   int get_size() const { return size; }
-  bool is_primative() const { return (primative != COMPLEX); }
+  bool is_primative() const { return (primative != Primative::COMPLEX); }
   Primative get_primative() const { return primative; }
   bool operator==(const Type &other) const {
     return (this->name == other.name);
@@ -72,7 +72,7 @@ public:
 
   TypeFactory();
   void install(const Type &new_type);
-  const Type &get(Primative key) const;
+  const Type &get(Type::Primative key) const;
   const Type &get(const std::string &key) const;
 
 private:
