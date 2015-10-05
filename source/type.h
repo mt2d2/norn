@@ -57,7 +57,7 @@ public:
 
 private:
   std::string name;
-  int size;
+  unsigned int size;
   Primative primative;
   std::vector<Type> members;
   std::vector<std::string> fields;
