@@ -1,15 +1,16 @@
 #ifndef BLOCK_H
 #define BLOCK_H
 
-#include <iostream>
+#include <iosfwd>
 #include <string>
 #include <vector>
 #include <list>
 #include <map>
 
 #include "instruction.h"
-#include "variant.h"
 #include "memory.h"
+
+class Manager;
 
 #if !NOJIT
 enum JITType { NONE, BASIC, OPTIMIZING };
@@ -82,16 +83,7 @@ private:
   std::map<const Instruction *, unsigned int> backedge_hotness;
 #endif
 
-  friend std::ostream &operator<<(std::ostream &os, Block &b) {
-    os << "Name: " << b.name << "; Memory Slots: " << b.get_memory_slots()
-       << std::endl;
-    os << b.name << std::endl;
-
-    for (const auto &i : b.instructions)
-      os << i << std::endl;
-
-    return os;
-  }
+  friend std::ostream &operator<<(std::ostream &os, Block &b);
 };
 
 inline const Instruction *Block::get_instruction(int index) const {

@@ -1,5 +1,9 @@
 #include "block.h"
 
+#include <iostream>
+
+#include "memory.h"
+
 #if !NOJIT
 #include "AsmJit/AsmJit.h"
 using namespace AsmJit;
@@ -102,4 +106,15 @@ void Block::promote_call_to_native(const Block *target) {
 
 void Block::set_memory_slots(int memory_slots) {
   this->memory_slots = memory_slots;
+}
+
+std::ostream &operator<<(std::ostream &os, Block &b) {
+  os << "Name: " << b.name << "; Memory Slots: " << b.get_memory_slots()
+     << std::endl;
+  os << b.name << std::endl;
+
+  for (const auto &i : b.instructions)
+    os << i << std::endl;
+
+  return os;
 }
