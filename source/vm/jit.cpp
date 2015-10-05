@@ -1,6 +1,7 @@
 #include <algorithm>
-#include <stack>
 #include <cstring>
+#include <map>
+#include <stack>
 
 #include "block.h"
 #include "common.h"
@@ -477,15 +478,13 @@ void Block::jit(const Program &program, Memory &manager,
       c.mov(tmp, qword_ptr(stackTop));
       c.sub(stackTop, 8);
 
-      void *printFunction = nullptr;
-      if (instr.op == PRINT_INT)
-        printFunction = reinterpret_cast<void *>(&putint);
-      else if (instr.op == PRINT_FLOAT)
-        printFunction = reinterpret_cast<void *>(&putdouble);
-      else
-        printFunction = reinterpret_cast<void *>(&putchar);
+      static const std::map<const long, sysint_t> printers{
+        {PRINT_INT, reinterpret_cast<sysint_t>(&putint)},
+        {PRINT_FLOAT, reinterpret_cast<sysint_t>(&putdouble)},
+        {PRINT_CHAR, reinterpret_cast<sysint_t>(&putchar)}
+      };
 
-      ECall *ctx = c.call(imm((sysint_t)printFunction));
+      ECall *ctx = c.call(imm(printers.at(instr.op)));
       ctx->setPrototype(CALL_CONV_DEFAULT, FunctionBuilder1<Void, void *>());
       ctx->setArgument(0, tmp);
 
