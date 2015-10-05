@@ -1,6 +1,12 @@
 #include "machine.h"
+
 #include <cmath>  // fmod
 #include <cstdio> // printf
+
+#include "common.h"
+#include "block.h"
+#include "instruction.h"
+#include "variant.h"
 
 #define BACKEDGE_HOTNESS 40
 #define CALL_HOTNESS 40

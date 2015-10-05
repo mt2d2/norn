@@ -1,16 +1,15 @@
 #ifndef MACHINE_H
 #define MACHINE_H
 
-#include <cstdio>  // printf
+#include <cstdint>
 #include <cstring> // memcpy
 
-#include "block.h"
-#include "common.h"
 #include "frame.h"
-#include "instruction.h"
 #include "memory.h"
 #include "program.h"
-#include "variant.h"
+
+class Block;
+struct Instruction;
 
 #define STACK_SIZE 256
 
