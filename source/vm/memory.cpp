@@ -25,7 +25,7 @@ Memory::Memory(int64_t *stack_start, int64_t *memory_start)
 
 Memory::~Memory() {
   // free any unfreed memory at end
-  for (auto *elem : allocated)
+  for (const auto *elem : allocated)
     delete elem;
 }
 
@@ -33,7 +33,7 @@ AllocatedMemory *Memory::allocate(int64_t size) {
   if (allocated.size() == GC_THRESHOLD)
     gc();
 
-  auto ret = this->allocated.insert(new AllocatedMemory(size));
+  const auto ret = this->allocated.insert(new AllocatedMemory(size));
   if (!ret.second)
     raise_error("allocation failure, not unique");
 
@@ -55,7 +55,7 @@ Variant *Memory::new_lang_array(int size) {
   return ret;
 }
 
-bool Memory::is_managed(AllocatedMemory *memory) {
+bool Memory::is_managed(AllocatedMemory *memory) const {
   return allocated.find(memory) != allocated.end();
 }
 

@@ -76,7 +76,7 @@ public:
 private:
   std::unordered_set<AllocatedMemory *> allocated;
 
-  bool is_managed(AllocatedMemory *memory);
+  bool is_managed(AllocatedMemory *memory) const;
   void mark();
   void sweep();
   void gc();
