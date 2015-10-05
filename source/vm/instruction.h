@@ -14,11 +14,7 @@ struct Instruction {
   Variant arg2;
   // Variant arg3; // unused
 
-  friend std::ostream &operator<<(std::ostream &os, const Instruction &i) {
-    // return os << opcode_str[i.op] << " [i: " << i.arg.l << ", f: " << i.arg.d
-    // << "]";
-    return os << opcode_str[i.op] << " " << i.arg.l;
-  }
+  friend std::ostream &operator<<(std::ostream &os, const Instruction &i);
 };
 
 #endif

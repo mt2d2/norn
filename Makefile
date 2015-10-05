@@ -2,7 +2,7 @@ CXX=clang++
 ECHO=/bin/echo
 
 EXE=norn
-SRC=source/vm/common.cpp source/vm/opcode.cpp source/vm/memory.cpp source/vm/block.cpp source/vm/optimizer.cpp source/vm/jit.cpp source/vm/program.cpp  \
+SRC=source/vm/common.cpp source/vm/opcode.cpp source/vm/instruction.cpp source/vm/memory.cpp source/vm/block.cpp source/vm/optimizer.cpp source/vm/jit.cpp source/vm/program.cpp  \
  	source/vm/machine.cpp source/tree.cpp source/generate.cpp source/type.cpp source/lexer.cpp source/parser.cpp source/main.cpp
 OBJ=${SRC:.cpp=.o}
 

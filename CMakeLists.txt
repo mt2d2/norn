@@ -13,6 +13,7 @@ set(lang_src
 set(vm_src
   source/vm/common.cpp
   source/vm/opcode.cpp
+  source/vm/instruction.cpp
   source/vm/block.cpp
   source/vm/program.cpp
   source/vm/optimizer.cpp
