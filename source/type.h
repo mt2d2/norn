@@ -8,7 +8,7 @@
 
 class Type {
 public:
-  enum class Primative {
+  enum class Primitive {
     BOOLEAN,
     INT,
     FLOAT,
@@ -23,11 +23,11 @@ public:
 
   // default
   Type()
-      : name("DEFAULT_TYPE"), size(-1), primative(Primative::VOID),
+      : name("DEFAULT_TYPE"), size(-1), primative(Primitive::VOID),
         members(std::vector<Type>()), fields(std::vector<std::string>()) {}
 
   // primative constructor
-  Type(const std::string &name, Primative primative)
+  Type(const std::string &name, Primitive primative)
       : name(name), primative(primative), members(std::vector<Type>()),
         fields(std::vector<std::string>()) {
     size = 8;
@@ -36,7 +36,7 @@ public:
   // complex constructor
   Type(const std::string &name, std::vector<Type> members,
        std::vector<std::string> fields = std::vector<std::string>())
-      : name(name), primative(Primative::COMPLEX), members(members), fields(fields) {
+      : name(name), primative(Primitive::COMPLEX), members(members), fields(fields) {
     for (const auto &i : members)
       size += i.get_size();
   }
@@ -46,8 +46,8 @@ public:
 
   const std::string &get_name() const { return name; }
   int get_size() const { return size; }
-  bool is_primative() const { return (primative != Primative::COMPLEX); }
-  Primative get_primative() const { return primative; }
+  bool is_primitive() const { return (primative != Primitive::COMPLEX); }
+  Primitive get_primitive() const { return primative; }
   bool operator==(const Type &other) const {
     return (this->name == other.name);
   }
@@ -58,7 +58,7 @@ public:
 private:
   std::string name;
   unsigned int size;
-  Primative primative;
+  Primitive primative;
   std::vector<Type> members;
   std::vector<std::string> fields;
 };
@@ -72,7 +72,7 @@ public:
 
   TypeFactory();
   void install(const Type &new_type);
-  const Type &get(Type::Primative key) const;
+  const Type &get(Type::Primitive key) const;
   const Type &get(const std::string &key) const;
 
 private:

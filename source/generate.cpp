@@ -1,12 +1,12 @@
 #include "tree.h"
 
 void NumberExprAST::emit_bytecode(BuildContext &out) {
-  switch (type.get_primative()) {
-  case Type::Primative::INT:
+  switch (type.get_primitive()) {
+  case Type::Primitive::INT:
     out.get_block()->add_instruction(
         Instruction(LIT_INT, Variant((int)this->val)));
     break;
-  case Type::Primative::FLOAT:
+  case Type::Primitive::FLOAT:
     out.get_block()->add_instruction(
         Instruction(LIT_FLOAT, Variant(((float)this->val))));
     break;
@@ -33,26 +33,26 @@ void VariableExprAST::emit_bytecode(BuildContext &out) {
   // TODO: cludgy, should be able to declare in initalizer
   type = out.get_variable_type(this->name);
 
-  if (type.is_primative()) {
+  if (type.is_primitive()) {
     Opcode opcode;
-    switch (type.get_primative()) {
-    case Type::Primative::BOOLEAN:
-    case Type::Primative::INT:
+    switch (type.get_primitive()) {
+    case Type::Primitive::BOOLEAN:
+    case Type::Primitive::INT:
       opcode = LOAD_INT;
       break;
-    case Type::Primative::FLOAT:
+    case Type::Primitive::FLOAT:
       opcode = LOAD_FLOAT;
       break;
-    case Type::Primative::CHAR:
+    case Type::Primitive::CHAR:
       opcode = LOAD_CHAR;
       break;
-    case Type::Primative::ARY:
-    case Type::Primative::CHAR_ARY:
-    case Type::Primative::INT_ARY:
-    case Type::Primative::FLOAT_ARY:
+    case Type::Primitive::ARY:
+    case Type::Primitive::CHAR_ARY:
+    case Type::Primitive::INT_ARY:
+    case Type::Primitive::FLOAT_ARY:
       opcode = LOAD_ARY;
       break;
-    case Type::Primative::VOID:
+    case Type::Primitive::VOID:
     default:
       opcode = LOAD_INT; // default, will never be used since error
       raise_error("cannot determine variable type in VariableExprAST");
@@ -76,12 +76,12 @@ void VariableFieldExprAST::emit_bytecode(BuildContext &out) {
   auto field_type = struct_type.get_member(field);
 
   Opcode op = STRUCT_LOAD_INT;
-  if (field_type == TypeFactory::get_instance().get(Type::Primative::INT) ||
-      field_type == TypeFactory::get_instance().get(Type::Primative::BOOLEAN))
+  if (field_type == TypeFactory::get_instance().get(Type::Primitive::INT) ||
+      field_type == TypeFactory::get_instance().get(Type::Primitive::BOOLEAN))
     op = STRUCT_LOAD_INT;
-  else if (field_type == TypeFactory::get_instance().get(Type::Primative::FLOAT))
+  else if (field_type == TypeFactory::get_instance().get(Type::Primitive::FLOAT))
     op = STRUCT_LOAD_FLOAT;
-  else if (field_type == TypeFactory::get_instance().get(Type::Primative::CHAR))
+  else if (field_type == TypeFactory::get_instance().get(Type::Primitive::CHAR))
     op = STRUCT_LOAD_CHAR;
   else
     raise_error("unknown type in field access");
@@ -102,12 +102,12 @@ void VariableAssignFieldExprAST::emit_bytecode(BuildContext &out) {
   auto field_type = struct_type.get_member(field);
 
   Opcode op = STRUCT_STORE_INT;
-  if (field_type == TypeFactory::get_instance().get(Type::Primative::INT) ||
-      field_type == TypeFactory::get_instance().get(Type::Primative::BOOLEAN))
+  if (field_type == TypeFactory::get_instance().get(Type::Primitive::INT) ||
+      field_type == TypeFactory::get_instance().get(Type::Primitive::BOOLEAN))
     op = STRUCT_STORE_INT;
-  else if (field_type == TypeFactory::get_instance().get(Type::Primative::FLOAT))
+  else if (field_type == TypeFactory::get_instance().get(Type::Primitive::FLOAT))
     op = STRUCT_STORE_FLOAT;
-  else if (field_type == TypeFactory::get_instance().get(Type::Primative::CHAR))
+  else if (field_type == TypeFactory::get_instance().get(Type::Primitive::CHAR))
     op = STRUCT_STORE_CHAR;
   else
     raise_error("unknown type in field access");
@@ -130,24 +130,24 @@ void VariableAssignShortExprAST::emit_bytecode(BuildContext &out) {
 void VariableAssignExprAST::emit_bytecode(BuildContext &out) {
   out.set_variable_type(this->name, this->type);
 
-  if (type.is_primative()) {
+  if (type.is_primitive()) {
     Opcode opcode;
-    switch (type.get_primative()) {
-    case Type::Primative::BOOLEAN:
-    case Type::Primative::INT:
+    switch (type.get_primitive()) {
+    case Type::Primitive::BOOLEAN:
+    case Type::Primitive::INT:
       opcode = STORE_INT;
       break;
-    case Type::Primative::FLOAT:
+    case Type::Primitive::FLOAT:
       opcode = STORE_FLOAT;
       break;
-    case Type::Primative::CHAR:
+    case Type::Primitive::CHAR:
       opcode = STORE_CHAR;
       break;
-    case Type::Primative::ARY:
-    case Type::Primative::CHAR_ARY:
+    case Type::Primitive::ARY:
+    case Type::Primitive::CHAR_ARY:
       opcode = STORE_ARY;
       break;
-    case Type::Primative::VOID:
+    case Type::Primitive::VOID:
     default:
       opcode = STORE_INT; // default, will never be used since error
       raise_error("cannot emit VariableAssignExprAST for no type");
@@ -165,7 +165,7 @@ void VariableAssignExprAST::emit_bytecode(BuildContext &out) {
 }
 
 void emit_cast(BuildContext &out, ExprAST *left, ExprAST *right) {
-  if (left->type == TypeFactory::get_instance().get(Type::Primative::VOID)) {
+  if (left->type == TypeFactory::get_instance().get(Type::Primitive::VOID)) {
     if (VariableExprAST *var = dynamic_cast<VariableExprAST *>(left))
       left->type = out.get_variable_type(var->name);
     else if (CallExprAST *c = dynamic_cast<CallExprAST *>(left))
@@ -174,7 +174,7 @@ void emit_cast(BuildContext &out, ExprAST *left, ExprAST *right) {
       raise_error("unknown cast on left");
   }
 
-  if (right->type == TypeFactory::get_instance().get(Type::Primative::VOID)) {
+  if (right->type == TypeFactory::get_instance().get(Type::Primitive::VOID)) {
     if (VariableExprAST *var = dynamic_cast<VariableExprAST *>(right))
       right->type = out.get_variable_type(var->name);
     else if (CallExprAST *c = dynamic_cast<CallExprAST *>(right))
@@ -184,25 +184,25 @@ void emit_cast(BuildContext &out, ExprAST *left, ExprAST *right) {
   }
 
   right->emit_bytecode(out);
-  if (right->type == TypeFactory::get_instance().get(Type::Primative::INT) &&
-      left->type == TypeFactory::get_instance().get(Type::Primative::FLOAT))
+  if (right->type == TypeFactory::get_instance().get(Type::Primitive::INT) &&
+      left->type == TypeFactory::get_instance().get(Type::Primitive::FLOAT))
     out.get_block()->add_instruction(Instruction(I2F));
 
   left->emit_bytecode(out);
-  if (left->type == TypeFactory::get_instance().get(Type::Primative::INT) &&
-      right->type == TypeFactory::get_instance().get(Type::Primative::FLOAT))
+  if (left->type == TypeFactory::get_instance().get(Type::Primitive::INT) &&
+      right->type == TypeFactory::get_instance().get(Type::Primitive::FLOAT))
     out.get_block()->add_instruction(Instruction(I2F));
 }
 
 void BinaryExprAST::emit_bytecode(BuildContext &out) {
   emit_cast(out, left, right);
 
-  if (right->type == TypeFactory::get_instance().get(Type::Primative::FLOAT) ||
-      left->type == TypeFactory::get_instance().get(Type::Primative::FLOAT))
-    this->type = TypeFactory::get_instance().get(Type::Primative::FLOAT);
+  if (right->type == TypeFactory::get_instance().get(Type::Primitive::FLOAT) ||
+      left->type == TypeFactory::get_instance().get(Type::Primitive::FLOAT))
+    this->type = TypeFactory::get_instance().get(Type::Primitive::FLOAT);
 
-  switch (type.get_primative()) {
-  case Type::Primative::INT:
+  switch (type.get_primitive()) {
+  case Type::Primitive::INT:
     switch (this->op) {
     case '+':
       out.get_block()->add_instruction(Instruction(ADD_INT));
@@ -251,7 +251,7 @@ void BinaryExprAST::emit_bytecode(BuildContext &out) {
       break;
     }
     break;
-  case Type::Primative::FLOAT:
+  case Type::Primitive::FLOAT:
     switch (this->op) {
     case '+':
       out.get_block()->add_instruction(Instruction(ADD_FLOAT));
@@ -328,26 +328,26 @@ void PrototypeAST::emit_bytecode(BuildContext &out) {
 
   // handle args
   for (auto &elem : args) {
-    if (elem.second.is_primative()) {
+    if (elem.second.is_primitive()) {
       Opcode opcode;
-      switch (elem.second.get_primative()) {
-      case Type::Primative::BOOLEAN:
-      case Type::Primative::INT:
+      switch (elem.second.get_primitive()) {
+      case Type::Primitive::BOOLEAN:
+      case Type::Primitive::INT:
         opcode = STORE_INT;
         break;
-      case Type::Primative::FLOAT:
+      case Type::Primitive::FLOAT:
         opcode = STORE_FLOAT;
         break;
-      case Type::Primative::CHAR:
+      case Type::Primitive::CHAR:
         opcode = STORE_CHAR;
         break;
-      case Type::Primative::ARY:
-      case Type::Primative::CHAR_ARY:
-      case Type::Primative::INT_ARY:
-      case Type::Primative::FLOAT_ARY:
+      case Type::Primitive::ARY:
+      case Type::Primitive::CHAR_ARY:
+      case Type::Primitive::INT_ARY:
+      case Type::Primitive::FLOAT_ARY:
         opcode = STORE_ARY;
         break;
-      case Type::Primative::VOID:
+      case Type::Primitive::VOID:
       default:
         opcode = STORE_INT; // default, will never be used since error
         raise_error("cannot emit argument store for void type");
@@ -460,7 +460,7 @@ void ArrayDeclarationExprAST::emit_bytecode(BuildContext &out) {
 void ArrayIndexAssignExprAST::emit_bytecode(BuildContext &out) {
   value->emit_bytecode(out);
 
-  if (value->type == TypeFactory::get_instance().get(Type::Primative::VOID)) {
+  if (value->type == TypeFactory::get_instance().get(Type::Primitive::VOID)) {
     Type var_type = out.get_variable_type(this->name);
     if (var_type == TypeFactory::get_instance().get("CharAry"))
       var_type = TypeFactory::get_instance().get("Char");
@@ -472,27 +472,27 @@ void ArrayIndexAssignExprAST::emit_bytecode(BuildContext &out) {
     value->type = var_type;
   }
 
-  if (value->type.is_primative()) {
+  if (value->type.is_primitive()) {
     Opcode opcode;
-    switch (value->type.get_primative()) {
-    case Type::Primative::BOOLEAN:
-    case Type::Primative::INT:
+    switch (value->type.get_primitive()) {
+    case Type::Primitive::BOOLEAN:
+    case Type::Primitive::INT:
       opcode = STORE_ARY_ELM_INT;
       break;
-    case Type::Primative::FLOAT:
+    case Type::Primitive::FLOAT:
       opcode = STORE_ARY_ELM_FLOAT;
       break;
-    case Type::Primative::CHAR:
+    case Type::Primitive::CHAR:
       opcode = STORE_ARY_ELM_CHAR;
       break;
-    case Type::Primative::ARY:
-    case Type::Primative::CHAR_ARY:
-    case Type::Primative::INT_ARY:
-    case Type::Primative::FLOAT_ARY:
+    case Type::Primitive::ARY:
+    case Type::Primitive::CHAR_ARY:
+    case Type::Primitive::INT_ARY:
+    case Type::Primitive::FLOAT_ARY:
       opcode = STORE_ARY_ELM_INT; // default, will never be used since error
       raise_error("array access for 'Ary' unimplemented");
       break;
-    case Type::Primative::VOID:
+    case Type::Primitive::VOID:
     default:
       opcode = LOAD_INT; // default, will never be used since error
       raise_error("cannot access array of no type");
@@ -516,25 +516,25 @@ void ArrayIndexAccessExprAST::emit_bytecode(BuildContext &out) {
   else if (var_type == TypeFactory::get_instance().get("FloatAry"))
     var_type = TypeFactory::get_instance().get("Float");
 
-  if (var_type.is_primative()) {
+  if (var_type.is_primitive()) {
     Opcode opcode;
-    switch (var_type.get_primative()) {
-    case Type::Primative::BOOLEAN:
-    case Type::Primative::INT:
+    switch (var_type.get_primitive()) {
+    case Type::Primitive::BOOLEAN:
+    case Type::Primitive::INT:
       opcode = LOAD_ARY_ELM_INT;
       break;
-    case Type::Primative::FLOAT:
+    case Type::Primitive::FLOAT:
       opcode = LOAD_ARY_ELM_FLOAT;
       break;
-    case Type::Primative::CHAR:
+    case Type::Primitive::CHAR:
       opcode = LOAD_ARY_ELM_CHAR;
       break;
-    case Type::Primative::ARY:
-    case Type::Primative::CHAR_ARY:
+    case Type::Primitive::ARY:
+    case Type::Primitive::CHAR_ARY:
       opcode = LOAD_ARY_ELM_INT; // default, will never be used since error
       raise_error("array access for 'Ary' unimplemented");
       break;
-    case Type::Primative::VOID:
+    case Type::Primitive::VOID:
     default:
       opcode = LOAD_ARY_ELM_INT; // default, will never be used since error
       raise_error("cannot access array with no type");

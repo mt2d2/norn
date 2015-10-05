@@ -32,16 +32,16 @@ const Type &Type::get_member(const std::string &field) const {
 }
 
 TypeFactory::TypeFactory() {
-  install(Type("Boolean", Type::Primative::BOOLEAN));
-  install(Type("Int", Type::Primative::INT));
-  install(Type("Float", Type::Primative::FLOAT));
-  install(Type("Char", Type::Primative::CHAR));
-  install(Type("Ary", Type::Primative::ARY));
-  install(Type("CharAry", Type::Primative::CHAR_ARY));
-  install(Type("IntAry", Type::Primative::INT_ARY));
-  install(Type("FloatArt", Type::Primative::FLOAT_ARY));
-  install(Type("Void", Type::Primative::VOID));
-  install(Type("Complex", Type::Primative::COMPLEX));
+  install(Type("Boolean", Type::Primitive::BOOLEAN));
+  install(Type("Int", Type::Primitive::INT));
+  install(Type("Float", Type::Primitive::FLOAT));
+  install(Type("Char", Type::Primitive::CHAR));
+  install(Type("Ary", Type::Primitive::ARY));
+  install(Type("CharAry", Type::Primitive::CHAR_ARY));
+  install(Type("IntAry", Type::Primitive::INT_ARY));
+  install(Type("FloatArt", Type::Primitive::FLOAT_ARY));
+  install(Type("Void", Type::Primitive::VOID));
+  install(Type("Complex", Type::Primitive::COMPLEX));
 }
 
 void TypeFactory::install(const Type &new_type) {
@@ -53,12 +53,12 @@ void TypeFactory::install(const Type &new_type) {
     types.push_back(new_type);
 }
 
-const Type &TypeFactory::get(Type::Primative key) const {
+const Type &TypeFactory::get(Type::Primitive key) const {
   for (const auto &t : types)
-    if (t.get_primative() == key)
+    if (t.get_primitive() == key)
       return t;
 
-  raise_error("couldn't find type by primative key, shouldn't happen!");
+  raise_error("couldn't find type by primitive key, shouldn't happen!");
   return types[0];
 }
 

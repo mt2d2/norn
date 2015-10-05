@@ -35,7 +35,7 @@ private:
 /// ExprAST - Base class for all expression nodes.
 class ExprAST {
 public:
-  ExprAST() : type(TypeFactory::get_instance().get(Type::Primative::VOID)) {}
+  ExprAST() : type(TypeFactory::get_instance().get(Type::Primitive::VOID)) {}
   virtual ~ExprAST() {}
   virtual void emit_bytecode(BuildContext &out) = 0;
   Type type;
@@ -45,8 +45,8 @@ public:
 class NumberExprAST : public ExprAST {
 public:
   NumberExprAST(double v, bool is_float) : val(v) {
-    type = is_float ? TypeFactory::get_instance().get(Type::Primative::FLOAT)
-                    : TypeFactory::get_instance().get(Type::Primative::INT);
+    type = is_float ? TypeFactory::get_instance().get(Type::Primitive::FLOAT)
+                    : TypeFactory::get_instance().get(Type::Primitive::INT);
   }
 
   virtual void emit_bytecode(BuildContext &out);
@@ -58,7 +58,7 @@ private:
 
 class CharExprAST : public ExprAST {
 public:
-  CharExprAST(char c) : val(c) { type = TypeFactory::get_instance().get(Type::Primative::CHAR); }
+  CharExprAST(char c) : val(c) { type = TypeFactory::get_instance().get(Type::Primitive::CHAR); }
   virtual void emit_bytecode(BuildContext &out);
   virtual ~CharExprAST() {}
 
@@ -69,7 +69,7 @@ private:
 class StringExprAST : public ExprAST {
 public:
   StringExprAST(std::string s) : val(s) {
-    type = TypeFactory::get_instance().get(Type::Primative::CHAR_ARY);
+    type = TypeFactory::get_instance().get(Type::Primitive::CHAR_ARY);
   }
   virtual void emit_bytecode(BuildContext &out);
   virtual ~StringExprAST() {}
@@ -81,7 +81,7 @@ private:
 class VMBuiltinExprAST : public ExprAST {
 public:
   VMBuiltinExprAST(Opcode op) : op(op) {
-    type = TypeFactory::get_instance().get(Type::Primative::VOID);
+    type = TypeFactory::get_instance().get(Type::Primitive::VOID);
   }
   virtual void emit_bytecode(BuildContext &out);
   virtual ~VMBuiltinExprAST() {}
@@ -148,11 +148,11 @@ public:
   ArrayDeclarationExprAST(std::string id, std::string type, int size)
       : name(id), size(size) {
     if (type == "Int")
-      this->type = TypeFactory::get_instance().get(Type::Primative::INT_ARY);
+      this->type = TypeFactory::get_instance().get(Type::Primitive::INT_ARY);
     else if (type == "Char")
-      this->type = TypeFactory::get_instance().get(Type::Primative::CHAR_ARY);
+      this->type = TypeFactory::get_instance().get(Type::Primitive::CHAR_ARY);
     else if (type == "Float")
-      this->type = TypeFactory::get_instance().get(Type::Primative::FLOAT_ARY);
+      this->type = TypeFactory::get_instance().get(Type::Primitive::FLOAT_ARY);
   }
 
   virtual void emit_bytecode(BuildContext &out);
@@ -197,11 +197,11 @@ class BinaryExprAST : public ExprAST {
 public:
   BinaryExprAST(char o, ExprAST *lhs, ExprAST *rhs)
       : op(o), left(lhs), right(rhs) {
-    if (left->type == TypeFactory::get_instance().get(Type::Primative::FLOAT) ||
-        right->type == TypeFactory::get_instance().get(Type::Primative::FLOAT))
-      this->type = TypeFactory::get_instance().get(Type::Primative::FLOAT);
+    if (left->type == TypeFactory::get_instance().get(Type::Primitive::FLOAT) ||
+        right->type == TypeFactory::get_instance().get(Type::Primitive::FLOAT))
+      this->type = TypeFactory::get_instance().get(Type::Primitive::FLOAT);
     else
-      this->type = TypeFactory::get_instance().get(Type::Primative::INT);
+      this->type = TypeFactory::get_instance().get(Type::Primitive::INT);
   }
   virtual void emit_bytecode(BuildContext &out);
   virtual ~BinaryExprAST() {
@@ -220,7 +220,7 @@ class CallExprAST : public ExprAST {
 public:
   CallExprAST(const std::string &c, std::vector<ExprAST *> &args)
       : Args(args), callee(c) {
-    type = TypeFactory::get_instance().get(Type::Primative::VOID);
+    type = TypeFactory::get_instance().get(Type::Primitive::VOID);
   }
   virtual void emit_bytecode(BuildContext &out);
   int get_block_id(BuildContext &out);
@@ -243,7 +243,7 @@ public:
   IfExprAST(ExprAST *c)
       : cond(c), then(std::vector<ExprAST *>()),
         otherwise(std::vector<ExprAST *>()) {
-    type = TypeFactory::get_instance().get(Type::Primative::VOID);
+    type = TypeFactory::get_instance().get(Type::Primitive::VOID);
   }
   void add_then_expression(ExprAST *e) { then.push_back(e); }
   void add_otherwise_expression(ExprAST *e) { otherwise.push_back(e); }
@@ -271,7 +271,7 @@ public:
              ExprAST *step)
       : VarName(varname), Start(start), End(end), Step(step),
         body(std::vector<ExprAST *>()) {
-    type = TypeFactory::get_instance().get(Type::Primative::VOID);
+    type = TypeFactory::get_instance().get(Type::Primitive::VOID);
   }
   void add_expression(ExprAST *e) { body.push_back(e); }
   virtual void emit_bytecode(BuildContext &out);
