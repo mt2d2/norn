@@ -178,7 +178,6 @@ void Block::jit(const Program &program, Memory &manager,
       c.comment("DIV/MOD_INT");
       GPVar tmp0(c.newGP());
       GPVar tmp1(c.newGP());
-      // GPVar tmp2(c.newGP());
 
       c.mov(tmp1, qword_ptr(stackTop));
 
@@ -203,7 +202,6 @@ void Block::jit(const Program &program, Memory &manager,
 
       c.unuse(tmp0);
       c.unuse(tmp1);
-      c.unuse(t_rdx);
     } break;
 
     case ADD_FLOAT:

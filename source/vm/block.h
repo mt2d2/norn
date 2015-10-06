@@ -9,7 +9,7 @@
 
 #include "instruction.h"
 
-class Manager;
+class Memory;
 
 #if !NOJIT
 enum JITType { NONE, BASIC, OPTIMIZING };
