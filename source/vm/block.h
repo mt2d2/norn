@@ -8,7 +8,6 @@
 #include <map>
 
 #include "instruction.h"
-#include "memory.h"
 
 class Manager;
 
