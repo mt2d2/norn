@@ -104,6 +104,9 @@ void Block::jit(const Program &program, Memory &manager,
 
       c.add(stackTop, 8);
       c.mov(qword_ptr(stackTop), tmp);
+
+      c.unuse(tmp);
+      c.unuse(address);
     } break;
 
     case LOAD_INT:
@@ -236,7 +239,6 @@ void Block::jit(const Program &program, Memory &manager,
 
       c.unuse(tmp1);
       c.unuse(tmp2);
-
     } break;
 
     case MOD_FLOAT: {
@@ -406,7 +408,7 @@ void Block::jit(const Program &program, Memory &manager,
 
     case CALL:
     case CALL_NATIVE: {
-      auto callee =
+      const auto callee =
           std::find(blocks.begin(), blocks.end(), (Block *)instr.arg.p);
       if (callee == blocks.end())
         raise_error("couldn't identify block for jit native call");
