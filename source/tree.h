@@ -58,7 +58,9 @@ private:
 
 class CharExprAST : public ExprAST {
 public:
-  CharExprAST(char c) : val(c) { type = TypeFactory::get_instance().get(Type::Primitive::CHAR); }
+  CharExprAST(char c) : val(c) {
+    type = TypeFactory::get_instance().get(Type::Primitive::CHAR);
+  }
   virtual void emit_bytecode(BuildContext &out);
   virtual ~CharExprAST() {}
 
@@ -376,7 +378,7 @@ class ProgramAST {
 public:
   ProgramAST()
       : structs(std::vector<StructAST *>()),
-        functions(std::vector<FunctionAST *>()) {};
+        functions(std::vector<FunctionAST *>()){};
   virtual ~ProgramAST();
   void add_struct(StructAST *s) { structs.push_back(s); }
   void add_function(FunctionAST *f) { functions.push_back(f); }

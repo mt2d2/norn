@@ -97,8 +97,8 @@ void Program::lit_load_le() {
 }
 
 std::ostream &operator<<(std::ostream &os, Program &p) {
-  for (std::vector<Block *>::iterator b = p.blocks.begin();
-       b != p.blocks.end(); ++b)
+  for (std::vector<Block *>::iterator b = p.blocks.begin(); b != p.blocks.end();
+       ++b)
     std::cout << **b << std::endl;
 
   return os;

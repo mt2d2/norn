@@ -51,7 +51,8 @@ int main(int argc, char *argv[]) {
             ,
             params.debug, params.nojit
 #endif
-            ).execute();
+            )
+        .execute();
 }
 
 Params parse_params(int argc, char **argv) {

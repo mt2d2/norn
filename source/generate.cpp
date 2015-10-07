@@ -79,7 +79,8 @@ void VariableFieldExprAST::emit_bytecode(BuildContext &out) {
   if (field_type == TypeFactory::get_instance().get(Type::Primitive::INT) ||
       field_type == TypeFactory::get_instance().get(Type::Primitive::BOOLEAN))
     op = STRUCT_LOAD_INT;
-  else if (field_type == TypeFactory::get_instance().get(Type::Primitive::FLOAT))
+  else if (field_type ==
+           TypeFactory::get_instance().get(Type::Primitive::FLOAT))
     op = STRUCT_LOAD_FLOAT;
   else if (field_type == TypeFactory::get_instance().get(Type::Primitive::CHAR))
     op = STRUCT_LOAD_CHAR;
@@ -105,7 +106,8 @@ void VariableAssignFieldExprAST::emit_bytecode(BuildContext &out) {
   if (field_type == TypeFactory::get_instance().get(Type::Primitive::INT) ||
       field_type == TypeFactory::get_instance().get(Type::Primitive::BOOLEAN))
     op = STRUCT_STORE_INT;
-  else if (field_type == TypeFactory::get_instance().get(Type::Primitive::FLOAT))
+  else if (field_type ==
+           TypeFactory::get_instance().get(Type::Primitive::FLOAT))
     op = STRUCT_STORE_FLOAT;
   else if (field_type == TypeFactory::get_instance().get(Type::Primitive::CHAR))
     op = STRUCT_STORE_CHAR;
@@ -369,8 +371,9 @@ void FunctionAST::emit_bytecode(BuildContext &out) {
   for (const auto &elem : body)
     (elem)->emit_bytecode(out);
 
-  if (out.get_block()->get_size() > 0 && out.get_block()->get_instruction(out.get_block()->get_size() - 1)->op !=
-      RTRN)
+  if (out.get_block()->get_size() > 0 &&
+      out.get_block()->get_instruction(out.get_block()->get_size() - 1)->op !=
+          RTRN)
     out.get_block()->add_instruction(Instruction(RTRN));
 }
 
