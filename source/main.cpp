@@ -2,6 +2,10 @@
 
 #include <cstdlib> // exit
 
+#include "vm/common.h"
+#include "vm/program.h"
+#include "vm/machine.h"
+#include "parser.h"
 #include "tree.h"
 
 int main(int argc, char *argv[]) {
@@ -35,7 +39,6 @@ int main(int argc, char *argv[]) {
     Parser(source).parse(build, params.optimize ? 1 : 0);
 
     program = build.get_program();
-
     program.absolute_jumps();
     program.calculate_memory_slots();
   }

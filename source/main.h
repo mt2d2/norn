@@ -1,11 +1,6 @@
 #ifndef MAIN_H
 #define MAIN_H
 
-#include "vm/common.h"
-#include "vm/program.h"
-#include "vm/machine.h"
-#include "parser.h"
-
 class Params {
 public:
   Params()
