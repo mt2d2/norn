@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.1)
 
 project(norn)
 
-option(JIT "enable method JIT" OFF)
+option(JIT "enable method JIT" ON)
 if(NOT JIT)
   add_definitions(-DNOJIT)
 endif(NOT JIT)
