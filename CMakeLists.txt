@@ -26,3 +26,8 @@ set(vm_src
   source/vm/jit.cpp)
 add_executable(norn ${vm_src} ${lang_src})
 set_property(TARGET norn PROPERTY CXX_STANDARD 11)
+
+if(JIT)
+  add_subdirectory(source/vm/AsmJit)
+  target_link_libraries(norn asmjit)
+endif(JIT)
