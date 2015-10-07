@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.1)
 project(norn)
 
 option(JIT "enable method JIT" OFF)
+if(NOT JIT)
+  add_definitions(-DNOJIT)
+endif(NOT JIT)
 
 set(lang_src
   source/lexer.cpp
@@ -11,7 +14,6 @@ set(lang_src
   source/tree.cpp
   source/generate.cpp
   source/main.cpp)
-
 set(vm_src
   source/vm/common.cpp
   source/vm/opcode.cpp
@@ -22,13 +24,5 @@ set(vm_src
   source/vm/memory.cpp
   source/vm/machine.cpp
   source/vm/jit.cpp)
-
-if(JIT)
-  set(jit_src
-  source/vm/jit.cpp)
-else(JIT)
-  add_definitions(-DNOJIT)
-endif(JIT)
-
-add_executable(norn ${lang_src} ${vm_src} ${jit_src})
+add_executable(norn ${vm_src} ${lang_src})
 set_property(TARGET norn PROPERTY CXX_STANDARD 11)
