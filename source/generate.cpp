@@ -4,11 +4,11 @@ void NumberExprAST::emit_bytecode(BuildContext &out) {
   switch (type.get_primitive()) {
   case Type::Primitive::INT:
     out.get_block()->add_instruction(
-        Instruction(LIT_INT, Variant((int)this->val)));
+        Instruction(LIT_INT, Variant(static_cast<int>(this->val))));
     break;
   case Type::Primitive::FLOAT:
     out.get_block()->add_instruction(
-        Instruction(LIT_FLOAT, Variant(((float)this->val))));
+        Instruction(LIT_FLOAT, Variant(this->val)));
     break;
   default:
     raise_error("cannot emit NumberExprAST for non number type");
