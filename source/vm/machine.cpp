@@ -494,6 +494,10 @@ return_opcode:
     NEXT
   }
 
+  OP(LOOP) {
+    // NYI
+  }
+
   OP(LOGICAL_AND) {
     push<bool>(pop<bool>() && pop<bool>());
     NEXT

@@ -4,7 +4,7 @@ BuildContext::BuildContext()
     : program(Program()), working_block(nullptr),
       memory_ids(std::map<std::string, int>()),
       block_types(std::map<std::string, Type>()),
-      variable_types(std::map<std::string, Type>()), seed(0) {}
+      variable_types(std::map<std::string, Type>()), seed(0), loop_count(0) {}
 
 Program &BuildContext::get_program() { return program; }
 
@@ -53,7 +53,13 @@ bool BuildContext::variable_exists(const std::string &key) {
   return (memory_ids.find(key) != memory_ids.end());
 }
 
-int BuildContext::get_and_increment_seed() { return this->seed++; }
+uint8_t BuildContext::get_and_increment_seed() { return this->seed++; }
+
+#if !NOJIT
+uint8_t BuildContext::get_and_increment_loop_count() {
+  return this->loop_count++;
+}
+#endif
 
 std::string CallExprAST::callee_signature(BuildContext &out) {
   std::string block_name = this->callee;

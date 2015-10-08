@@ -1,6 +1,8 @@
 #ifndef TREE_H
 #define TREE_H
 
+#include <cstdint>
+
 #include "vm/common.h"
 #include "vm/instruction.h"
 #include "vm/program.h"
@@ -21,7 +23,10 @@ public:
   void set_block_type(const std::string &key, Type value);
   int get_mem_id(const std::string &key);
   bool variable_exists(const std::string &key);
-  int get_and_increment_seed();
+  uint8_t get_and_increment_seed();
+#if !NOJIT
+  uint8_t get_and_increment_loop_count();
+#endif
 
 private:
   Program program;
@@ -29,7 +34,8 @@ private:
   std::map<std::string, int> memory_ids;
   std::map<std::string, Type> block_types;
   std::map<std::string, Type> variable_types;
-  int seed;
+  uint8_t seed;
+  uint8_t loop_count;
 };
 
 /// ExprAST - Base class for all expression nodes.
