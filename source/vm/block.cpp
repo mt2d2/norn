@@ -11,19 +11,9 @@ using namespace AsmJit;
 
 Block::Block(const std::string &name)
     : native(nullptr), name(name), instructions(std::vector<Instruction>()),
-      memory_slots(0)
-#if !NOJIT
-      ,
-      jit_type(NONE)
-#endif
-{
-}
+      memory_slots(0), loop_hotness(0) {}
 
-Block::~Block() {
-#if !NOJIT
-  this->free_native_code();
-#endif
-}
+Block::~Block() {}
 
 const std::string &Block::get_name() const { return this->name; }
 
@@ -34,15 +24,11 @@ const std::vector<Instruction> &Block::get_instructions() const {
 int Block::get_size() const { return this->instructions.size(); }
 
 #if !NOJIT
-void Block::free_native_code() {
-  if (this->native &&
-      (this->get_jit_type() == BASIC || this->get_jit_type() == OPTIMIZING))
-    MemoryManager::getGlobal()->free((void *)this->native);
+unsigned int Block::get_loop_hotness(const Instruction *i) {
+  return this->loop_hotness[i];
 }
 
-JITType Block::get_jit_type() const { return this->jit_type; }
-
-void Block::set_jit_type(JITType jit_type) { this->jit_type = jit_type; }
+void Block::add_loop_hotness(const Instruction *i) { this->loop_hotness[i]++; }
 #endif
 
 void Block::add_instruction(const Instruction &instruction) {

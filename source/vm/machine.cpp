@@ -2,6 +2,7 @@
 
 #include <cmath>  // fmod
 #include <cstdio> // printf
+#include <unordered_map>
 
 #include "common.h"
 #include "block.h"
@@ -11,12 +12,29 @@
 #define COMPUTED_GOTO __GNUC__
 #if COMPUTED_GOTO
 #define DISPATCH NEXT
+
+#if !NOJIT
+#define OP(x)                                                                  \
+  trace_##x : {                                                                \
+    auto traceState = trace.record(instr);                                     \
+    if (traceState != Trace::State::TRACING) {                                 \
+      if (debug && traceState == Trace::State::ABORT)                          \
+        printf("trace aborted\n");                                             \
+      disp_table = op_disp_table;                                              \
+    }                                                                          \
+  }                                                                            \
+  x:
+#else
 #define OP(x) x:
+#endif
+
 #define NEXT                                                                   \
   instr = block->get_instruction(ip++);                                        \
   goto *disp_table[instr->op];
 #define END_DISPATCH
+
 #else
+
 #define DISPATCH                                                               \
   while (true) {                                                               \
     instr = block->get_instruction(ip++);                                      \
@@ -47,7 +65,12 @@ Machine::Machine(const Program &program
       stack(new int64_t[STACK_SIZE]), stack_start(stack),
       frames(new Frame[STACK_SIZE]), frames_start(frames),
       memory(new int64_t[STACK_SIZE * this->program.get_memory_slots()]),
-      manager(Memory(stack_start, memory)) {
+      manager(Memory(stack_start, memory))
+#if !NOJIT
+      ,
+      trace()
+#endif
+{
 }
 
 Machine::~Machine() {
@@ -57,9 +80,13 @@ Machine::~Machine() {
 }
 
 void Machine::execute() {
+#if !NOJIT
+  std::unordered_map<const Instruction *, Trace> traces;
+#endif
 
 #if COMPUTED_GOTO
 #include "goto.h"
+  void **disp_table = op_disp_table;
 #endif
 
   block = this->program.get_block_ptr(this->program.get_block_id("main"));
@@ -447,9 +474,75 @@ return_opcode:
     NEXT
   }
 
+#if !NOJIT
   OP(LOOP) {
-    // NYI
+    if (unlikely(!nojit)) {
+      auto traceIter = traces.find(instr);
+      if (traceIter != traces.end()) {
+        // trace found
+        auto nativePtr = traceIter->second.get_native_ptr();
+        if (nativePtr == nullptr)
+          raise_error("no machine code for trace");
+
+        int64_t traceExit = 0, stackAdjust = 0;
+        nativePtr(&traceExit, &stackAdjust, stack, memory);
+
+        const unsigned int advanceIp =
+            traceIter->second.get_trace_exit(traceExit);
+
+        // if (debug) {
+        //   printf("advancing stack by %lld\n", stackAdjust);
+        //   printf("advancing ip by %d-1\n", advanceIp);
+        // }
+
+        // adjust stack offset
+        stack += stackAdjust;
+
+        // dispatch
+        ip += advanceIp - 1 /* offset 1 */;
+        instr = block->get_instruction(ip);
+        goto *disp_table[instr->op];
+      } else {
+        // no trace installed yet
+
+        if (trace.is_complete()) {
+          // tracing mode, trace is isolated
+          if (debug) {
+            printf("trace finished\n");
+            trace.debug();
+          }
+
+          trace.compile(debug);
+
+          traces[instr] = trace;
+          trace = Trace();
+
+          NEXT
+        } else {
+          // profiling mode, add loop hotness, dispatch to tracer
+          static const unsigned int LOOP_HOTNESS = 56;
+          if (block->get_loop_hotness(instr) <= LOOP_HOTNESS)
+            block->add_loop_hotness(instr);
+
+          if (block->get_loop_hotness(instr) == LOOP_HOTNESS) {
+            if (debug) {
+              printf("trace started\n");
+            }
+
+            disp_table = trace_disp_table;
+
+            // hack to record first LOOP
+            trace.record(instr);
+
+            NEXT
+          }
+        }
+      }
+    }
+
+    NEXT
   }
+#endif
 
   OP(LOGICAL_AND) {
     push<bool>(pop<bool>() && pop<bool>());

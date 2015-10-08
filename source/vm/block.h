@@ -6,14 +6,13 @@
 #include <vector>
 #include <list>
 #include <map>
+#if !NOJIT
+#include <unordered_map>
+#endif
 
 #include "instruction.h"
 
 class Memory;
-
-#if !NOJIT
-enum JITType { NONE, BASIC, OPTIMIZING };
-#endif
 
 typedef int64_t (*native_ptr)(int64_t **, int64_t **);
 
@@ -33,9 +32,8 @@ public:
   int get_memory_slots() const { return this->memory_slots; }
 
 #if !NOJIT
-  void free_native_code();
-  JITType get_jit_type() const;
-  void set_jit_type(JITType needs_jit);
+  unsigned int get_loop_hotness(const Instruction *i);
+  void add_loop_hotness(const Instruction *i);
 #endif
 
   // TODO, rename, repairs
@@ -73,7 +71,7 @@ private:
   std::vector<Instruction> instructions;
   unsigned int memory_slots;
 #if !NOJIT
-  JITType jit_type;
+  std::unordered_map<const Instruction *, unsigned int> loop_hotness;
 #endif
 
   friend std::ostream &operator<<(std::ostream &os, Block &b);
