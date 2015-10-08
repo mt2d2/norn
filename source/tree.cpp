@@ -58,7 +58,7 @@ int BuildContext::get_and_increment_seed() { return this->seed++; }
 std::string CallExprAST::callee_signature(BuildContext &out) {
   std::string block_name = this->callee;
 
-  for (auto &elem : Args) {
+  for (const auto &elem : Args) {
     if (CallExprAST *call_ast = dynamic_cast<CallExprAST *>(elem))
       (elem)->type = out.get_block_type(call_ast->callee_signature(out));
     else if (ArrayIndexAccessExprAST *array_access_ast =
@@ -92,7 +92,7 @@ int CallExprAST::get_block_id(BuildContext &out) {
 }
 
 void ProgramAST::install_types() {
-  for (auto &elem : structs) {
+  for (const auto &elem : structs) {
     std::vector<std::string> fields;
     std::vector<Type> types;
     for (auto j = (elem)->members.begin(); j != (elem)->members.end(); ++j) {
@@ -100,26 +100,26 @@ void ProgramAST::install_types() {
       types.push_back(TypeFactory::get_instance().get(j->second));
     }
 
-    TypeFactory::get_instance().install(Type((elem)->name, types, fields));
+    TypeFactory::get_instance().install(Type(elem->name, types, fields));
   }
 }
 
 void ProgramAST::register_functions(BuildContext &out) {
-  for (auto &elem : functions) {
-    out.get_program().add_block(new Block((elem)->proto->name));
-    out.set_block_type((elem)->proto->name, (elem)->proto->type);
+  for (const auto &elem : functions) {
+    out.get_program().add_block(new Block(elem->proto->name));
+    out.set_block_type(elem->proto->name, elem->proto->type);
   }
 }
 
 void ProgramAST::emit_bytecode(BuildContext &out) {
-  for (auto &elem : functions)
-    (elem)->emit_bytecode(out);
+  for (const auto &elem : functions)
+    elem->emit_bytecode(out);
 }
 
 ProgramAST::~ProgramAST() {
-  for (auto &elem : structs)
+  for (const auto &elem : structs)
     delete elem;
 
-  for (auto &elem : functions)
+  for (const auto &elem : functions)
     delete elem;
 }
