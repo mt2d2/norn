@@ -8,9 +8,6 @@
 #include "instruction.h"
 #include "variant.h"
 
-#define BACKEDGE_HOTNESS 40
-#define CALL_HOTNESS 40
-
 #define COMPUTED_GOTO __GNUC__
 #if COMPUTED_GOTO
 #define DISPATCH NEXT
@@ -249,29 +246,6 @@ void Machine::execute() {
   }
 
   OP(UJMP) {
-#if !NOJIT
-    if (likely(!this->nojit) && instr->arg.l < ip) {
-      block->add_backedge_hotness(instr);
-
-      if (block->get_backedge_hotness(instr) == BACKEDGE_HOTNESS) {
-        if (unlikely(this->debug))
-          fprintf(stderr, "hot backedge at %s:%d\n", block->get_name().c_str(),
-                  ip);
-
-        // compile a special version of the block
-        // that bounces to the correct spot in the compiled code
-        block->jit(this->program, this->manager, instr->arg.l);
-        block->native(&stack, &memory);
-
-        // now throw away the previous compiled code
-        // recompile the whole block and don't bounce in
-        block->free_native_code();
-        block->jit(this->program, this->manager);
-        goto return_opcode;
-      }
-    }
-#endif
-
     ip = instr->arg.l;
     NEXT
   }
@@ -386,34 +360,13 @@ void Machine::execute() {
     push_frame(Frame(ip, block));
     block = reinterpret_cast<Block *>(instr->arg.p);
     ip = 0;
-
-#if !NOJIT
-    if (likely(!this->nojit) &&
-        unlikely(block->get_hotness()) == CALL_HOTNESS) {
-      if (unlikely(this->debug))
-        fprintf(stderr, "hot call %s\n", block->get_name().c_str());
-
-      block->jit(this->program, this->manager);
-    }
-
-    block->add_hotness();
-#endif
-
     NEXT
   }
 
   OP(CALL_NATIVE) {
     Block *callee = reinterpret_cast<Block *>(instr->arg.p);
     memory += block->get_memory_slots();
-
-#if !NOJIT
-    int64_t ret = callee->native(&stack, &memory);
-    if (callee->get_jit_type() == OPTIMIZING)
-      push<int64_t>(ret);
-#else
     callee->native(&stack, &memory);
-#endif
-
     memory -= block->get_memory_slots();
     NEXT
   }
