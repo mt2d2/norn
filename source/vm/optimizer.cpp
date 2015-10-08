@@ -176,7 +176,7 @@ void Block::fold_ints() {
   }
 
   instructions.clear();
-  for (auto &output : outputs)
+  for (const auto &output : outputs)
     instructions.push_back(output);
 }
 
@@ -184,7 +184,7 @@ void Block::fold_floats() {
   std::list<Instruction> outputs;
   std::list<Instruction> calc_stack;
 
-  for (auto &elem : instructions) {
+  for (const auto &elem : instructions) {
     switch (elem.op) {
     case LIT_FLOAT:
       calc_stack.push_front(elem);
