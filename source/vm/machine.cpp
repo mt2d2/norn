@@ -16,7 +16,7 @@
 #if !NOJIT
 #define OP(x)                                                                  \
   trace_##x : {                                                                \
-    auto traceState = trace.record(instr);                                     \
+    const auto traceState = trace.record(instr);                               \
     if (traceState != Trace::State::TRACING) {                                 \
       if (debug && traceState == Trace::State::ABORT)                          \
         printf("trace aborted\n");                                             \
