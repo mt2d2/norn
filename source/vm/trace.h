@@ -44,12 +44,19 @@ public:
     std::size_t ref1, ref2;
     int64_t intArg;
 
+    bool hasConstantArg;
+    bool hasRef1;
+    bool hasRef2;
+
     IR(const Opcode op, const int64_t arg)
-        : op(op), ref1(0), ref2(0), intArg(arg) {}
+        : op(op), ref1(0), ref2(0), intArg(arg), hasConstantArg(true),
+          hasRef1(false), hasRef2(false) {}
     IR(const Opcode op, const std::size_t ref1)
-        : op(op), ref1(ref1), ref2(0), intArg(0) {}
+        : op(op), ref1(ref1), ref2(0), intArg(0), hasConstantArg(false),
+          hasRef1(true), hasRef2(false) {}
     IR(const Opcode op, const std::size_t ref1, const std::size_t ref2)
-        : op(op), ref1(ref1), ref2(ref2), intArg(0) {}
+        : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg(false),
+          hasRef1(true), hasRef2(true) {}
   };
 
   Trace();
