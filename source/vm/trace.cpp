@@ -133,8 +133,20 @@ void Trace::convertBytecodeToIR() {
   }
 }
 
-void Trace::compile(const bool debug) { convertBytecodeToIR(); }
+std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
+  return stream << "Trace::IR";
+}
 
+void Trace::compile(const bool debug) {
+  convertBytecodeToIR();
+
+  if (debug) {
+    std::cout << "IR: " << std::endl;
+    for (const auto &ir : instructions) {
+      std::cout << ir << std::endl;
+    }
+  }
+}
 nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 
 uint64_t Trace::get_trace_exit(int offset) const { return traceExits[offset]; }
