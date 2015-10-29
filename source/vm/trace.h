@@ -37,11 +37,18 @@ public:
       MulInt,
       Fjmp,
       Ujmp
-    } op;
-    IR *ref1, *ref2;
+    };
+
+    Opcode op;
+    const IR *ref1, *ref2;
     int64_t intArg;
 
-    IR(int64_t arg) : ref1(nullptr), ref2(nullptr), intArg(arg) {}
+    IR(const Opcode op, const int64_t arg)
+        : op(op), ref1(nullptr), ref2(nullptr), intArg(arg) {}
+    IR(const Opcode op, const IR *ref1)
+        : op(op), ref1(ref1), ref2(nullptr), intArg(0) {}
+    IR(const Opcode op, const IR *ref1, const IR *ref2)
+        : op(op), ref1(ref1), ref2(ref2), intArg(0) {}
   };
 
   Trace();

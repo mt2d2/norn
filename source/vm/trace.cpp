@@ -69,7 +69,8 @@ void Trace::compile(const bool debug) {
   for (const auto *instr : bytecode) {
     switch (instr->op) {
     case LIT_INT: {
-      instructions.emplace_back(Trace::IR(instr->arg.l));
+      instructions.emplace_back(
+          Trace::IR(Trace::IR::Opcode::LitInt, instr->arg.l));
       frame.stack.push(&instructions.back());
     } break;
 
@@ -90,6 +91,21 @@ void Trace::compile(const bool debug) {
     case ADD_INT:
     case MUL_INT:
     case LE_INT: {
+      const auto *ir1 = frame.stack.top();
+      frame.stack.pop();
+      const auto *ir2 = frame.stack.top();
+      frame.stack.pop();
+
+      static const std::map<Opcode, Trace::IR::Opcode> bytecodeToIR{
+          {ADD_INT, Trace::IR::Opcode::AddInt},
+          {MUL_INT, Trace::IR::Opcode::MulInt},
+          {LE_INT, Trace::IR::Opcode::LeInt}};
+      const auto irOp = bytecodeToIR.find(static_cast<Opcode>(instr->op));
+      if (irOp == bytecodeToIR.end())
+        raise_error("unknown conversion from bytecode binop to ir binop");
+
+      instructions.emplace_back(Trace::IR(irOp->second, ir1, ir2));
+      frame.stack.push(&instructions.back());
     } break;
 
     case FJMP: {
