@@ -61,7 +61,7 @@ struct Frame {
   std::map<int64_t, Trace::IR *> memory;
 };
 
-void Trace::compile(const bool debug) {
+void Trace::convertBytecodeToIR() {
   std::stack<Frame> frames;
   frames.push(Frame{});
   Frame &frame = frames.top();
@@ -132,6 +132,8 @@ void Trace::compile(const bool debug) {
     }
   }
 }
+
+void Trace::compile(const bool debug) { convertBytecodeToIR(); }
 
 nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 

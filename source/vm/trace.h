@@ -63,6 +63,7 @@ public:
 
 private:
   bool is_head(const Instruction *i) const;
+  void convertBytecodeToIR();
   void jit(const bool debug);
   void identify_trace_exits();
   void identify_trace_calls();
