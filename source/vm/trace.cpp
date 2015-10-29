@@ -6,6 +6,7 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <stack>
 #include <string>
 
 #include "common.h"
@@ -55,17 +56,35 @@ void Trace::debug() const {
   }
 }
 
+struct Frame {
+  std::stack<Trace::IR *> stack;
+  std::map<int64_t, Trace::IR *> memory;
+};
+
 void Trace::compile(const bool debug) {
+  std::stack<Frame> frames;
+  frames.push(Frame{});
+  Frame &frame = frames.top();
+
   for (const auto *instr : bytecode) {
     switch (instr->op) {
-
     case LIT_INT: {
+      instructions.emplace_back(Trace::IR(instr->arg.l));
+      frame.stack.push(&instructions.back());
     } break;
 
     case LOAD_INT: {
+      const auto ir = frame.memory.find(instr->arg.l);
+      if (ir == frame.memory.end())
+        raise_error("unable to load frame.memory!");
+
+      frame.stack.push(ir->second);
     } break;
 
     case STORE_INT: {
+      const auto ir = frame.stack.top();
+      frame.stack.pop();
+      frame.memory[instr->arg.l] = ir;
     } break;
 
     case ADD_INT:
@@ -78,9 +97,17 @@ void Trace::compile(const bool debug) {
     case UJMP: {
     } break;
 
-    case LOOP:
-    case CALL:
-    case RTRN: { /* pass */
+    case CALL: {
+      frames.push(Frame{});
+      frame = frames.top();
+    }
+
+    case RTRN: {
+      frames.pop();
+      frame = frames.top();
+    }
+
+    case LOOP: { /* pass */
     } break;
 
     default: { raise_error("unknown op in trace compilation"); } break;

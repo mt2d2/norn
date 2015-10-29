@@ -40,6 +40,8 @@ public:
     } op;
     IR *ref1, *ref2;
     int64_t intArg;
+
+    IR(int64_t arg) : ref1(nullptr), ref2(nullptr), intArg(arg) {}
   };
 
   Trace();
