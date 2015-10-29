@@ -551,6 +551,7 @@ BuildContext Parser::parse(BuildContext &build, int optimize) {
 
   ast.emit_bytecode(build);
 
+#if NOJIT
   if (optimize >= 1) {
     build.get_program().store_load_elimination();
     build.get_program().fold_constants();
@@ -559,6 +560,7 @@ BuildContext Parser::parse(BuildContext &build, int optimize) {
     build.get_program().lit_load_sub();
     build.get_program().lit_load_le();
   }
+#endif
 
   return build;
 }
