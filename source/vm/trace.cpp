@@ -70,17 +70,16 @@ std::ostream &operator<<(std::ostream &stream, const Trace::IR::Opcode op) {
 std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
   stream << ir.op << "\t";
 
-  if (ir.hasRef1 || ir.hasRef2) {
-    if (ir.hasRef1) {
-      stream << ir.ref1;
+  if (ir.hasRef1) {
+    stream << ir.ref1;
+  }
+  if (ir.hasRef2) {
+    if (!ir.hasRef2) {
+      raise_error("if only one ref, should use first");
     }
-    if (ir.hasRef2) {
-      if (!ir.hasRef2) {
-        raise_error("if only one ref, should use first");
-      }
-      stream << "\t" << ir.ref2;
-    }
-  } else if (ir.hasConstantArg) {
+    stream << "\t" << ir.ref2;
+  }
+  if (ir.hasConstantArg) {
     stream << "k" << ir.intArg;
   }
 
