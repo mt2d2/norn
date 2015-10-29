@@ -86,7 +86,7 @@ std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
 
 void Trace::debug() const {
   std::cout << "Bytecode: " << std::endl;
-  for (auto *i : bytecode) {
+  for (const auto *i : bytecode) {
     std::cout << *i << std::endl;
   }
 
