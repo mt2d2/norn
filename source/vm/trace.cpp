@@ -76,10 +76,13 @@ void Trace::compile(const bool debug) {
 
     case LOAD_INT: {
       const auto ir = frame.memory.find(instr->arg.l);
-      if (ir == frame.memory.end())
-        raise_error("unable to load frame.memory!");
-
-      frame.stack.push(ir->second);
+      if (ir == frame.memory.end()) {
+        instructions.emplace_back(
+            Trace::IR(Trace::IR::Opcode::LoadInt, instr->arg.l));
+        frame.stack.push(&instructions.back());
+      } else {
+        frame.stack.push(ir->second);
+      }
     } break;
 
     case STORE_INT: {
@@ -116,12 +119,12 @@ void Trace::compile(const bool debug) {
     case CALL: {
       frames.push(Frame{});
       frame = frames.top();
-    }
+    } break;
 
     case RTRN: {
       frames.pop();
       frame = frames.top();
-    }
+    } break;
 
     case LOOP: { /* pass */
     } break;
