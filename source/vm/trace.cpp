@@ -15,7 +15,7 @@
 
 Trace::Trace()
     : last_state(Trace::State::ABORT),
-      instructions(std::vector<const Instruction *>()),
+      bytecode(std::vector<const Instruction *>()),
       traceExits(std::vector<uint64_t>()),
       calls(std::map<const Block *, unsigned int>()), nativePtr(nullptr) {}
 
@@ -30,14 +30,13 @@ Trace::State Trace::record(const Instruction *i) {
     goto exit;
   }
 
-  if (i->op == LOOP && instructions.size() > 0 &&
-      i->arg.l != instructions[0]->arg.l) {
+  if (i->op == LOOP && bytecode.size() > 0 && i->arg.l != bytecode[0]->arg.l) {
     // encountered another loop, abort
     last_state = Trace::State::ABORT;
     goto exit;
   }
 
-  instructions.push_back(i);
+  bytecode.push_back(i);
   last_state = Trace::State::TRACING;
 
 exit:
@@ -47,11 +46,11 @@ exit:
 bool Trace::is_complete() const { return last_state == Trace::State::COMPLETE; }
 
 bool Trace::is_head(const Instruction *i) const {
-  return instructions.size() > 0 && i == instructions[0];
+  return bytecode.size() > 0 && i == bytecode[0];
 }
 
 void Trace::debug() const {
-  for (auto *i : instructions) {
+  for (auto *i : bytecode) {
     std::cout << *i << std::endl;
   }
 }
@@ -69,7 +68,7 @@ std::map<const Block *, unsigned int> Trace::get_trace_calls() const {
 void Trace::identify_trace_exits() {
   unsigned int bytecodePosition = 0;
 
-  for (const auto *i : instructions) {
+  for (const auto *i : bytecode) {
     if (i->op == FJMP || i->op == TJMP) {
       traceExits.push_back(bytecodePosition);
     }
