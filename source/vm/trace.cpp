@@ -95,7 +95,7 @@ void Trace::debug() const {
   std::cout << "IR: " << std::endl;
   std::size_t i = 1;
   for (const auto &ir : instructions) {
-    std::cout << i++ << "\t" << ir << std::endl;
+    std::cout << i++ << " <- " << ir << std::endl;
   }
 }
 
