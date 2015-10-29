@@ -16,7 +16,7 @@
 Trace::Trace()
     : last_state(Trace::State::ABORT),
       bytecode(std::vector<const Instruction *>()),
-      traceExits(std::vector<uint64_t>()),
+      instructions(std::vector<IR>()), traceExits(std::vector<uint64_t>()),
       calls(std::map<const Block *, unsigned int>()), nativePtr(nullptr) {}
 
 Trace::~Trace() {
@@ -55,7 +55,38 @@ void Trace::debug() const {
   }
 }
 
-void Trace::compile(const bool debug) {}
+void Trace::compile(const bool debug) {
+  for (const auto *instr : bytecode) {
+    switch (instr->op) {
+
+    case LIT_INT: {
+    } break;
+
+    case LOAD_INT: {
+    } break;
+
+    case STORE_INT: {
+    } break;
+
+    case ADD_INT:
+    case MUL_INT:
+    case LE_INT: {
+    } break;
+
+    case FJMP: {
+    } break;
+    case UJMP: {
+    } break;
+
+    case LOOP:
+    case CALL:
+    case RTRN: { /* pass */
+    } break;
+
+    default: { raise_error("unknown op in trace compilation"); } break;
+    }
+  }
+}
 
 nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 

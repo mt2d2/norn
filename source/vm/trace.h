@@ -27,6 +27,21 @@ public:
     COMPLETE,
   };
 
+  struct IR {
+    enum Opcode {
+      LitInt,
+      LoadInt,
+      StoreInt,
+      LeInt,
+      AddInt,
+      MulInt,
+      Fjmp,
+      Ujmp
+    } op;
+    IR *ref1, *ref2;
+    int64_t intArg;
+  };
+
   Trace();
   ~Trace();
   State record(const Instruction *i);
@@ -45,6 +60,7 @@ private:
 
   State last_state;
   std::vector<const Instruction *> bytecode;
+  std::vector<IR> instructions;
   std::vector<uint64_t> traceExits;
   std::map<const Block *, unsigned int> calls;
   nativeTraceType nativePtr;
