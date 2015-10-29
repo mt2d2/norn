@@ -120,7 +120,6 @@ void Trace::compile(const bool debug) {
       frames.push(Frame{});
       frame = frames.top();
     } break;
-
     case RTRN: {
       frames.pop();
       frame = frames.top();
