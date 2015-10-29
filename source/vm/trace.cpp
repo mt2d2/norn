@@ -3,7 +3,6 @@
 #if !NOJIT
 
 #include <algorithm>
-#include <cassert>
 #include <iostream>
 #include <map>
 #include <stack>
@@ -50,15 +49,57 @@ bool Trace::is_head(const Instruction *i) const {
   return bytecode.size() > 0 && i == bytecode[0];
 }
 
+std::ostream &operator<<(std::ostream &stream, const Trace::IR::Opcode op) {
+  static const std::map<Trace::IR::Opcode, std::string> opcodeToString{
+      {Trace::IR::Opcode::LitInt, "LitInt"},
+      {Trace::IR::Opcode::LoadInt, "LoadInt"},
+      {Trace::IR::Opcode::StoreInt, "StoreInt"},
+      {Trace::IR::Opcode::LeInt, "LeInt"},
+      {Trace::IR::Opcode::AddInt, "AddInt"},
+      {Trace::IR::Opcode::MulInt, "MulInt"},
+      {Trace::IR::Opcode::Fjmp, "Fjmp"},
+      {Trace::IR::Opcode::Ujmp, "Ujmp"}};
+
+  try {
+    return stream << opcodeToString.at(op);
+  } catch (const std::out_of_range &err) {
+    return stream << "??";
+  }
+}
+
+std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
+  stream << ir.op << "\t";
+
+  if (ir.ref1) {
+    stream << ir.ref1;
+  }
+  if (ir.ref2) {
+    stream << "\t" << ir.ref2;
+  }
+
+  if (!ir.ref1 && (!ir.ref1 && !ir.ref2)) {
+    stream << "k" << ir.intArg;
+  }
+
+  return stream;
+}
+
 void Trace::debug() const {
+  std::cout << "Bytecode: " << std::endl;
   for (auto *i : bytecode) {
     std::cout << *i << std::endl;
+  }
+
+  std::cout << "IR: " << std::endl;
+  std::size_t i = 1;
+  for (const auto &ir : instructions) {
+    std::cout << i++ << "\t" << ir << std::endl;
   }
 }
 
 struct Frame {
-  std::stack<Trace::IR *> stack;
-  std::map<int64_t, Trace::IR *> memory;
+  std::stack<std::size_t> stack;
+  std::map<int64_t, std::size_t> memory;
 };
 
 void Trace::convertBytecodeToIR() {
@@ -71,7 +112,7 @@ void Trace::convertBytecodeToIR() {
     case LIT_INT: {
       instructions.emplace_back(
           Trace::IR(Trace::IR::Opcode::LitInt, instr->arg.l));
-      frame.stack.push(&instructions.back());
+      frame.stack.push(instructions.size());
     } break;
 
     case LOAD_INT: {
@@ -79,7 +120,7 @@ void Trace::convertBytecodeToIR() {
       if (ir == frame.memory.end()) {
         instructions.emplace_back(
             Trace::IR(Trace::IR::Opcode::LoadInt, instr->arg.l));
-        frame.stack.push(&instructions.back());
+        frame.stack.push(instructions.size());
       } else {
         frame.stack.push(ir->second);
       }
@@ -94,9 +135,9 @@ void Trace::convertBytecodeToIR() {
     case ADD_INT:
     case MUL_INT:
     case LE_INT: {
-      const auto *ir1 = frame.stack.top();
+      const auto ir1 = frame.stack.top();
       frame.stack.pop();
-      const auto *ir2 = frame.stack.top();
+      const auto ir2 = frame.stack.top();
       frame.stack.pop();
 
       static const std::map<Opcode, Trace::IR::Opcode> bytecodeToIR{
@@ -108,7 +149,7 @@ void Trace::convertBytecodeToIR() {
         raise_error("unknown conversion from bytecode binop to ir binop");
 
       instructions.emplace_back(Trace::IR(irOp->second, ir1, ir2));
-      frame.stack.push(&instructions.back());
+      frame.stack.push(instructions.size());
     } break;
 
     case FJMP: {
@@ -133,20 +174,8 @@ void Trace::convertBytecodeToIR() {
   }
 }
 
-std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
-  return stream << "Trace::IR";
-}
+void Trace::compile(const bool debug) { convertBytecodeToIR(); }
 
-void Trace::compile(const bool debug) {
-  convertBytecodeToIR();
-
-  if (debug) {
-    std::cout << "IR: " << std::endl;
-    for (const auto &ir : instructions) {
-      std::cout << ir << std::endl;
-    }
-  }
-}
 nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 
 uint64_t Trace::get_trace_exit(int offset) const { return traceExits[offset]; }

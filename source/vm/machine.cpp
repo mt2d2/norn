@@ -509,10 +509,10 @@ return_opcode:
           // tracing mode, trace is isolated
           if (debug) {
             printf("trace finished\n");
-            trace.debug();
           }
 
           trace.compile(debug);
+          trace.debug();
 
           traces[instr] = trace;
           trace = Trace();

@@ -3,8 +3,9 @@
 
 #if !NOJIT
 
-#include <vector>
+#include <cstdint>
 #include <map>
+#include <vector>
 
 typedef void (*nativeTraceType)(/*trace exit*/ int64_t *,
                                 /*stack adjust*/ int64_t *,
@@ -40,14 +41,14 @@ public:
     };
 
     Opcode op;
-    const IR *ref1, *ref2;
+    std::size_t ref1, ref2;
     int64_t intArg;
 
     IR(const Opcode op, const int64_t arg)
-        : op(op), ref1(nullptr), ref2(nullptr), intArg(arg) {}
-    IR(const Opcode op, const IR *ref1)
-        : op(op), ref1(ref1), ref2(nullptr), intArg(0) {}
-    IR(const Opcode op, const IR *ref1, const IR *ref2)
+        : op(op), ref1(0), ref2(0), intArg(arg) {}
+    IR(const Opcode op, const std::size_t ref1)
+        : op(op), ref1(ref1), ref2(0), intArg(0) {}
+    IR(const Opcode op, const std::size_t ref1, const std::size_t ref2)
         : op(op), ref1(ref1), ref2(ref2), intArg(0) {}
   };
 
