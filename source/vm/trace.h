@@ -28,7 +28,7 @@ public:
   };
 
   struct IR {
-    enum Opcode {
+    enum class Opcode {
       LitInt,
       LoadInt,
       StoreInt,
