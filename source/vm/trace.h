@@ -57,6 +57,8 @@ public:
     IR(const Opcode op, const std::size_t ref1, const std::size_t ref2)
         : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg(false),
           hasRef1(true), hasRef2(true) {}
+
+    bool yieldsConstant() const { return op == Opcode::LitInt; }
   };
 
   Trace();
