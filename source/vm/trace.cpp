@@ -84,8 +84,8 @@ std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
   }
 
   stream << ir.variableName << " <- " << ir.op << "\t";
-  for (const auto &arg : args)
-    stream << arg << "\t";
+  std::copy(std::begin(args), std::end(args),
+            std::ostream_iterator<std::string>(stream, "\t"));
   return stream;
 }
 
