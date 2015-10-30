@@ -46,7 +46,7 @@ public:
     int64_t intArg;
     int64_t intArg2;
 
-    bool hasConstantArg;
+    bool hasConstantArg1;
     bool hasConstantArg2;
     bool hasRef1;
     bool hasRef2;
@@ -54,15 +54,15 @@ public:
     std::size_t variableName;
 
     IR(const Opcode op, const int64_t arg)
-        : op(op), ref1(0), ref2(0), intArg(arg), hasConstantArg(true),
+        : op(op), ref1(0), ref2(0), intArg(arg), hasConstantArg1(true),
           hasConstantArg2(false), hasRef1(false), hasRef2(false),
           variableName(0) {}
     IR(const Opcode op, const std::size_t ref1)
-        : op(op), ref1(ref1), ref2(0), intArg(0), hasConstantArg(false),
+        : op(op), ref1(ref1), ref2(0), intArg(0), hasConstantArg1(false),
           hasConstantArg2(false), hasRef1(true), hasRef2(false),
           variableName(0) {}
     IR(const Opcode op, const std::size_t ref1, const std::size_t ref2)
-        : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg(false),
+        : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg1(false),
           hasConstantArg2(false), hasRef1(true), hasRef2(true),
           variableName(0) {}
 

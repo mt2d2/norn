@@ -79,7 +79,7 @@ std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
     }
     args.push_back(std::to_string(ir.ref2));
   }
-  if (ir.hasConstantArg) {
+  if (ir.hasConstantArg1) {
     args.push_back("k" + std::to_string(ir.intArg));
   }
 
@@ -211,8 +211,8 @@ void Trace::propagateConstants() {
       instr.ref2 = 0;
     }
 
-    if (!instr.hasConstantArg) {
-      instr.hasConstantArg = true;
+    if (!instr.hasConstantArg1) {
+      instr.hasConstantArg1 = true;
       instr.intArg = val;
     } else {
       instr.hasConstantArg2 = true;
