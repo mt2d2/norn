@@ -83,7 +83,7 @@ std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
     args.push_back("k" + std::to_string(ir.intArg));
   }
 
-  stream << ir.op << "\t";
+  stream << ir.variableName << " <- " << ir.op << "\t";
   for (const auto &arg : args)
     stream << arg << "\t";
   return stream;
@@ -98,7 +98,7 @@ void Trace::debug() const {
   std::cout << "IR: " << std::endl;
   std::size_t i = 1;
   for (const auto &ir : instructions) {
-    std::cout << ir.variableName << " <- " << ir << std::endl;
+    std::cout << ir << std::endl;
   }
 }
 
