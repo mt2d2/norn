@@ -7,6 +7,7 @@
 #include <map>
 #include <stack>
 #include <string>
+#include <unordered_set>
 
 #include "common.h"
 #include "block.h"
@@ -80,7 +81,7 @@ std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
     stream << "\t" << ir.ref2;
   }
   if (ir.hasConstantArg) {
-    stream << "k" << ir.intArg;
+    stream << "\tk" << ir.intArg;
   }
 
   return stream;
@@ -95,7 +96,7 @@ void Trace::debug() const {
   std::cout << "IR: " << std::endl;
   std::size_t i = 1;
   for (const auto &ir : instructions) {
-    std::cout << i++ << " <- " << ir << std::endl;
+    std::cout << ir.variableName << " <- " << ir << std::endl;
   }
 }
 
@@ -132,6 +133,7 @@ void Trace::convertBytecodeToIR() {
       const auto ir = frame.stack.top();
       frame.stack.pop();
       frame.memory[instr->arg.l] = ir;
+      instructions.emplace_back(Trace::IR(Trace::IR::Opcode::StoreInt, ir));
     } break;
 
     case ADD_INT:
@@ -155,8 +157,16 @@ void Trace::convertBytecodeToIR() {
     } break;
 
     case FJMP: {
+      const auto ir1 = frame.stack.top();
+      frame.stack.pop();
+
+      instructions.emplace_back(Trace::IR(Trace::IR::Opcode::Fjmp,
+                                          ir1)); /* TODO, add jump location */
     } break;
     case UJMP: {
+      instructions.emplace_back(
+          Trace::IR(Trace::IR::Opcode::Ujmp,
+                    instr->arg.l)); /*todo figure out actual jump position */
     } break;
 
     case CALL: {
@@ -176,7 +186,77 @@ void Trace::convertBytecodeToIR() {
   }
 }
 
-void Trace::compile(const bool debug) { convertBytecodeToIR(); }
+void Trace::assignVariableName() {
+  std::size_t i = 1;
+  for (Trace::IR &instr : instructions) {
+    instr.variableName = i++;
+  }
+}
+
+void Trace::propagateConstants() {
+  enum class WhichRef { Ref1, Ref2 };
+  const auto useConstant = [](Trace::IR &instr, const WhichRef whichRef,
+                              const int64_t val) {
+    if (whichRef == WhichRef::Ref1) {
+      instr.hasRef1 = false;
+      instr.ref1 = 0;
+    } else {
+      instr.hasRef2 = false;
+      instr.ref2 = 0;
+    }
+
+    instr.hasConstantArg = true;
+    instr.intArg = val;
+  };
+
+  std::vector<Trace::IR *> worklist;
+  for (auto &instr : instructions)
+    worklist.push_back(&instr);
+
+  while (!worklist.empty()) {
+    const auto *stmt = worklist.back();
+    worklist.pop_back();
+
+    if (stmt->yieldsConstant()) // TODO, yieldsConstant should consider bin ops
+                                // with only constant operations {
+      for (auto &instr : instructions) {
+        if (instr.hasRef1 && instr.ref1 == stmt->variableName) {
+          useConstant(instr, WhichRef::Ref1, stmt->intArg);
+          worklist.push_back(&instr);
+        }
+        if (instr.hasRef2 && instr.ref2 == stmt->variableName) {
+          useConstant(instr, WhichRef::Ref2, stmt->intArg);
+          worklist.push_back(&instr);
+        }
+      }
+  }
+}
+
+void Trace::deadCodeElimination() {
+  std::unordered_set<std::size_t> seenRefs;
+  seenRefs.insert(instructions.back().variableName);
+
+  for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
+    const auto &instr = *it;
+    if (seenRefs.count(instr.variableName) != 1 && !instr.hasSideEffect()) {
+      instructions.erase(std::next(it).base());
+    } else {
+      if (instr.hasRef1) {
+        seenRefs.insert(instr.ref1);
+      }
+      if (instr.hasRef2) {
+        seenRefs.insert(instr.ref2);
+      }
+    }
+  }
+}
+
+void Trace::compile(const bool debug) {
+  convertBytecodeToIR();
+  assignVariableName();
+  propagateConstants();
+  deadCodeElimination();
+}
 
 nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 

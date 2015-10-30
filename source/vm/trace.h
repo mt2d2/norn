@@ -48,17 +48,23 @@ public:
     bool hasRef1;
     bool hasRef2;
 
+    std::size_t variableName;
+
     IR(const Opcode op, const int64_t arg)
         : op(op), ref1(0), ref2(0), intArg(arg), hasConstantArg(true),
-          hasRef1(false), hasRef2(false) {}
+          hasRef1(false), hasRef2(false), variableName(0) {}
     IR(const Opcode op, const std::size_t ref1)
         : op(op), ref1(ref1), ref2(0), intArg(0), hasConstantArg(false),
-          hasRef1(true), hasRef2(false) {}
+          hasRef1(true), hasRef2(false), variableName(0) {}
     IR(const Opcode op, const std::size_t ref1, const std::size_t ref2)
         : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg(false),
-          hasRef1(true), hasRef2(true) {}
+          hasRef1(true), hasRef2(true), variableName(0) {}
 
     bool yieldsConstant() const { return op == Opcode::LitInt; }
+    bool isJump() const { return op == Opcode::Fjmp || op == Opcode::Ujmp; }
+    bool hasSideEffect() const {
+      return op == Opcode::StoreInt || op == Opcode::LoadInt || this->isJump();
+    }
   };
 
   Trace();
@@ -74,6 +80,9 @@ public:
 private:
   bool is_head(const Instruction *i) const;
   void convertBytecodeToIR();
+  void assignVariableName();
+  void propagateConstants();
+  void deadCodeElimination();
   void jit(const bool debug);
   void identify_trace_exits();
   void identify_trace_calls();
