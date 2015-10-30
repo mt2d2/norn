@@ -83,10 +83,6 @@ std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
     args.push_back("k" + std::to_string(ir.intArg));
   }
 
-  if (ir.hasConstantArg2) {
-    args.push_back("k" + std::to_string(ir.intArg2));
-  }
-
   stream << ir.op << "\t";
   for (const auto &arg : args)
     stream << arg << "\t";
@@ -200,9 +196,24 @@ void Trace::assignVariableName() {
 }
 
 void Trace::propagateConstants() {
+  const auto fold = [](Trace::IR &instr, const int64_t val) {
+    switch (instr.op) {
+    case Trace::IR::Opcode::AddInt:
+      instr.intArg += val;
+      break;
+    case Trace::IR::Opcode::MulInt:
+      instr.intArg *= val;
+      break;
+    default:
+      raise_error("unknown integer fold!");
+      break;
+    }
+    instr.op = Trace::IR::Opcode::LitInt;
+  };
+
   enum class WhichRef { Ref1, Ref2 };
-  const auto useConstant = [](Trace::IR &instr, const WhichRef whichRef,
-                              const int64_t val) {
+  const auto useConstant = [&fold](Trace::IR &instr, const WhichRef whichRef,
+                                   const int64_t val) {
     if (whichRef == WhichRef::Ref1) {
       instr.hasRef1 = false;
       instr.ref1 = 0;
@@ -215,9 +226,7 @@ void Trace::propagateConstants() {
       instr.hasConstantArg1 = true;
       instr.intArg = val;
     } else {
-      // TODO, consider folding the constant here, instead of storing two
-      instr.hasConstantArg2 = true;
-      instr.intArg2 = val;
+      fold(instr, val);
     }
   };
 
