@@ -69,21 +69,27 @@ std::ostream &operator<<(std::ostream &stream, const Trace::IR::Opcode op) {
 }
 
 std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
-  stream << ir.op << "\t";
-
+  std::vector<std::string> args;
   if (ir.hasRef1) {
-    stream << ir.ref1;
+    args.push_back(std::to_string(ir.ref1));
   }
   if (ir.hasRef2) {
     if (!ir.hasRef2) {
       raise_error("if only one ref, should use first");
     }
-    stream << "\t" << ir.ref2;
+    args.push_back(std::to_string(ir.ref2));
   }
   if (ir.hasConstantArg) {
-    stream << "\tk" << ir.intArg;
+    args.push_back("k" + std::to_string(ir.intArg));
   }
 
+  if (ir.hasConstantArg2) {
+    args.push_back("k" + std::to_string(ir.intArg2));
+  }
+
+  stream << ir.op << "\t";
+  for (const auto &arg : args)
+    stream << arg << "\t";
   return stream;
 }
 
@@ -205,8 +211,13 @@ void Trace::propagateConstants() {
       instr.ref2 = 0;
     }
 
-    instr.hasConstantArg = true;
-    instr.intArg = val;
+    if (!instr.hasConstantArg) {
+      instr.hasConstantArg = true;
+      instr.intArg = val;
+    } else {
+      instr.hasConstantArg2 = true;
+      instr.intArg2 = val;
+    }
   };
 
   std::vector<Trace::IR *> worklist;
