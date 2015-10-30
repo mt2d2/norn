@@ -190,9 +190,8 @@ void Trace::convertBytecodeToIR() {
 
 void Trace::assignVariableName() {
   std::size_t i = 1;
-  for (Trace::IR &instr : instructions) {
-    instr.variableName = i++;
-  }
+  std::for_each(std::begin(instructions), std::end(instructions),
+                [&i](Trace::IR &instr) { instr.variableName = i++; });
 }
 
 void Trace::propagateConstants() {
