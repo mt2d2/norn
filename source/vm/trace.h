@@ -28,6 +28,7 @@ public:
     COMPLETE,
   };
 
+  // Todo move to its own file set
   struct IR {
     enum class Opcode {
       LitInt,
