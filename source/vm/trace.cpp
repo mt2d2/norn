@@ -215,6 +215,7 @@ void Trace::propagateConstants() {
       instr.hasConstantArg1 = true;
       instr.intArg = val;
     } else {
+      // TODO, consider folding the constant here, instead of storing two
       instr.hasConstantArg2 = true;
       instr.intArg2 = val;
     }
