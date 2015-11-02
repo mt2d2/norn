@@ -25,15 +25,9 @@ struct IR {
 
   std::size_t variableName;
 
-  IR(const Opcode op, const int64_t arg)
-      : op(op), ref1(0), ref2(0), intArg(arg), hasConstantArg1(true),
-        hasRef1(false), hasRef2(false), variableName(0) {}
-  IR(const Opcode op, const std::size_t ref1)
-      : op(op), ref1(ref1), ref2(0), intArg(0), hasConstantArg1(false),
-        hasRef1(true), hasRef2(false), variableName(0) {}
-  IR(const Opcode op, const std::size_t ref1, const std::size_t ref2)
-      : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg1(false),
-        hasRef1(true), hasRef2(true), variableName(0) {}
+  IR(const Opcode op, const int64_t arg);
+  IR(const Opcode op, const std::size_t ref1);
+  IR(const Opcode op, const std::size_t ref1, const std::size_t ref2);
 
   bool yieldsConstant() const;
   bool isJump() const;
