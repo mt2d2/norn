@@ -139,7 +139,9 @@ void Trace::convertBytecodeToIR() {
     } break;
 
     case ADD_INT:
+    case SUB_INT:
     case MUL_INT:
+    case DIV_INT:
     case LE_INT: {
       const auto ir1 = frame.stack.top();
       frame.stack.pop();
@@ -148,7 +150,9 @@ void Trace::convertBytecodeToIR() {
 
       static const std::map<Opcode, Trace::IR::Opcode> bytecodeToIR{
           {ADD_INT, Trace::IR::Opcode::AddInt},
+          {SUB_INT, Trace::IR::Opcode::SubInt},
           {MUL_INT, Trace::IR::Opcode::MulInt},
+          {DIV_INT, Trace::IR::Opcode::SubInt},
           {LE_INT, Trace::IR::Opcode::LeInt}};
       const auto irOp = bytecodeToIR.find(static_cast<Opcode>(instr->op));
       if (irOp == bytecodeToIR.end())
