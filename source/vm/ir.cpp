@@ -10,7 +10,8 @@ std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
   static const std::map<IR::Opcode, std::string> opcodeToString{
       {IR::Opcode::LitInt, "LitInt"},     {IR::Opcode::LoadInt, "LoadInt"},
       {IR::Opcode::StoreInt, "StoreInt"}, {IR::Opcode::LeInt, "LeInt"},
-      {IR::Opcode::AddInt, "AddInt"},     {IR::Opcode::MulInt, "MulInt"},
+      {IR::Opcode::AddInt, "AddInt"},     {IR::Opcode::SubInt, "SubInt"},
+      {IR::Opcode::MulInt, "MulInt"},     {IR::Opcode::DivInt, "DivInt"},
       {IR::Opcode::Fjmp, "Fjmp"},         {IR::Opcode::Ujmp, "Ujmp"}};
 
   try {
