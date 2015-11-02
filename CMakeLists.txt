@@ -23,6 +23,7 @@ set(vm_src
   source/vm/optimizer.cpp
   source/vm/memory.cpp
   source/vm/machine.cpp
+  source/vm/ir.cpp
   source/vm/trace.cpp)
 add_executable(norn ${vm_src} ${lang_src})
 set_property(TARGET norn PROPERTY CXX_STANDARD 11)

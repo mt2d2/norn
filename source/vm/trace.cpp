@@ -50,45 +50,6 @@ bool Trace::is_head(const Instruction *i) const {
   return bytecode.size() > 0 && i == bytecode[0];
 }
 
-std::ostream &operator<<(std::ostream &stream, const Trace::IR::Opcode op) {
-  static const std::map<Trace::IR::Opcode, std::string> opcodeToString{
-      {Trace::IR::Opcode::LitInt, "LitInt"},
-      {Trace::IR::Opcode::LoadInt, "LoadInt"},
-      {Trace::IR::Opcode::StoreInt, "StoreInt"},
-      {Trace::IR::Opcode::LeInt, "LeInt"},
-      {Trace::IR::Opcode::AddInt, "AddInt"},
-      {Trace::IR::Opcode::MulInt, "MulInt"},
-      {Trace::IR::Opcode::Fjmp, "Fjmp"},
-      {Trace::IR::Opcode::Ujmp, "Ujmp"}};
-
-  try {
-    return stream << opcodeToString.at(op);
-  } catch (const std::out_of_range &err) {
-    return stream << "??";
-  }
-}
-
-std::ostream &operator<<(std::ostream &stream, const Trace::IR &ir) {
-  std::vector<std::string> args;
-  if (ir.hasRef1) {
-    args.push_back(std::to_string(ir.ref1));
-  }
-  if (ir.hasRef2) {
-    if (!ir.hasRef2) {
-      raise_error("if only one ref, should use first");
-    }
-    args.push_back(std::to_string(ir.ref2));
-  }
-  if (ir.hasConstantArg1) {
-    args.push_back("k" + std::to_string(ir.intArg));
-  }
-
-  stream << ir.variableName << " <- " << ir.op << "\t";
-  std::copy(std::begin(args), std::end(args),
-            std::ostream_iterator<std::string>(stream, "\t"));
-  return stream;
-}
-
 void Trace::debug() const {
   std::cout << "Bytecode: " << std::endl;
   for (const auto *i : bytecode) {
@@ -115,16 +76,14 @@ void Trace::convertBytecodeToIR() {
   for (const auto *instr : bytecode) {
     switch (instr->op) {
     case LIT_INT: {
-      instructions.emplace_back(
-          Trace::IR(Trace::IR::Opcode::LitInt, instr->arg.l));
+      instructions.emplace_back(IR(IR::Opcode::LitInt, instr->arg.l));
       frame.stack.push(instructions.size());
     } break;
 
     case LOAD_INT: {
       const auto ir = frame.memory.find(instr->arg.l);
       if (ir == frame.memory.end()) {
-        instructions.emplace_back(
-            Trace::IR(Trace::IR::Opcode::LoadInt, instr->arg.l));
+        instructions.emplace_back(IR(IR::Opcode::LoadInt, instr->arg.l));
         frame.stack.push(instructions.size());
       } else {
         frame.stack.push(ir->second);
@@ -135,7 +94,7 @@ void Trace::convertBytecodeToIR() {
       const auto ir = frame.stack.top();
       frame.stack.pop();
       frame.memory[instr->arg.l] = ir;
-      instructions.emplace_back(Trace::IR(Trace::IR::Opcode::StoreInt, ir));
+      instructions.emplace_back(IR(IR::Opcode::StoreInt, ir));
     } break;
 
     case ADD_INT:
@@ -148,17 +107,17 @@ void Trace::convertBytecodeToIR() {
       const auto ir2 = frame.stack.top();
       frame.stack.pop();
 
-      static const std::map<Opcode, Trace::IR::Opcode> bytecodeToIR{
-          {ADD_INT, Trace::IR::Opcode::AddInt},
-          {SUB_INT, Trace::IR::Opcode::SubInt},
-          {MUL_INT, Trace::IR::Opcode::MulInt},
-          {DIV_INT, Trace::IR::Opcode::SubInt},
-          {LE_INT, Trace::IR::Opcode::LeInt}};
+      static const std::map<Opcode, IR::Opcode> bytecodeToIR{
+          {ADD_INT, IR::Opcode::AddInt},
+          {SUB_INT, IR::Opcode::SubInt},
+          {MUL_INT, IR::Opcode::MulInt},
+          {DIV_INT, IR::Opcode::SubInt},
+          {LE_INT, IR::Opcode::LeInt}};
       const auto irOp = bytecodeToIR.find(static_cast<Opcode>(instr->op));
       if (irOp == bytecodeToIR.end())
         raise_error("unknown conversion from bytecode binop to ir binop");
 
-      instructions.emplace_back(Trace::IR(irOp->second, ir1, ir2));
+      instructions.emplace_back(IR(irOp->second, ir1, ir2));
       frame.stack.push(instructions.size());
     } break;
 
@@ -166,13 +125,13 @@ void Trace::convertBytecodeToIR() {
       const auto ir1 = frame.stack.top();
       frame.stack.pop();
 
-      instructions.emplace_back(Trace::IR(Trace::IR::Opcode::Fjmp,
-                                          ir1)); /* TODO, add jump location */
+      instructions.emplace_back(
+          IR(IR::Opcode::Fjmp, ir1)); /* TODO, add jump location */
     } break;
     case UJMP: {
       instructions.emplace_back(
-          Trace::IR(Trace::IR::Opcode::Ujmp,
-                    instr->arg.l)); /*todo figure out actual jump position */
+          IR(IR::Opcode::Ujmp,
+             instr->arg.l)); /*todo figure out actual jump position */
     } break;
 
     case CALL: {
@@ -195,33 +154,33 @@ void Trace::convertBytecodeToIR() {
 void Trace::assignVariableName() {
   std::size_t i = 1;
   std::for_each(std::begin(instructions), std::end(instructions),
-                [&i](Trace::IR &instr) { instr.variableName = i++; });
+                [&i](IR &instr) { instr.variableName = i++; });
 }
 
 void Trace::propagateConstants() {
-  const auto fold = [](Trace::IR &instr, const int64_t val) {
+  const auto fold = [](IR &instr, const int64_t val) {
     switch (instr.op) {
-    case Trace::IR::Opcode::AddInt:
+    case IR::Opcode::AddInt:
       instr.intArg += val;
       break;
-    case Trace::IR::Opcode::SubInt:
+    case IR::Opcode::SubInt:
       instr.intArg -= val;
       break;
-    case Trace::IR::Opcode::MulInt:
+    case IR::Opcode::MulInt:
       instr.intArg *= val;
       break;
-    case Trace::IR::Opcode::DivInt:
+    case IR::Opcode::DivInt:
       instr.intArg /= val;
       break;
     default:
       raise_error("unknown integer fold!");
       break;
     }
-    instr.op = Trace::IR::Opcode::LitInt;
+    instr.op = IR::Opcode::LitInt;
   };
 
   enum class WhichRef { Ref1, Ref2 };
-  const auto useConstant = [&fold](Trace::IR &instr, const WhichRef whichRef,
+  const auto useConstant = [&fold](IR &instr, const WhichRef whichRef,
                                    const int64_t val) {
     if (whichRef == WhichRef::Ref1) {
       instr.hasRef1 = false;
@@ -239,7 +198,7 @@ void Trace::propagateConstants() {
     }
   };
 
-  std::vector<Trace::IR *> worklist;
+  std::vector<IR *> worklist;
   for (auto &instr : instructions)
     worklist.push_back(&instr);
 
