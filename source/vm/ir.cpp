@@ -6,6 +6,14 @@
 #include "ir.h"
 #include "common.h"
 
+bool IR::yieldsConstant() const { return op == Opcode::LitInt; }
+
+bool IR::isJump() const { return op == Opcode::Fjmp || op == Opcode::Ujmp; }
+
+bool IR::hasSideEffect() const {
+  return op == Opcode::StoreInt || op == Opcode::LoadInt || this->isJump();
+}
+
 std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
   static const std::map<IR::Opcode, std::string> opcodeToString{
       {IR::Opcode::LitInt, "LitInt"},     {IR::Opcode::LoadInt, "LoadInt"},

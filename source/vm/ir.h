@@ -35,11 +35,9 @@ struct IR {
       : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg1(false),
         hasRef1(true), hasRef2(true), variableName(0) {}
 
-  bool yieldsConstant() const { return op == Opcode::LitInt; }
-  bool isJump() const { return op == Opcode::Fjmp || op == Opcode::Ujmp; }
-  bool hasSideEffect() const {
-    return op == Opcode::StoreInt || op == Opcode::LoadInt || this->isJump();
-  }
+  bool yieldsConstant() const;
+  bool isJump() const;
+  bool hasSideEffect() const;
 };
 
 std::ostream &operator<<(std::ostream &stream, const IR::Opcode op);
