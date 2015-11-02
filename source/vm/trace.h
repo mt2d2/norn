@@ -36,7 +36,9 @@ public:
       StoreInt,
       LeInt,
       AddInt,
+      SubInt,
       MulInt,
+      DivInt,
       Fjmp,
       Ujmp
     };

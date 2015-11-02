@@ -200,8 +200,14 @@ void Trace::propagateConstants() {
     case Trace::IR::Opcode::AddInt:
       instr.intArg += val;
       break;
+    case Trace::IR::Opcode::SubInt:
+      instr.intArg -= val;
+      break;
     case Trace::IR::Opcode::MulInt:
       instr.intArg *= val;
+      break;
+    case Trace::IR::Opcode::DivInt:
+      instr.intArg /= val;
       break;
     default:
       raise_error("unknown integer fold!");
