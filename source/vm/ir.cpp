@@ -1,4 +1,5 @@
 #include <map>
+#include <iomanip>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -50,7 +51,8 @@ std::ostream &operator<<(std::ostream &stream, const IR &ir) {
     args.push_back("k" + std::to_string(ir.intArg));
   }
 
-  stream << ir.variableName << " <- " << ir.op << "\t";
+  stream << std::left << std::setw(3) << ir.variableName << "<- " << ir.op
+         << "\t";
   std::copy(std::begin(args), std::end(args),
             std::ostream_iterator<std::string>(stream, "\t"));
   return stream;
