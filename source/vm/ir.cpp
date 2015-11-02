@@ -4,7 +4,6 @@
 #include <vector>
 
 #include "ir.h"
-#include "common.h"
 
 IR::IR(const Opcode op, const int64_t arg)
     : op(op), ref1(0), ref2(0), intArg(arg), hasConstantArg1(true),
@@ -45,9 +44,6 @@ std::ostream &operator<<(std::ostream &stream, const IR &ir) {
     args.push_back(std::to_string(ir.ref1));
   }
   if (ir.hasRef2) {
-    if (!ir.hasRef2) {
-      raise_error("if only one ref, should use first");
-    }
     args.push_back(std::to_string(ir.ref2));
   }
   if (ir.hasConstantArg1) {
