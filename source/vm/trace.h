@@ -45,7 +45,7 @@ private:
   void convertBytecodeToIR();
   void assignVariableName();
   void propagateConstants();
-  void deadCodeElimination();
+  void eliminateDeadCode();
   void jit(const bool debug);
   void identify_trace_exits();
   void identify_trace_calls();

@@ -221,7 +221,7 @@ void Trace::propagateConstants() {
   }
 }
 
-void Trace::deadCodeElimination() {
+void Trace::eliminateDeadCode() {
   std::unordered_set<std::size_t> seenRefs;
   seenRefs.insert(instructions.back().variableName);
 
@@ -244,7 +244,7 @@ void Trace::compile(const bool debug) {
   convertBytecodeToIR();
   assignVariableName();
   propagateConstants();
-  deadCodeElimination();
+  eliminateDeadCode();
 }
 
 nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
