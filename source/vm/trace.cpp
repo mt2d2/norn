@@ -103,9 +103,9 @@ void Trace::convertBytecodeToIR() {
     case MUL_INT:
     case DIV_INT:
     case LE_INT: {
-      const auto ir1 = frame.stack.top();
+      auto *ir1 = frame.stack.top();
       frame.stack.pop();
-      const auto ir2 = frame.stack.top();
+      auto *ir2 = frame.stack.top();
       frame.stack.pop();
 
       static const std::map<Opcode, IR::Opcode> bytecodeToIR{
@@ -123,7 +123,7 @@ void Trace::convertBytecodeToIR() {
     } break;
 
     case FJMP: {
-      const auto ir1 = frame.stack.top();
+      auto *ir1 = frame.stack.top();
       frame.stack.pop();
 
       instructions.emplace_back(
