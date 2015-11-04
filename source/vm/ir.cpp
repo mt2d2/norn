@@ -7,6 +7,9 @@
 
 #include "ir.h"
 
+IR::IR(const Opcode op)
+    : op(op), ref1(nullptr), ref2(nullptr), intArg(0), hasConstantArg1(false),
+      variableName(0), deadCode(false) {}
 IR::IR(const Opcode op, const int64_t arg)
     : op(op), ref1(nullptr), ref2(nullptr), intArg(arg), hasConstantArg1(true),
       variableName(0), deadCode(false) {}
@@ -24,8 +27,18 @@ bool IR::yieldsConstant() const { return op == Opcode::LitInt; }
 
 bool IR::isJump() const { return op == Opcode::Fjmp || op == Opcode::Ujmp; }
 
+bool IR::isLoad() const { return op == Opcode::LoadInt; }
+
 bool IR::hasSideEffect() const {
-  return op == Opcode::StoreInt || op == Opcode::LoadInt || this->isJump();
+  return op == Opcode::StoreInt || op == Opcode::Loop || isLoad() || isJump();
+}
+
+void IR::clear() {
+  op = IR::Opcode::Nop;
+  ref1 = nullptr;
+  ref2 = nullptr;
+  intArg = 0;
+  hasConstantArg1 = 0;
 }
 
 std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
@@ -34,7 +47,8 @@ std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
       {IR::Opcode::StoreInt, "StoreInt"}, {IR::Opcode::LeInt, "LeInt"},
       {IR::Opcode::AddInt, "AddInt"},     {IR::Opcode::SubInt, "SubInt"},
       {IR::Opcode::MulInt, "MulInt"},     {IR::Opcode::DivInt, "DivInt"},
-      {IR::Opcode::Fjmp, "Fjmp"},         {IR::Opcode::Ujmp, "Ujmp"}};
+      {IR::Opcode::Fjmp, "Fjmp"},         {IR::Opcode::Ujmp, "Ujmp"},
+      {IR::Opcode::Loop, "Loop"},         {IR::Opcode::Nop, "Nop"}};
 
   try {
     return stream << opcodeToString.at(op);

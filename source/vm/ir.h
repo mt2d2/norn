@@ -12,7 +12,9 @@ struct IR {
     MulInt,
     DivInt,
     Fjmp,
-    Ujmp
+    Ujmp,
+    Loop,
+    Nop,
   };
 
   Opcode op;
@@ -23,16 +25,20 @@ struct IR {
   std::size_t variableName;
   bool deadCode;
 
-  IR(const Opcode op, const int64_t arg);
-  IR(const Opcode op, IR *ref1);
-  IR(const Opcode op, IR *ref1, IR *ref2);
+  explicit IR(const Opcode op);
+  explicit IR(const Opcode op, const int64_t arg);
+  explicit IR(const Opcode op, IR *ref1);
+  explicit IR(const Opcode op, IR *ref1, IR *ref2);
 
   bool hasRef1() const;
   bool hasRef2() const;
 
   bool yieldsConstant() const;
   bool isJump() const;
+  bool isLoad() const;
   bool hasSideEffect() const;
+
+  void clear();
 };
 
 std::ostream &operator<<(std::ostream &stream, const IR::Opcode op);

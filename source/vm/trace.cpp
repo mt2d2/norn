@@ -92,7 +92,7 @@ void Trace::convertBytecodeToIR() {
     } break;
 
     case STORE_INT: {
-      const auto ir = frame.stack.top();
+      auto *ir = frame.stack.top();
       frame.stack.pop();
       frame.memory[instr->arg.l] = ir;
       instructions.emplace_back(IR(IR::Opcode::StoreInt, ir));
@@ -158,6 +158,8 @@ void Trace::assignVariableName() {
                 [&i](IR &instr) { instr.variableName = i++; });
 }
 
+enum class WhichRef { Ref1, Ref2 };
+
 void Trace::propagateConstants() {
   const auto fold = [](IR &instr, const int64_t val) {
     switch (instr.op) {
@@ -180,7 +182,6 @@ void Trace::propagateConstants() {
     instr.op = IR::Opcode::LitInt;
   };
 
-  enum class WhichRef { Ref1, Ref2 };
   const auto useConstant = [&fold](IR &instr, const WhichRef whichRef,
                                    const int64_t val) {
     if (whichRef == WhichRef::Ref1) {
@@ -239,10 +240,41 @@ void Trace::eliminateDeadCode() {
   }
 }
 
+void Trace::hoistLoads() {
+  const auto reassignRef = [](IR &instr, WhichRef whichRef, IR *n) {
+    if (whichRef == WhichRef::Ref1)
+      instr.ref1 = n;
+    else
+      instr.ref2 = n;
+  };
+
+  const auto replaceRefs = [this, &reassignRef](IR *o, IR *n) {
+    std::for_each(std::begin(instructions), std::end(instructions),
+                  [=](IR &instr) {
+                    if (instr.ref1 == o)
+                      reassignRef(instr, WhichRef::Ref1, n);
+                    if (instr.ref2 == o)
+                      reassignRef(instr, WhichRef::Ref2, n);
+                  });
+  };
+
+  instructions.emplace_front(IR(IR::Opcode::Loop));
+  for (auto &instr : instructions) {
+    if (instr.isLoad()) {
+      instructions.push_front(instr);
+      replaceRefs(&instr, &instructions.front());
+      instr.clear();
+    }
+  }
+
+  // TODO: insert phis!
+}
+
 void Trace::compile(const bool debug) {
   convertBytecodeToIR();
   assignVariableName();
   propagateConstants();
+  // hoistLoads();
   eliminateDeadCode();
 }
 
