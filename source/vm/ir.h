@@ -18,10 +18,7 @@ struct IR {
   Opcode op;
   IR *ref1, *ref2;
   int64_t intArg;
-
   bool hasConstantArg1;
-  bool hasRef1;
-  bool hasRef2;
 
   std::size_t variableName;
   bool deadCode;
@@ -29,6 +26,9 @@ struct IR {
   IR(const Opcode op, const int64_t arg);
   IR(const Opcode op, IR *ref1);
   IR(const Opcode op, IR *ref1, IR *ref2);
+
+  bool hasRef1() const;
+  bool hasRef2() const;
 
   bool yieldsConstant() const;
   bool isJump() const;

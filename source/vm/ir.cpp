@@ -8,14 +8,17 @@
 #include "ir.h"
 
 IR::IR(const Opcode op, const int64_t arg)
-    : op(op), ref1(0), ref2(0), intArg(arg), hasConstantArg1(true),
-      hasRef1(false), hasRef2(false), variableName(0), deadCode(false) {}
+    : op(op), ref1(nullptr), ref2(nullptr), intArg(arg), hasConstantArg1(true),
+      variableName(0), deadCode(false) {}
 IR::IR(const Opcode op, IR *ref1)
-    : op(op), ref1(ref1), ref2(0), intArg(0), hasConstantArg1(false),
-      hasRef1(true), hasRef2(false), variableName(0), deadCode(false) {}
+    : op(op), ref1(ref1), ref2(nullptr), intArg(0), hasConstantArg1(false),
+      variableName(0), deadCode(false) {}
 IR::IR(const Opcode op, IR *ref1, IR *ref2)
     : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg1(false),
-      hasRef1(true), hasRef2(true), variableName(0), deadCode(false) {}
+      variableName(0), deadCode(false) {}
+
+bool IR::hasRef1() const { return ref1 != nullptr; }
+bool IR::hasRef2() const { return ref2 != nullptr; }
 
 bool IR::yieldsConstant() const { return op == Opcode::LitInt; }
 
@@ -42,10 +45,10 @@ std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
 
 std::ostream &operator<<(std::ostream &stream, const IR &ir) {
   std::vector<std::string> args;
-  if (ir.hasRef1) {
+  if (ir.hasRef1()) {
     args.push_back(std::to_string(ir.ref1->variableName));
   }
-  if (ir.hasRef2) {
+  if (ir.hasRef2()) {
     args.push_back(std::to_string(ir.ref2->variableName));
   }
   if (ir.hasConstantArg1) {

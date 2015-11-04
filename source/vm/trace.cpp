@@ -184,11 +184,9 @@ void Trace::propagateConstants() {
   const auto useConstant = [&fold](IR &instr, const WhichRef whichRef,
                                    const int64_t val) {
     if (whichRef == WhichRef::Ref1) {
-      instr.hasRef1 = false;
-      instr.ref1 = 0;
+      instr.ref1 = nullptr;
     } else {
-      instr.hasRef2 = false;
-      instr.ref2 = 0;
+      instr.ref2 = nullptr;
     }
 
     if (!instr.hasConstantArg1) {
@@ -210,11 +208,11 @@ void Trace::propagateConstants() {
     if (stmt->yieldsConstant()) // TODO, yieldsConstant should consider bin ops
                                 // with only constant operations {
       for (auto &instr : instructions) {
-        if (instr.hasRef1 && instr.ref1->variableName == stmt->variableName) {
+        if (instr.hasRef1() && instr.ref1->variableName == stmt->variableName) {
           useConstant(instr, WhichRef::Ref1, stmt->intArg);
           worklist.push_back(&instr);
         }
-        if (instr.hasRef2 && instr.ref2->variableName == stmt->variableName) {
+        if (instr.hasRef2() && instr.ref2->variableName == stmt->variableName) {
           useConstant(instr, WhichRef::Ref2, stmt->intArg);
           worklist.push_back(&instr);
         }
@@ -231,10 +229,10 @@ void Trace::eliminateDeadCode() {
     if (seenRefs.count(&instr) != 1 && !instr.hasSideEffect()) {
       instr.deadCode = true;
     } else {
-      if (instr.hasRef1) {
+      if (instr.hasRef1()) {
         seenRefs.insert(instr.ref1);
       }
-      if (instr.hasRef2) {
+      if (instr.hasRef2()) {
         seenRefs.insert(instr.ref2);
       }
     }
