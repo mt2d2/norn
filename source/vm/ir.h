@@ -15,6 +15,7 @@ struct IR {
     Ujmp,
     Loop,
     Nop,
+    Phi
   };
 
   Opcode op;
