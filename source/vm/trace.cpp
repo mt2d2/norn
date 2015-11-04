@@ -205,8 +205,7 @@ void Trace::propagateConstants() {
     const auto *stmt = worklist.back();
     worklist.pop_back();
 
-    if (stmt->yieldsConstant()) // TODO, yieldsConstant should consider bin ops
-                                // with only constant operations {
+    if (stmt->yieldsConstant()) {
       for (auto &instr : instructions) {
         if (instr.hasRef1() && instr.ref1->variableName == stmt->variableName) {
           useConstant(instr, WhichRef::Ref1, stmt->intArg);
@@ -217,6 +216,7 @@ void Trace::propagateConstants() {
           worklist.push_back(&instr);
         }
       }
+    }
   }
 }
 
