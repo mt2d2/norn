@@ -17,7 +17,7 @@
 Trace::Trace()
     : last_state(Trace::State::ABORT),
       bytecode(std::vector<const Instruction *>()),
-      instructions(std::vector<IR>()), traceExits(std::vector<uint64_t>()),
+      instructions(std::deque<IR>()), traceExits(std::vector<uint64_t>()),
       calls(std::map<const Block *, unsigned int>()), nativePtr(nullptr) {}
 
 Trace::~Trace() {
@@ -59,13 +59,14 @@ void Trace::debug() const {
   std::cout << "IR: " << std::endl;
   std::size_t i = 1;
   for (const auto &ir : instructions) {
-    std::cout << ir << std::endl;
+    if (!ir.deadCode)
+      std::cout << ir << std::endl;
   }
 }
 
 struct Frame {
-  std::stack<std::size_t> stack;
-  std::map<int64_t, std::size_t> memory;
+  std::stack<IR *> stack;
+  std::map<int64_t, IR *> memory;
 };
 
 void Trace::convertBytecodeToIR() {
@@ -77,14 +78,14 @@ void Trace::convertBytecodeToIR() {
     switch (instr->op) {
     case LIT_INT: {
       instructions.emplace_back(IR(IR::Opcode::LitInt, instr->arg.l));
-      frame.stack.push(instructions.size());
+      frame.stack.push(&instructions.back());
     } break;
 
     case LOAD_INT: {
       const auto ir = frame.memory.find(instr->arg.l);
       if (ir == frame.memory.end()) {
         instructions.emplace_back(IR(IR::Opcode::LoadInt, instr->arg.l));
-        frame.stack.push(instructions.size());
+        frame.stack.push(&instructions.back());
       } else {
         frame.stack.push(ir->second);
       }
@@ -118,7 +119,7 @@ void Trace::convertBytecodeToIR() {
         raise_error("unknown conversion from bytecode binop to ir binop");
 
       instructions.emplace_back(IR(irOp->second, ir1, ir2));
-      frame.stack.push(instructions.size());
+      frame.stack.push(&instructions.back());
     } break;
 
     case FJMP: {
@@ -209,11 +210,11 @@ void Trace::propagateConstants() {
     if (stmt->yieldsConstant()) // TODO, yieldsConstant should consider bin ops
                                 // with only constant operations {
       for (auto &instr : instructions) {
-        if (instr.hasRef1 && instr.ref1 == stmt->variableName) {
+        if (instr.hasRef1 && instr.ref1->variableName == stmt->variableName) {
           useConstant(instr, WhichRef::Ref1, stmt->intArg);
           worklist.push_back(&instr);
         }
-        if (instr.hasRef2 && instr.ref2 == stmt->variableName) {
+        if (instr.hasRef2 && instr.ref2->variableName == stmt->variableName) {
           useConstant(instr, WhichRef::Ref2, stmt->intArg);
           worklist.push_back(&instr);
         }
@@ -222,13 +223,13 @@ void Trace::propagateConstants() {
 }
 
 void Trace::eliminateDeadCode() {
-  std::unordered_set<std::size_t> seenRefs;
-  seenRefs.insert(instructions.back().variableName);
+  std::unordered_set<const IR *> seenRefs;
+  seenRefs.insert(&instructions.back());
 
   for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
-    const auto &instr = *it;
-    if (seenRefs.count(instr.variableName) != 1 && !instr.hasSideEffect()) {
-      instructions.erase(std::next(it).base());
+    auto &instr = *it;
+    if (seenRefs.count(&instr) != 1 && !instr.hasSideEffect()) {
+      instr.deadCode = true;
     } else {
       if (instr.hasRef1) {
         seenRefs.insert(instr.ref1);

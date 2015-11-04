@@ -4,6 +4,7 @@
 #if !NOJIT
 
 #include <cstdint>
+#include <deque>
 #include <map>
 #include <vector>
 
@@ -52,7 +53,7 @@ private:
 
   State last_state;
   std::vector<const Instruction *> bytecode;
-  std::vector<IR> instructions;
+  std::deque<IR> instructions;
   std::vector<uint64_t> traceExits;
   std::map<const Block *, unsigned int> calls;
   nativeTraceType nativePtr;
