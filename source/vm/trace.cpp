@@ -17,8 +17,9 @@
 Trace::Trace()
     : last_state(Trace::State::ABORT),
       bytecode(std::vector<const Instruction *>()),
-      instructions(std::deque<IR>()), traceExits(std::vector<uint64_t>()),
-      calls(std::map<const Block *, unsigned int>()), nativePtr(nullptr) {}
+      instructions(std::deque<IR>()),
+      phisFor(std::map<int64_t, std::pair<IR *, IR *>>()),
+      traceExits(std::vector<uint64_t>()), nativePtr(nullptr) {}
 
 Trace::~Trace() {
   if (nativePtr != nullptr)
@@ -95,7 +96,7 @@ void Trace::convertBytecodeToIR() {
       auto *ir = frame.stack.top();
       frame.stack.pop();
       frame.memory[instr->arg.l] = ir;
-      instructions.emplace_back(IR(IR::Opcode::StoreInt, ir));
+      instructions.emplace_back(IR(IR::Opcode::StoreInt, ir, instr->arg.l));
     } break;
 
     case ADD_INT:
@@ -221,7 +222,8 @@ void Trace::eliminateDeadCode() {
 
   for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
     auto &instr = *it;
-    if (seenRefs.count(&instr) != 1 && !instr.hasSideEffect()) {
+    if (seenRefs.count(&instr) != 1 && !instr.hasSideEffect() &&
+        !instr.hasPhiRef()) {
       instr.deadCode = true;
     } else {
       if (instr.hasRef1()) {
@@ -236,15 +238,17 @@ void Trace::eliminateDeadCode() {
 
 void Trace::hoistLoads() {
   const auto reassignRef = [](IR &instr, WhichRef whichRef, IR *n) {
-    if (whichRef == WhichRef::Ref1)
-      instr.ref1 = n;
-    else
-      instr.ref2 = n;
+    if (!instr.isPhi()) {
+      if (whichRef == WhichRef::Ref1)
+        instr.ref1 = n;
+      else
+        instr.ref2 = n;
+    }
   };
 
   const auto replaceRefs = [this, &reassignRef](IR *o, IR *n) {
     std::for_each(std::begin(instructions), std::end(instructions),
-                  [=](IR &instr) {
+                  [this, &reassignRef, &o, &n](IR &instr) {
                     if (instr.ref1 == o)
                       reassignRef(instr, WhichRef::Ref1, n);
                     if (instr.ref2 == o)
@@ -252,38 +256,71 @@ void Trace::hoistLoads() {
                   });
   };
 
-  // std::unordered_set<> phisFor;
   for (auto &instr : instructions) {
     if (instr.isLoad()) {
-      instructions.emplace_front(IR(IR::Opcode::Phi));
-      replaceRefs(&instr, &instructions.front());
+      const auto it = phisFor.find(instr.intArg);
+      if (it == phisFor.end()) {
+        instructions.emplace_front(IR(IR::Opcode::Phi, &instr));
+        phisFor[instr.intArg] = std::make_pair(&instr, &instructions.front());
+        replaceRefs(&instr, &instructions.front());
+      } else {
+        auto *load = it->second.first;
+        auto *phi = it->second.second;
+        if (phi->hasRef2())
+          raise_error("need more than two slots for phi");
+        replaceRefs(&instr, phi);
+        instr.clear();
+      }
     }
   }
 
   instructions.emplace_front(IR(IR::Opcode::Loop));
-  for (auto &instr : instructions) {
-    if (instr.isLoad()) {
-      instructions.push_front(instr);
-      replaceRefs(&instr, &instructions.front());
+  for (auto pair : phisFor) {
+    auto *load = pair.second.first;
+    auto *phi = pair.second.second;
+    instructions.push_front(*load);
+    replaceRefs(load, &instructions.front());
+    load->clear();
+  }
+}
+
+void Trace::sinkStores() {
+  std::vector<IR> instructionsToAdd;
+  for (auto it = std::begin(instructions); it != std::end(instructions); ++it) {
+    auto &instr = *it;
+    if (instr.isStore()) {
+      auto &prevInstr = *(it - 1);
+
+      const auto phiRecord = phisFor.find(instr.intArg);
+      if (phiRecord == phisFor.end())
+        raise_error("couldn't find phi record for store");
+
+      auto *phi = phiRecord->second.second;
+      if (phi->hasRef2())
+        raise_error("phis can only have two refs");
+      phi->ref2 = &prevInstr;
+
+      instructionsToAdd.emplace_back(
+          IR(IR::Opcode::StoreInt, phi, instr.intArg));
       instr.clear();
     }
   }
+
+  instructions.insert(std::end(instructions), std::begin(instructionsToAdd),
+                      std::end(instructionsToAdd));
 }
 
 void Trace::compile(const bool debug) {
   convertBytecodeToIR();
   propagateConstants();
   hoistLoads();
+  sinkStores();
   eliminateDeadCode();
 }
 
 nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 
 uint64_t Trace::get_trace_exit(int offset) const { return traceExits[offset]; }
-
-std::map<const Block *, unsigned int> Trace::get_trace_calls() const {
-  return calls;
-}
 
 void Trace::identify_trace_exits() {
   unsigned int bytecodePosition = 0;

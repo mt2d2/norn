@@ -18,6 +18,9 @@ IR::IR(const Opcode op, const int64_t arg)
 IR::IR(const Opcode op, IR *ref1)
     : op(op), ref1(ref1), ref2(nullptr), intArg(0), hasConstantArg1(false),
       variableName(variableNameGen++), deadCode(false) {}
+IR::IR(const Opcode op, IR *ref1, int64_t intArg)
+    : op(op), ref1(ref1), ref2(nullptr), intArg(intArg), hasConstantArg1(true),
+      variableName(variableNameGen++), deadCode(false) {}
 IR::IR(const Opcode op, IR *ref1, IR *ref2)
     : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg1(false),
       variableName(variableNameGen++), deadCode(false) {}
@@ -31,8 +34,22 @@ bool IR::isJump() const { return op == Opcode::Fjmp || op == Opcode::Ujmp; }
 
 bool IR::isLoad() const { return op == Opcode::LoadInt; }
 
+bool IR::isStore() const { return op == Opcode::StoreInt; }
+
 bool IR::hasSideEffect() const {
-  return op == Opcode::StoreInt || op == Opcode::Loop || isLoad() || isJump();
+  return op == Opcode::Loop || isStore() || isLoad() || isJump();
+}
+
+bool IR::isPhi() const { return op == Opcode::Phi; }
+
+bool IR::hasPhiRef() const {
+  if (hasRef1())
+    if (ref1->isPhi())
+      return true;
+  if (hasRef2())
+    if (ref2->isPhi())
+      return true;
+  return false;
 }
 
 void IR::clear() {

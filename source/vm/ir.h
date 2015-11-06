@@ -31,6 +31,7 @@ struct IR {
   explicit IR(const Opcode op);
   explicit IR(const Opcode op, const int64_t arg);
   explicit IR(const Opcode op, IR *ref1);
+  explicit IR(const Opcode op, IR *ref1, int64_t arg);
   explicit IR(const Opcode op, IR *ref1, IR *ref2);
 
   bool hasRef1() const;
@@ -39,7 +40,10 @@ struct IR {
   bool yieldsConstant() const;
   bool isJump() const;
   bool isLoad() const;
+  bool isStore() const;
   bool hasSideEffect() const;
+  bool isPhi() const;
+  bool hasPhiRef() const;
 
   void clear();
 };

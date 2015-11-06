@@ -47,15 +47,16 @@ private:
   void propagateConstants();
   void eliminateDeadCode();
   void hoistLoads();
+  void sinkStores();
   void jit(const bool debug);
   void identify_trace_exits();
-  void identify_trace_calls();
 
   State last_state;
   std::vector<const Instruction *> bytecode;
   std::deque<IR> instructions;
+  // [lang_local, {load*, phi*}]
+  std::map<int64_t, std::pair<IR *, IR *>> phisFor;
   std::vector<uint64_t> traceExits;
-  std::map<const Block *, unsigned int> calls;
   nativeTraceType nativePtr;
 };
 
