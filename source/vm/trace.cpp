@@ -152,12 +152,6 @@ void Trace::convertBytecodeToIR() {
   }
 }
 
-void Trace::assignVariableName() {
-  std::size_t i = 1;
-  std::for_each(std::begin(instructions), std::end(instructions),
-                [&i](IR &instr) { instr.variableName = i++; });
-}
-
 enum class WhichRef { Ref1, Ref2 };
 
 void Trace::propagateConstants() {
@@ -258,6 +252,14 @@ void Trace::hoistLoads() {
                   });
   };
 
+  // std::unordered_set<> phisFor;
+  // for (auto &instr : instructions) {
+  //   if (instr.isLoad()) {
+  //     instructions.emplace_front(IR(IR::Opcode::Phi));
+  //     replaceRefs(&instr, &instructions.front());
+  //   }
+  // }
+
   instructions.emplace_front(IR(IR::Opcode::Loop));
   for (auto &instr : instructions) {
     if (instr.isLoad()) {
@@ -266,15 +268,12 @@ void Trace::hoistLoads() {
       instr.clear();
     }
   }
-
-  // TODO: insert phis!
 }
 
 void Trace::compile(const bool debug) {
   convertBytecodeToIR();
-  assignVariableName();
   propagateConstants();
-  // hoistLoads();
+  hoistLoads();
   eliminateDeadCode();
 }
 

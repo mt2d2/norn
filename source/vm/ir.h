@@ -2,6 +2,8 @@
 #define IR_H
 
 struct IR {
+  static unsigned int variableNameGen;
+
   enum class Opcode {
     LitInt,
     LoadInt,

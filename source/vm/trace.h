@@ -44,7 +44,6 @@ public:
 private:
   bool is_head(const Instruction *i) const;
   void convertBytecodeToIR();
-  void assignVariableName();
   void propagateConstants();
   void eliminateDeadCode();
   void hoistLoads();

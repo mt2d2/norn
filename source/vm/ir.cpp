@@ -7,18 +7,20 @@
 
 #include "ir.h"
 
+unsigned int IR::variableNameGen = 0;
+
 IR::IR(const Opcode op)
     : op(op), ref1(nullptr), ref2(nullptr), intArg(0), hasConstantArg1(false),
-      variableName(0), deadCode(false) {}
+      variableName(variableNameGen++), deadCode(false) {}
 IR::IR(const Opcode op, const int64_t arg)
     : op(op), ref1(nullptr), ref2(nullptr), intArg(arg), hasConstantArg1(true),
-      variableName(0), deadCode(false) {}
+      variableName(variableNameGen++), deadCode(false) {}
 IR::IR(const Opcode op, IR *ref1)
     : op(op), ref1(ref1), ref2(nullptr), intArg(0), hasConstantArg1(false),
-      variableName(0), deadCode(false) {}
+      variableName(variableNameGen++), deadCode(false) {}
 IR::IR(const Opcode op, IR *ref1, IR *ref2)
     : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg1(false),
-      variableName(0), deadCode(false) {}
+      variableName(variableNameGen++), deadCode(false) {}
 
 bool IR::hasRef1() const { return ref1 != nullptr; }
 bool IR::hasRef2() const { return ref2 != nullptr; }
