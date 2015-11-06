@@ -253,12 +253,12 @@ void Trace::hoistLoads() {
   };
 
   // std::unordered_set<> phisFor;
-  // for (auto &instr : instructions) {
-  //   if (instr.isLoad()) {
-  //     instructions.emplace_front(IR(IR::Opcode::Phi));
-  //     replaceRefs(&instr, &instructions.front());
-  //   }
-  // }
+  for (auto &instr : instructions) {
+    if (instr.isLoad()) {
+      instructions.emplace_front(IR(IR::Opcode::Phi));
+      replaceRefs(&instr, &instructions.front());
+    }
+  }
 
   instructions.emplace_front(IR(IR::Opcode::Loop));
   for (auto &instr : instructions) {
