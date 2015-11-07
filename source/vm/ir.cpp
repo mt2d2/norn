@@ -42,16 +42,6 @@ bool IR::hasSideEffect() const {
 
 bool IR::isPhi() const { return op == Opcode::Phi; }
 
-bool IR::hasPhiRef() const {
-  if (hasRef1())
-    if (ref1->isPhi())
-      return true;
-  if (hasRef2())
-    if (ref2->isPhi())
-      return true;
-  return false;
-}
-
 void IR::clear() {
   op = IR::Opcode::Nop;
   ref1 = nullptr;

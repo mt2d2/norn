@@ -220,10 +220,37 @@ void Trace::eliminateDeadCode() {
   std::unordered_set<const IR *> seenRefs;
   seenRefs.insert(&instructions.back());
 
+  const auto phiMergesRef = [](const IR *phi, const IR *ref) {
+    if (!phi->isPhi())
+      raise_error("must be phi!");
+    if (phi->hasRef1())
+      if (phi->ref1 == ref)
+        return true;
+    if (phi->hasRef2())
+      if (phi->ref2 == ref)
+        return true;
+    return false;
+  };
+
+  const auto anyPhiHasRef = [this, &phiMergesRef](const IR *ref) {
+    return std::any_of(
+        std::begin(phisFor), std::end(phisFor),
+        [=](const std::pair<int64_t, std::pair<IR *, IR *>> &entry) {
+          const auto *phi = entry.second.second;
+          if (phi->hasRef1() && phiMergesRef(phi, ref))
+            return true;
+          if (phi->hasRef2() && phiMergesRef(phi, ref))
+            return true;
+          return false;
+        });
+  };
+
   for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
     auto &instr = *it;
     if (seenRefs.count(&instr) != 1 && !instr.hasSideEffect() &&
-        !instr.hasPhiRef()) {
+        !anyPhiHasRef(&instr)) {
+      instr.deadCode = true;
+    } else if (instr.op == IR::Opcode::Nop) {
       instr.deadCode = true;
     } else {
       if (instr.hasRef1()) {

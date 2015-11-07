@@ -43,7 +43,6 @@ struct IR {
   bool isStore() const;
   bool hasSideEffect() const;
   bool isPhi() const;
-  bool hasPhiRef() const;
 
   void clear();
 };
