@@ -17,8 +17,7 @@
 Trace::Trace()
     : last_state(Trace::State::ABORT),
       bytecode(std::vector<const Instruction *>()),
-      instructions(std::list<IR>()),
-      phisFor(std::map<int64_t, std::pair<IR *, IR *>>()),
+      instructions(std::list<IR>()), phisFor(std::map<int64_t, LoadForPhi>()),
       traceExits(std::vector<uint64_t>()), nativePtr(nullptr) {}
 
 Trace::~Trace() {
@@ -233,16 +232,15 @@ void Trace::eliminateDeadCode() {
   };
 
   const auto anyPhiHasRef = [this, &phiMergesRef](const IR *ref) {
-    return std::any_of(
-        std::begin(phisFor), std::end(phisFor),
-        [=](const std::pair<int64_t, std::pair<IR *, IR *>> &entry) {
-          const auto *phi = entry.second.second;
-          if (phi->hasRef1() && phiMergesRef(phi, ref))
-            return true;
-          if (phi->hasRef2() && phiMergesRef(phi, ref))
-            return true;
-          return false;
-        });
+    return std::any_of(std::begin(phisFor), std::end(phisFor),
+                       [=](const std::pair<int64_t, LoadForPhi> &entry) {
+                         const auto *phi = entry.second.phi;
+                         if (phi->hasRef1() && phiMergesRef(phi, ref))
+                           return true;
+                         if (phi->hasRef2() && phiMergesRef(phi, ref))
+                           return true;
+                         return false;
+                       });
   };
 
   for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
@@ -288,11 +286,11 @@ void Trace::hoistLoads() {
       const auto it = phisFor.find(instr.intArg);
       if (it == phisFor.end()) {
         instructions.emplace_front(IR(IR::Opcode::Phi, &instr));
-        phisFor[instr.intArg] = std::make_pair(&instr, &instructions.front());
+        phisFor[instr.intArg] = LoadForPhi{&instr, &instructions.front()};
         replaceRefs(&instr, &instructions.front());
       } else {
-        auto *load = it->second.first;
-        auto *phi = it->second.second;
+        auto *load = it->second.load;
+        auto *phi = it->second.phi;
         if (phi->hasRef2())
           raise_error("need more than two slots for phi");
         replaceRefs(&instr, phi);
@@ -303,8 +301,8 @@ void Trace::hoistLoads() {
 
   instructions.emplace_front(IR(IR::Opcode::Loop));
   for (auto pair : phisFor) {
-    auto *load = pair.second.first;
-    auto *phi = pair.second.second;
+    auto *load = pair.second.load;
+    auto *phi = pair.second.phi;
     instructions.push_front(*load);
     replaceRefs(load, &instructions.front());
     load->clear();
@@ -322,7 +320,7 @@ void Trace::sinkStores() {
       if (phiRecord == phisFor.end())
         raise_error("couldn't find phi record for store");
 
-      auto *phi = phiRecord->second.second;
+      auto *phi = phiRecord->second.phi;
       if (phi->hasRef2())
         raise_error("phis can only have two refs");
       phi->ref2 = &prevInstr;

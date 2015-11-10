@@ -54,8 +54,10 @@ private:
   State last_state;
   std::vector<const Instruction *> bytecode;
   std::list<IR> instructions;
-  // [lang_local, {load*, phi*}]
-  std::map<int64_t, std::pair<IR *, IR *>> phisFor;
+  struct LoadForPhi {
+    IR *load, *phi;
+  };
+  std::map<int64_t, LoadForPhi> phisFor;
   std::vector<uint64_t> traceExits;
   nativeTraceType nativePtr;
 };
