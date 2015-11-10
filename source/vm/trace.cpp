@@ -297,7 +297,6 @@ void Trace::hoistLoads() {
   instructions.emplace_front(IR(IR::Opcode::Loop));
   for (auto pair : phisFor) {
     auto *load = pair.second.load;
-    auto *phi = pair.second.phi;
     instructions.push_front(*load);
     replaceRefs(load, &instructions.front());
     load->clear();
