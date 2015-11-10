@@ -138,10 +138,7 @@ void Trace::convertBytecodeToIR() {
       instructions.emplace_back(
           IR(IR::Opcode::Tjmp, ir1)); /* TODO, add jump location */
     } break;
-    case UJMP: {
-      instructions.emplace_back(
-          IR(IR::Opcode::Ujmp,
-             instr->arg.l)); /*todo figure out actual jump position */
+    case UJMP: { /* pass */
     } break;
 
     case CALL: {

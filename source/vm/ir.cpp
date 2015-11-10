@@ -30,7 +30,9 @@ bool IR::hasRef2() const { return ref2 != nullptr; }
 
 bool IR::yieldsConstant() const { return op == Opcode::LitInt; }
 
-bool IR::isJump() const { return op == Opcode::Fjmp || op == Opcode::Ujmp; }
+bool IR::isJump() const {
+  return op == Opcode::Tjmp || op == Opcode::Fjmp || op == Opcode::Ujmp;
+}
 
 bool IR::isLoad() const { return op == Opcode::LoadInt; }
 
