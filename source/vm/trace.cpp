@@ -222,13 +222,8 @@ void Trace::eliminateDeadCode() {
   const auto phiMergesRef = [](const IR *phi, const IR *ref) {
     if (!phi->isPhi())
       raise_error("must be phi!");
-    if (phi->hasRef1())
-      if (phi->ref1 == ref)
-        return true;
-    if (phi->hasRef2())
-      if (phi->ref2 == ref)
-        return true;
-    return false;
+    return (phi->hasRef1() && phi->ref1 == ref) ||
+           (phi->hasRef2() && phi->ref2 == ref);
   };
 
   const auto anyPhiHasRef = [this, &phiMergesRef](const IR *ref) {
