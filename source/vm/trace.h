@@ -20,11 +20,6 @@ class Block;
 
 class Trace {
 public:
-  struct LangLocal {
-    unsigned int memPosition;
-    unsigned int memOffsetPosition;
-  };
-
   enum State {
     ABORT,
     TRACING,
