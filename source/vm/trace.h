@@ -4,7 +4,7 @@
 #if !NOJIT
 
 #include <cstdint>
-#include <deque>
+#include <list>
 #include <map>
 #include <vector>
 
@@ -53,7 +53,7 @@ private:
 
   State last_state;
   std::vector<const Instruction *> bytecode;
-  std::deque<IR> instructions;
+  std::list<IR> instructions;
   // [lang_local, {load*, phi*}]
   std::map<int64_t, std::pair<IR *, IR *>> phisFor;
   std::vector<uint64_t> traceExits;

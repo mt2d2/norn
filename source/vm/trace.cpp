@@ -17,7 +17,7 @@
 Trace::Trace()
     : last_state(Trace::State::ABORT),
       bytecode(std::vector<const Instruction *>()),
-      instructions(std::deque<IR>()),
+      instructions(std::list<IR>()),
       phisFor(std::map<int64_t, std::pair<IR *, IR *>>()),
       traceExits(std::vector<uint64_t>()), nativePtr(nullptr) {}
 
@@ -316,7 +316,7 @@ void Trace::sinkStores() {
   for (auto it = std::begin(instructions); it != std::end(instructions); ++it) {
     auto &instr = *it;
     if (instr.isStore()) {
-      auto &prevInstr = *(it - 1);
+      auto &prevInstr = *std::prev(it, 1);
 
       const auto phiRecord = phisFor.find(instr.intArg);
       if (phiRecord == phisFor.end())
