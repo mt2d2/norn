@@ -303,12 +303,14 @@ void Trace::hoistLoads() {
   }
 
   instructions.emplace_front(IR(IR::Opcode::Loop));
+  auto &loopInstr = instructions.front();
   for (auto pair : phisFor) {
     auto *load = pair.second.load;
     instructions.push_front(*load);
     replaceRefs(load, &instructions.front());
     load->clear();
   }
+  instructions.emplace_back(IR(IR::Opcode::Ujmp, &loopInstr));
 }
 
 void Trace::sinkStores() {
