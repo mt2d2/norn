@@ -284,7 +284,6 @@ void Trace::hoistLoads() {
         phisFor[instr.intArg] = LoadForPhi{&instr, &instructions.front()};
         replaceRefs(&instr, &instructions.front());
       } else {
-        auto *load = it->second.load;
         auto *phi = it->second.phi;
         if (phi->hasRef2())
           raise_error("need more than two slots for phi");
