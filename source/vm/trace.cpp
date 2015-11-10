@@ -102,18 +102,20 @@ void Trace::convertBytecodeToIR() {
     case SUB_INT:
     case MUL_INT:
     case DIV_INT:
-    case LE_INT: {
+    case MOD_INT:
+    case EQ_INT:
+    case LE_INT:
+    case LEQ_INT: {
       auto *ir1 = frame.stack.top();
       frame.stack.pop();
       auto *ir2 = frame.stack.top();
       frame.stack.pop();
 
       static const std::map<Opcode, IR::Opcode> bytecodeToIR{
-          {ADD_INT, IR::Opcode::AddInt},
-          {SUB_INT, IR::Opcode::SubInt},
-          {MUL_INT, IR::Opcode::MulInt},
-          {DIV_INT, IR::Opcode::SubInt},
-          {LE_INT, IR::Opcode::LeInt}};
+          {ADD_INT, IR::Opcode::AddInt}, {SUB_INT, IR::Opcode::SubInt},
+          {MUL_INT, IR::Opcode::MulInt}, {DIV_INT, IR::Opcode::SubInt},
+          {MOD_INT, IR::Opcode::ModInt}, {EQ_INT, IR::Opcode::EqInt},
+          {LE_INT, IR::Opcode::LeInt},   {LEQ_INT, IR::Opcode::LeqInt}};
       const auto irOp = bytecodeToIR.find(static_cast<Opcode>(instr->op));
       if (irOp == bytecodeToIR.end())
         raise_error("unknown conversion from bytecode binop to ir binop");
@@ -128,6 +130,13 @@ void Trace::convertBytecodeToIR() {
 
       instructions.emplace_back(
           IR(IR::Opcode::Fjmp, ir1)); /* TODO, add jump location */
+    } break;
+    case TJMP: {
+      auto *ir1 = frame.stack.top();
+      frame.stack.pop();
+
+      instructions.emplace_back(
+          IR(IR::Opcode::Tjmp, ir1)); /* TODO, add jump location */
     } break;
     case UJMP: {
       instructions.emplace_back(
@@ -147,7 +156,10 @@ void Trace::convertBytecodeToIR() {
     case LOOP: { /* pass */
     } break;
 
-    default: { raise_error("unknown op in trace compilation"); } break;
+    default: {
+      std::cout << *instr << std::endl;
+      raise_error("unknown op in trace compilation");
+    } break;
     }
   }
 }
