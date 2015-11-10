@@ -26,7 +26,7 @@ Trace::~Trace() {
 }
 
 Trace::State Trace::record(const Instruction *i) {
-  if (is_head(i)) {
+  if (isHead(i)) {
     last_state = Trace::State::COMPLETE;
     goto exit;
   }
@@ -46,7 +46,7 @@ exit:
 
 bool Trace::is_complete() const { return last_state == Trace::State::COMPLETE; }
 
-bool Trace::is_head(const Instruction *i) const {
+bool Trace::isHead(const Instruction *i) const {
   return bytecode.size() > 0 && i == bytecode[0];
 }
 

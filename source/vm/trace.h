@@ -42,7 +42,7 @@ public:
   std::map<const Block *, unsigned int> get_trace_calls() const;
 
 private:
-  bool is_head(const Instruction *i) const;
+  bool isHead(const Instruction *i) const;
   void convertBytecodeToIR();
   void propagateConstants();
   void eliminateDeadCode();
