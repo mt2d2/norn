@@ -39,7 +39,6 @@ public:
   void compile(const bool debug);
   nativeTraceType get_native_ptr() const;
   uint64_t get_trace_exit(int offset) const;
-  std::map<const Block *, unsigned int> get_trace_calls() const;
 
 private:
   bool isHead(const Instruction *i) const;
