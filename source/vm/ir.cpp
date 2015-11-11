@@ -34,7 +34,6 @@ bool IR::hasRef1() const {
 }
 bool IR::hasRef2() const {
   return references.size() >= 2 && references[1] != nullptr;
-  ;
 }
 IR *IR::getRef1() const {
   assert(hasRef1());
