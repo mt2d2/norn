@@ -56,6 +56,8 @@ public:
 
 private:
   static unsigned variableNameGen;
+  explicit IR(const Opcode op, IR *ref1, IR *ref2, bool constant,
+              int64_t intArg);
 
   std::vector<IR *> references;
 };

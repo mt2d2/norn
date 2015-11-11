@@ -8,34 +8,25 @@
 
 #include "ir.h"
 
-unsigned int IR::variableNameGen = 0;
+unsigned IR::variableNameGen = 0;
 
-IR::IR(const Opcode op)
-    : op(op), intArg(0), hasConstantArg1(false),
-      variableName(variableNameGen++), deadCode(false),
-      references(std::vector<IR *>()) {}
+IR::IR(const Opcode op) : IR::IR(op, nullptr, nullptr, false, 0) {}
 IR::IR(const Opcode op, const int64_t arg)
-    : op(op), intArg(arg), hasConstantArg1(true),
-      variableName(variableNameGen++), deadCode(false),
-      references(std::vector<IR *>()) {}
-IR::IR(const Opcode op, IR *ref1)
-    : op(op), intArg(0), hasConstantArg1(false),
-      variableName(variableNameGen++), deadCode(false),
-      references(std::vector<IR *>()) {
-  references.push_back(ref1);
-}
+    : IR::IR(op, nullptr, nullptr, true, arg) {}
+IR::IR(const Opcode op, IR *ref1) : IR::IR(op, ref1, nullptr, false, 0) {}
 IR::IR(const Opcode op, IR *ref1, int64_t intArg)
-    : op(op), intArg(intArg), hasConstantArg1(true),
-      variableName(variableNameGen++), deadCode(false),
-      references(std::vector<IR *>()) {
-  references.push_back(ref1);
-}
+    : IR::IR(op, ref1, nullptr, true, intArg) {}
 IR::IR(const Opcode op, IR *ref1, IR *ref2)
-    : op(op), intArg(0), hasConstantArg1(false),
+    : IR::IR(op, ref1, ref2, false, 0) {}
+
+IR::IR(const Opcode op, IR *ref1, IR *ref2, bool constant, int64_t intArg)
+    : op(op), intArg(intArg), hasConstantArg1(constant),
       variableName(variableNameGen++), deadCode(false),
       references(std::vector<IR *>()) {
-  references.push_back(ref1);
-  references.push_back(ref2);
+  if (ref1 != nullptr)
+    references.push_back(ref1);
+  if (ref2 != nullptr)
+    references.push_back(ref2);
 }
 
 bool IR::hasRef1() const {
