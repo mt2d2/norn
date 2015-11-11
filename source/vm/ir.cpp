@@ -45,14 +45,26 @@ IR *IR::getRef2() const {
   return references[1];
 }
 void IR::setRef1(IR *ref) {
-  if (references.size() == 0)
-    references.push_back(ref);
-  references[0] = ref;
+  if (ref == nullptr) {
+    if (references.size() == 0)
+      return;
+    references.erase(references.begin());
+  } else {
+    if (references.size() == 0)
+      references.push_back(ref);
+    references[0] = ref;
+  }
 }
 void IR::setRef2(IR *ref) {
-  if (references.size() == 1)
-    references.push_back(ref);
-  references[1] = ref;
+  if (ref == nullptr) {
+    if (references.size() == 0)
+      return;
+    references.erase(references.begin() + 1);
+  } else {
+    if (references.size() == 1)
+      references.push_back(ref);
+    references[1] = ref;
+  }
 }
 
 bool IR::yieldsConstant() const { return op == Opcode::LitInt; }
@@ -110,8 +122,8 @@ std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
 std::ostream &operator<<(std::ostream &stream, const IR &ir) {
   std::vector<std::string> args;
   for (const auto *ref : ir.references) {
-    if (ref != nullptr)
-      args.push_back(std::to_string(ref->variableName));
+    assert(ref != nullptr);
+    args.push_back(std::to_string(ref->variableName));
   }
   if (ir.hasConstantArg1) {
     args.push_back("k" + std::to_string(ir.intArg));

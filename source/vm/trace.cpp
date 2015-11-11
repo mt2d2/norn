@@ -2,8 +2,6 @@
 
 #if !NOJIT
 
-// TODO setRef(nullptr) should remove
-
 #include <algorithm>
 #include <iostream>
 #include <map>
