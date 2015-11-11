@@ -109,11 +109,9 @@ std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
 
 std::ostream &operator<<(std::ostream &stream, const IR &ir) {
   std::vector<std::string> args;
-  if (ir.hasRef1()) {
-    args.push_back(std::to_string(ir.getRef1()->variableName));
-  }
-  if (ir.hasRef2()) {
-    args.push_back(std::to_string(ir.getRef2()->variableName));
+  for (const auto *ref : ir.references) {
+    if (ref != nullptr)
+      args.push_back(std::to_string(ref->variableName));
   }
   if (ir.hasConstantArg1) {
     args.push_back("k" + std::to_string(ir.intArg));

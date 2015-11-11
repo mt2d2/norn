@@ -60,6 +60,8 @@ private:
               int64_t intArg);
 
   std::vector<IR *> references;
+
+  friend std::ostream &operator<<(std::ostream &stream, const IR &ir);
 };
 
 std::ostream &operator<<(std::ostream &stream, const IR::Opcode op);
