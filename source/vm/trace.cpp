@@ -189,9 +189,9 @@ void Trace::propagateConstants() {
                                    const int64_t val) {
     if (!instr.isStore()) {
       if (whichRef == WhichRef::Ref1) {
-        instr.setRef1(nullptr);
+        instr.removeRef1();
       } else {
-        instr.setRef2(nullptr);
+        instr.removeRef2();
       }
 
       if (!instr.hasConstantArg1) {

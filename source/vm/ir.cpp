@@ -43,28 +43,27 @@ IR *IR::getRef2() const {
   assert(hasRef2());
   return references[1];
 }
-// TODO move nullptr case to new method
 void IR::setRef1(IR *ref) {
-  if (ref == nullptr) {
-    if (references.size() == 0)
-      return;
-    references.erase(references.begin());
-  } else {
-    if (references.size() == 0)
-      references.push_back(ref);
+  assert(ref != nullptr);
+  if (references.size() == 0)
+    references.push_back(ref);
+  else
     references[0] = ref;
-  }
 }
 void IR::setRef2(IR *ref) {
-  if (ref == nullptr) {
-    if (references.size() == 0)
-      return;
-    references.erase(references.begin() + 1);
-  } else {
-    if (references.size() == 1)
-      references.push_back(ref);
+  assert(ref != nullptr);
+  if (references.size() == 1)
+    references.push_back(ref);
+  else
     references[1] = ref;
-  }
+}
+void IR::removeRef1() {
+  assert(hasRef1());
+  references.erase(references.begin());
+}
+void IR::removeRef2() {
+  assert(hasRef2());
+  references.erase(references.begin() + 1);
 }
 
 bool IR::yieldsConstant() const { return op == Opcode::LitInt; }
