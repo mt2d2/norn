@@ -104,8 +104,10 @@ void Trace::convertBytecodeToIR() {
     case DIV_INT:
     case MOD_INT:
     case EQ_INT:
+    case NEQ_INT:
     case LE_INT:
-    case LEQ_INT: {
+    case LEQ_INT:
+    case GE_INT: {
       auto *ir1 = frame.stack.top();
       frame.stack.pop();
       auto *ir2 = frame.stack.top();
@@ -115,7 +117,8 @@ void Trace::convertBytecodeToIR() {
           {ADD_INT, IR::Opcode::AddInt}, {SUB_INT, IR::Opcode::SubInt},
           {MUL_INT, IR::Opcode::MulInt}, {DIV_INT, IR::Opcode::SubInt},
           {MOD_INT, IR::Opcode::ModInt}, {EQ_INT, IR::Opcode::EqInt},
-          {LE_INT, IR::Opcode::LeInt},   {LEQ_INT, IR::Opcode::LeqInt}};
+          {NEQ_INT, IR::Opcode::NeqInt}, {LE_INT, IR::Opcode::LeInt},
+          {LEQ_INT, IR::Opcode::LeqInt}, {GE_INT, IR::Opcode::GeInt}};
       const auto irOp = bytecodeToIR.find(static_cast<Opcode>(instr->op));
       if (irOp == bytecodeToIR.end())
         raise_error("unknown conversion from bytecode binop to ir binop");
@@ -179,6 +182,7 @@ void Trace::propagateConstants() {
       instr.intArg /= val;
       break;
     default:
+      std::cout << instr << std::endl;
       raise_error("unknown integer fold!");
       break;
     }
@@ -187,17 +191,19 @@ void Trace::propagateConstants() {
 
   const auto useConstant = [&fold](IR &instr, const WhichRef whichRef,
                                    const int64_t val) {
-    if (whichRef == WhichRef::Ref1) {
-      instr.ref1 = nullptr;
-    } else {
-      instr.ref2 = nullptr;
-    }
+    if (!instr.isStore()) {
+      if (whichRef == WhichRef::Ref1) {
+        instr.ref1 = nullptr;
+      } else {
+        instr.ref2 = nullptr;
+      }
 
-    if (!instr.hasConstantArg1) {
-      instr.hasConstantArg1 = true;
-      instr.intArg = val;
-    } else {
-      fold(instr, val);
+      if (!instr.hasConstantArg1) {
+        instr.hasConstantArg1 = true;
+        instr.intArg = val;
+      } else {
+        fold(instr, val);
+      }
     }
   };
 
@@ -322,7 +328,8 @@ void Trace::sinkStores() {
 
       const auto phiRecord = phisFor.find(instr.intArg);
       if (phiRecord == phisFor.end())
-        raise_error("couldn't find phi record for store");
+        raise_error("couldn't find phi record for store: k" +
+                    std::to_string(instr.intArg));
 
       auto *phi = phiRecord->second.phi;
       if (phi->hasRef2())
