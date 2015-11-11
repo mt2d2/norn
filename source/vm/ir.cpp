@@ -44,6 +44,7 @@ IR *IR::getRef2() const {
   assert(hasRef2());
   return references[1];
 }
+// TODO move nullptr case to new method
 void IR::setRef1(IR *ref) {
   if (ref == nullptr) {
     if (references.size() == 0)
