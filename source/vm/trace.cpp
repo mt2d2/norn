@@ -82,13 +82,9 @@ void Trace::convertBytecodeToIR() {
     } break;
 
     case LOAD_INT: {
-      const auto ir = frame.memory.find(instr->arg.l);
-      if (ir == frame.memory.end()) {
-        instructions.emplace_back(IR(IR::Opcode::LoadInt, instr->arg.l));
-        frame.stack.push(&instructions.back());
-      } else {
-        frame.stack.push(ir->second);
-      }
+      instructions.emplace_back(IR(IR::Opcode::LoadInt, instr->arg.l));
+      frame.stack.push(&instructions.back());
+      frame.memory[instr->arg.l] = &instructions.back();
     } break;
 
     case STORE_INT: {
