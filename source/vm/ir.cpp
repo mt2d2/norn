@@ -27,6 +27,10 @@ IR::IR(const Opcode op, IR *ref1, IR *ref2)
 
 bool IR::hasRef1() const { return ref1 != nullptr; }
 bool IR::hasRef2() const { return ref2 != nullptr; }
+IR *IR::getRef1() const { return ref1; }
+IR *IR::getRef2() const { return ref2; }
+void IR::setRef1(IR *ref) { ref1 = ref; }
+void IR::setRef2(IR *ref) { ref2 = ref; }
 
 bool IR::yieldsConstant() const { return op == Opcode::LitInt; }
 
@@ -84,10 +88,10 @@ std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
 std::ostream &operator<<(std::ostream &stream, const IR &ir) {
   std::vector<std::string> args;
   if (ir.hasRef1()) {
-    args.push_back(std::to_string(ir.ref1->variableName));
+    args.push_back(std::to_string(ir.getRef1()->variableName));
   }
   if (ir.hasRef2()) {
-    args.push_back(std::to_string(ir.ref2->variableName));
+    args.push_back(std::to_string(ir.getRef2()->variableName));
   }
   if (ir.hasConstantArg1) {
     args.push_back("k" + std::to_string(ir.intArg));

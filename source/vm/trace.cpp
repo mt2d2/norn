@@ -189,9 +189,9 @@ void Trace::propagateConstants() {
                                    const int64_t val) {
     if (!instr.isStore()) {
       if (whichRef == WhichRef::Ref1) {
-        instr.ref1 = nullptr;
+        instr.setRef1(nullptr);
       } else {
-        instr.ref2 = nullptr;
+        instr.setRef2(nullptr);
       }
 
       if (!instr.hasConstantArg1) {
@@ -213,11 +213,13 @@ void Trace::propagateConstants() {
 
     if (stmt->yieldsConstant()) {
       for (auto &instr : instructions) {
-        if (instr.hasRef1() && instr.ref1->variableName == stmt->variableName) {
+        if (instr.hasRef1() &&
+            instr.getRef1()->variableName == stmt->variableName) {
           useConstant(instr, WhichRef::Ref1, stmt->intArg);
           worklist.push_back(&instr);
         }
-        if (instr.hasRef2() && instr.ref2->variableName == stmt->variableName) {
+        if (instr.hasRef2() &&
+            instr.getRef2()->variableName == stmt->variableName) {
           useConstant(instr, WhichRef::Ref2, stmt->intArg);
           worklist.push_back(&instr);
         }
@@ -233,8 +235,8 @@ void Trace::eliminateDeadCode() {
   const auto phiMergesRef = [](const IR *phi, const IR *ref) {
     if (!phi->isPhi())
       raise_error("must be phi!");
-    return (phi->hasRef1() && phi->ref1 == ref) ||
-           (phi->hasRef2() && phi->ref2 == ref);
+    return (phi->hasRef1() && phi->getRef1() == ref) ||
+           (phi->hasRef2() && phi->getRef2() == ref);
   };
 
   const auto anyPhiHasRef = [this, &phiMergesRef](const IR *ref) {
@@ -258,10 +260,10 @@ void Trace::eliminateDeadCode() {
       instr.deadCode = true;
     } else {
       if (instr.hasRef1()) {
-        seenRefs.insert(instr.ref1);
+        seenRefs.insert(instr.getRef1());
       }
       if (instr.hasRef2()) {
-        seenRefs.insert(instr.ref2);
+        seenRefs.insert(instr.getRef2());
       }
     }
   }
@@ -271,18 +273,18 @@ void Trace::hoistLoads() {
   const auto reassignRef = [](IR &instr, WhichRef whichRef, IR *n) {
     if (!instr.isPhi()) {
       if (whichRef == WhichRef::Ref1)
-        instr.ref1 = n;
+        instr.setRef1(n);
       else
-        instr.ref2 = n;
+        instr.setRef2(n);
     }
   };
 
   const auto replaceRefs = [this, &reassignRef](IR *o, IR *n) {
     std::for_each(std::begin(instructions), std::end(instructions),
                   [this, &reassignRef, &o, &n](IR &instr) {
-                    if (instr.ref1 == o)
+                    if (instr.getRef1() == o)
                       reassignRef(instr, WhichRef::Ref1, n);
-                    if (instr.ref2 == o)
+                    if (instr.getRef2() == o)
                       reassignRef(instr, WhichRef::Ref2, n);
                   });
   };
@@ -330,7 +332,7 @@ void Trace::sinkStores() {
       auto *phi = phiRecord->second.phi;
       if (phi->hasRef2())
         raise_error("phis can only have two refs");
-      phi->ref2 = &prevInstr;
+      phi->setRef2(&prevInstr);
 
       instructionsToAdd.emplace_back(
           IR(IR::Opcode::StoreInt, phi, instr.intArg));

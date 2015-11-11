@@ -1,9 +1,8 @@
 #ifndef IR_H
 #define IR_H
 
-struct IR {
-  static unsigned int variableNameGen;
-
+class IR {
+public:
   enum class Opcode {
     LitInt,
     LoadInt,
@@ -27,7 +26,6 @@ struct IR {
   };
 
   Opcode op;
-  IR *ref1, *ref2;
   int64_t intArg;
   bool hasConstantArg1;
 
@@ -42,6 +40,10 @@ struct IR {
 
   bool hasRef1() const;
   bool hasRef2() const;
+  IR *getRef1() const;
+  IR *getRef2() const;
+  void setRef1(IR *ref);
+  void setRef2(IR *ref);
 
   bool yieldsConstant() const;
   bool isJump() const;
@@ -51,6 +53,13 @@ struct IR {
   bool isPhi() const;
 
   void clear();
+
+private:
+  static unsigned variableNameGen;
+
+  IR *ref1, *ref2;
+
+  // std::vector<IR *> references;
 };
 
 std::ostream &operator<<(std::ostream &stream, const IR::Opcode op);
