@@ -10,27 +10,60 @@
 unsigned int IR::variableNameGen = 0;
 
 IR::IR(const Opcode op)
-    : op(op), ref1(nullptr), ref2(nullptr), intArg(0), hasConstantArg1(false),
-      variableName(variableNameGen++), deadCode(false) {}
+    : op(op), intArg(0), hasConstantArg1(false),
+      variableName(variableNameGen++), deadCode(false),
+      references(std::vector<IR *>()) {}
 IR::IR(const Opcode op, const int64_t arg)
-    : op(op), ref1(nullptr), ref2(nullptr), intArg(arg), hasConstantArg1(true),
-      variableName(variableNameGen++), deadCode(false) {}
+    : op(op), intArg(arg), hasConstantArg1(true),
+      variableName(variableNameGen++), deadCode(false),
+      references(std::vector<IR *>()) {}
 IR::IR(const Opcode op, IR *ref1)
-    : op(op), ref1(ref1), ref2(nullptr), intArg(0), hasConstantArg1(false),
-      variableName(variableNameGen++), deadCode(false) {}
+    : op(op), intArg(0), hasConstantArg1(false),
+      variableName(variableNameGen++), deadCode(false),
+      references(std::vector<IR *>()) {
+  references.push_back(ref1);
+}
 IR::IR(const Opcode op, IR *ref1, int64_t intArg)
-    : op(op), ref1(ref1), ref2(nullptr), intArg(intArg), hasConstantArg1(true),
-      variableName(variableNameGen++), deadCode(false) {}
+    : op(op), intArg(intArg), hasConstantArg1(true),
+      variableName(variableNameGen++), deadCode(false),
+      references(std::vector<IR *>()) {
+  references.push_back(ref1);
+}
 IR::IR(const Opcode op, IR *ref1, IR *ref2)
-    : op(op), ref1(ref1), ref2(ref2), intArg(0), hasConstantArg1(false),
-      variableName(variableNameGen++), deadCode(false) {}
+    : op(op), intArg(0), hasConstantArg1(false),
+      variableName(variableNameGen++), deadCode(false),
+      references(std::vector<IR *>()) {
+  references.push_back(ref1);
+  references.push_back(ref2);
+}
 
-bool IR::hasRef1() const { return ref1 != nullptr; }
-bool IR::hasRef2() const { return ref2 != nullptr; }
-IR *IR::getRef1() const { return ref1; }
-IR *IR::getRef2() const { return ref2; }
-void IR::setRef1(IR *ref) { ref1 = ref; }
-void IR::setRef2(IR *ref) { ref2 = ref; }
+bool IR::hasRef1() const {
+  return references.size() >= 1 && references[0] != nullptr;
+}
+bool IR::hasRef2() const {
+  return references.size() >= 2 && references[1] != nullptr;
+  ;
+}
+IR *IR::getRef1() const {
+  if (!hasRef1())
+    return nullptr;
+  return references[0];
+}
+IR *IR::getRef2() const {
+  if (!hasRef2())
+    return nullptr;
+  return references[1];
+}
+void IR::setRef1(IR *ref) {
+  if (references.size() == 0)
+    references.push_back(ref);
+  references[0] = ref;
+}
+void IR::setRef2(IR *ref) {
+  if (references.size() == 1)
+    references.push_back(ref);
+  references[1] = ref;
+}
 
 bool IR::yieldsConstant() const { return op == Opcode::LitInt; }
 
@@ -50,8 +83,7 @@ bool IR::isPhi() const { return op == Opcode::Phi; }
 
 void IR::clear() {
   op = IR::Opcode::Nop;
-  ref1 = nullptr;
-  ref2 = nullptr;
+  references.clear();
   intArg = 0;
   hasConstantArg1 = 0;
 }

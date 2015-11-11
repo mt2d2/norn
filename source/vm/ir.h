@@ -57,9 +57,7 @@ public:
 private:
   static unsigned variableNameGen;
 
-  IR *ref1, *ref2;
-
-  // std::vector<IR *> references;
+  std::vector<IR *> references;
 };
 
 std::ostream &operator<<(std::ostream &stream, const IR::Opcode op);

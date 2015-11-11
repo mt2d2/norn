@@ -282,9 +282,9 @@ void Trace::hoistLoads() {
   const auto replaceRefs = [this, &reassignRef](IR *o, IR *n) {
     std::for_each(std::begin(instructions), std::end(instructions),
                   [this, &reassignRef, &o, &n](IR &instr) {
-                    if (instr.getRef1() == o)
+                    if (instr.hasRef1() && instr.getRef1() == o)
                       reassignRef(instr, WhichRef::Ref1, n);
-                    if (instr.getRef2() == o)
+                    if (instr.hasRef2() && instr.getRef2() == o)
                       reassignRef(instr, WhichRef::Ref2, n);
                   });
   };
