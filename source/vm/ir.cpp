@@ -1,4 +1,5 @@
 #include <map>
+#include <cassert>
 #include <iomanip>
 #include <ios>
 #include <ostream>
@@ -45,13 +46,11 @@ bool IR::hasRef2() const {
   ;
 }
 IR *IR::getRef1() const {
-  if (!hasRef1())
-    return nullptr;
+  assert(hasRef1());
   return references[0];
 }
 IR *IR::getRef2() const {
-  if (!hasRef2())
-    return nullptr;
+  assert(hasRef2());
   return references[1];
 }
 void IR::setRef1(IR *ref) {
