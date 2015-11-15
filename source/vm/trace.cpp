@@ -242,12 +242,7 @@ void Trace::eliminateDeadCode() {
   const auto anyPhiHasRef = [this, &phiMergesRef](const IR *ref) {
     return std::any_of(std::begin(phisFor), std::end(phisFor),
                        [=](const std::pair<int64_t, LoadForPhi> &entry) {
-                         const auto *phi = entry.second.phi;
-                         if (phi->hasRef1() && phiMergesRef(phi, ref))
-                           return true;
-                         if (phi->hasRef2() && phiMergesRef(phi, ref))
-                           return true;
-                         return false;
+                         return phiMergesRef(entry.second.phi, ref);
                        });
   };
 
