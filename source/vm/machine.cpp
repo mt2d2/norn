@@ -1,5 +1,6 @@
 #include "machine.h"
 
+#include <chrono>
 #include <cmath>  // fmod
 #include <cstdio> // printf
 #include <unordered_map>
@@ -508,11 +509,23 @@ return_opcode:
         if (trace.is_complete()) {
           // tracing mode, trace is isolated
           if (debug) {
-            printf("trace finished\n");
+            std::cout << "trace finished" << std::endl;
           }
 
-          trace.compile(debug);
-          trace.debug();
+          if (debug) {
+            const auto start = std::chrono::system_clock::now();
+            trace.compile(debug);
+            const auto end = std::chrono::system_clock::now();
+            const auto total =
+                std::chrono::duration_cast<std::chrono::microseconds>(end -
+                                                                      start);
+
+            std::cout << "Trace compilation time: " << total.count() << " us"
+                      << std::endl;
+            trace.debug();
+          } else {
+            trace.compile(debug);
+          }
 
           traces[instr] = trace;
           trace = Trace();
