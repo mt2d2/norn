@@ -11,7 +11,12 @@ using namespace AsmJit;
 
 Block::Block(const std::string &name)
     : native(nullptr), name(name), instructions(std::vector<Instruction>()),
-      memory_slots(0), loop_hotness(0) {}
+      memory_slots(0)
+#if !NOJIT
+	,
+	loop_hotness(0)
+#endif
+	{}
 
 Block::~Block() {}
 

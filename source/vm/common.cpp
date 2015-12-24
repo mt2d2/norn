@@ -4,6 +4,7 @@
 #include <iostream>
 #include <cstdlib> // exit
 
+#ifndef _WIN32
 #include <execinfo.h>
 #include <cstdlib>
 
@@ -18,6 +19,10 @@ void print_trace() {
 
   free(strings);
 }
+#else 
+void print_trace() {
+}
+#endif
 
 void raise_error(const std::string &message) {
   std::cerr << message << std::endl;

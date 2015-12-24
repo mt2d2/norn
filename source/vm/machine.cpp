@@ -39,12 +39,12 @@
 #define DISPATCH                                                               \
   while (true) {                                                               \
     instr = block->get_instruction(ip++);                                      \
-    std::cout << *instr << std::endl;                                          \
     switch (instr->op) {
 #define OP(x)                                                                  \
   {                                                                            \
   case x:
-#define NEXT break;
+#define NEXT                                                                   \
+  } break;
 #define END_DISPATCH                                                           \
   }                                                                            \
   }
