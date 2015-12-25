@@ -327,9 +327,9 @@ void Trace::sinkStores() {
         if (phiRecord == phisFor.end())
           raise_error("couldn't find phi record for store: k" +
                       std::to_string(instr.intArg));
-
         auto *phi = phiRecord->second.phi;
         phi->pushBackRef(&prevInstr);
+
         instructionsToAdd.emplace_back(
             IR(IR::Opcode::StoreInt, phi, instr.intArg));
         sunkStoreSlots.insert(instr.intArg);
