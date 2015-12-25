@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <set>
 #include <stack>
 #include <string>
 #include <unordered_set>
@@ -314,24 +315,26 @@ void Trace::hoistLoads() {
 
 void Trace::sinkStores() {
   std::vector<IR> instructionsToAdd;
+  std::set<int64_t> sunkStoreSlots;
+
   for (auto it = std::begin(instructions); it != std::end(instructions); ++it) {
     auto &instr = *it;
     if (instr.isStore()) {
-      auto &prevInstr = *std::prev(it, 1);
+      if (sunkStoreSlots.count(instr.intArg) == 0) {
+        auto &prevInstr = *std::prev(it, 1);
 
-      const auto phiRecord = phisFor.find(instr.intArg);
-      if (phiRecord == phisFor.end())
-        raise_error("couldn't find phi record for store: k" +
-                    std::to_string(instr.intArg));
+        const auto phiRecord = phisFor.find(instr.intArg);
+        if (phiRecord == phisFor.end())
+          raise_error("couldn't find phi record for store: k" +
+                      std::to_string(instr.intArg));
 
-      auto *phi = phiRecord->second.phi;
-      if (phi->hasRef2())
-        raise_error("phis can only have two refs");
-      phi->setRef2(&prevInstr);
-
-      instructionsToAdd.emplace_back(
-          IR(IR::Opcode::StoreInt, phi, instr.intArg));
-      instr.clear();
+        auto *phi = phiRecord->second.phi;
+        phi->pushBackRef(&prevInstr);
+        instructionsToAdd.emplace_back(
+            IR(IR::Opcode::StoreInt, phi, instr.intArg));
+        sunkStoreSlots.insert(instr.intArg);
+        instr.clear();
+      }
     }
   }
 

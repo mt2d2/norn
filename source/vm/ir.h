@@ -44,6 +44,7 @@ public:
   IR *getRef2() const;
   void setRef1(IR *ref);
   void setRef2(IR *ref);
+  void pushBackRef(IR *ref);
   void removeRef1();
   void removeRef2();
 

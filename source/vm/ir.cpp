@@ -58,6 +58,9 @@ void IR::setRef2(IR *ref) {
   else
     references[1] = ref;
 }
+
+void IR::pushBackRef(IR *ref) { references.push_back(ref); }
+
 void IR::removeRef1() {
   assert(hasRef1());
   references.erase(references.begin());
