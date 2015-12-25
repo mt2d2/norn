@@ -7,7 +7,6 @@
 #ifndef _WIN32
 #include <execinfo.h>
 #include <cstdlib>
-
 /* Obtain a backtrace and print it to stdout. */
 void print_trace() {
   void *array[10];
@@ -19,9 +18,8 @@ void print_trace() {
 
   free(strings);
 }
-#else 
-void print_trace() {
-}
+#else
+void print_trace() {}
 #endif
 
 void raise_error(const std::string &message) {
