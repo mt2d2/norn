@@ -42,19 +42,19 @@ void Block::store_load_elimination() {
 
     if (i->op == STORE_INT)
       if ((i + 1)->op == LOAD_INT && (i->arg.l == (i + 1)->arg.l))
-        instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
+        i = instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
 
     if (i->op == STORE_FLOAT)
       if ((i + 1)->op == LOAD_FLOAT && (i->arg.l == (i + 1)->arg.l))
-        instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
+        i = instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
 
     if (i->op == STORE_CHAR)
       if ((i + 1)->op == LOAD_CHAR && (i->arg.l == (i + 1)->arg.l))
-        instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
+        i = instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
 
     if (i->op == STORE_ARY)
       if ((i + 1)->op == LOAD_ARY && (i->arg.l == (i + 1)->arg.l))
-        instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
+        i = instructions.erase(i, i + 1 + 1); // exclusive, i.e., upto
   }
 }
 
@@ -66,10 +66,10 @@ void Block::calculate_int_fold(Instruction instr,
     calc_stack.pop_front();
     outputs.push_back(instr);
   } else if (calc_stack.size() > 1) {
-    Instruction &left = calc_stack.front();
+    Instruction left = calc_stack.front();
     calc_stack.pop_front();
 
-    Instruction &right = calc_stack.front();
+    Instruction right = calc_stack.front();
     calc_stack.pop_front();
 
     switch (instr.op) {
@@ -106,10 +106,10 @@ void Block::calculate_float_fold(Instruction instr,
     calc_stack.pop_front();
     outputs.push_back(instr);
   } else if (calc_stack.size() > 1) {
-    Instruction &left = calc_stack.front();
+    Instruction left = calc_stack.front();
     calc_stack.pop_front();
 
-    Instruction &right = calc_stack.front();
+    Instruction right = calc_stack.front();
     calc_stack.pop_front();
 
     switch (instr.op) {
@@ -256,8 +256,8 @@ void Block::lit_load_add() {
           newInstr.arg = (i + 1)->arg.l;
           newInstr.arg2 = i->arg.l;
 
-          instructions.erase(i, i + 1 + 1 + 1); // exclusive, i.e., upto
-          instructions.insert(i, newInstr);
+          i = instructions.erase(i, i + 1 + 1 + 1); // exclusive, i.e., upto
+          i = instructions.insert(i, newInstr);
         }
       }
     }
@@ -296,8 +296,8 @@ void Block::lit_load_le() {
           newInstr.arg = (i + 1)->arg.l;
           newInstr.arg2 = i->arg.l;
 
-          instructions.erase(i, i + 1 + 1 + 1); // exclusive, i.e., upto
-          instructions.insert(i, newInstr);
+          i = instructions.erase(i, i + 1 + 1 + 1); // exclusive, i.e., upto
+          i = instructions.insert(i, newInstr);
         }
       }
     }
