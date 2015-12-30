@@ -355,15 +355,13 @@ nativeTraceType Trace::get_native_ptr() const { return nativePtr; }
 uint64_t Trace::get_trace_exit(int offset) const { return traceExits[offset]; }
 
 void Trace::identify_trace_exits() {
-  unsigned int bytecodePosition = 0;
-
-  for (const auto *i : bytecode) {
-    if (i->op == FJMP || i->op == TJMP) {
-      traceExits.push_back(bytecodePosition);
-    }
-
-    ++bytecodePosition;
-  }
+  unsigned bytecodePosition = 0;
+  std::for_each(std::begin(bytecode), std::end(bytecode),
+                [&](const Instruction *i) {
+                  if (i->op == FJMP || i->op == TJMP)
+                    traceExits.push_back(bytecodePosition);
+                  bytecodePosition += 1;
+                });
 }
 
 #endif // !NOJIT
