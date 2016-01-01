@@ -8,6 +8,8 @@
 #include "parser.h"
 #include "tree.h"
 
+#include "lang_norn.h"
+
 int main(int argc, char *argv[]) {
   if (argc < 2)
     raise_error("usage: norn <file>");

@@ -7,7 +7,15 @@ if(NOT JIT)
   add_definitions(-DNOJIT)
 endif(NOT JIT)
 
+add_custom_command(
+  OUTPUT lang_norn.h
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/lang.norn lang.norn
+  COMMAND xxd -i lang.norn lang_norn.h
+  DEPENDS lang.norn
+)
+
 set(lang_src
+  lang_norn.h
   source/lexer.cpp
   source/parser.cpp
   source/type.cpp
@@ -27,6 +35,9 @@ set(vm_src
   source/vm/trace.cpp)
 add_executable(norn ${vm_src} ${lang_src})
 set_property(TARGET norn PROPERTY CXX_STANDARD 11)
+
+# we need to grab the generated lang_norn.h
+target_include_directories(norn PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 if(JIT)
   add_subdirectory(source/vm/AsmJit)
