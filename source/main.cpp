@@ -2,12 +2,14 @@
 
 #include <cstdlib> // exit
 
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream.hpp>
+
 #include "vm/common.h"
 #include "vm/program.h"
 #include "vm/machine.h"
 #include "parser.h"
 #include "tree.h"
-
 #include "lang_norn.h"
 
 int main(int argc, char *argv[]) {
@@ -35,7 +37,8 @@ int main(int argc, char *argv[]) {
   {
     BuildContext build;
 
-    std::ifstream lang("lang.norn");
+    boost::iostreams::stream<boost::iostreams::array_source> lang(
+        reinterpret_cast<char *>(lang_norn), lang_norn_len);
     Parser(lang).parse(build, -1);
     std::ifstream source(argv[argc - 1]);
     Parser(source).parse(build, params.optimize ? 1 : 0);

@@ -39,6 +39,16 @@ set_property(TARGET norn PROPERTY CXX_STANDARD 11)
 # we need to grab the generated lang_norn.h
 target_include_directories(norn PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
+set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_MULTITHREADED ON)
+set(Boost_USE_STATIC_RUNTIME OFF)
+find_package(Boost)
+
+if(Boost_FOUND)
+    target_include_directories(norn PRIVATE ${Boost_INCLUDE_DIRS})
+    target_link_libraries(norn ${Boost_LIBRARIES})
+endif()
+
 if(JIT)
   add_subdirectory(source/vm/AsmJit)
   target_link_libraries(norn asmjit)

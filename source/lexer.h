@@ -9,8 +9,8 @@ public:
   FileReader(std::istream &stream) : is(stream) {}
 
   char operator[](size_t i) {
-    this->is.seekg(i);
-    return this->is.get();
+    is.seekg(i);
+    return is.get();
   }
 
 private:
