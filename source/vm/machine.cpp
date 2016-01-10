@@ -461,12 +461,12 @@ return_opcode:
   }
 
   OP(F2I) {
-    push<int64_t>(pop<double>());
+    push<int64_t>(static_cast<int64_t>(pop<double>()));
     NEXT
   }
 
   OP(I2F) {
-    push<double>(pop<int64_t>());
+    push<double>(static_cast<double>(pop<int64_t>()));
     NEXT
   }
 

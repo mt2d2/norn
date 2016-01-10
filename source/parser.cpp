@@ -61,7 +61,7 @@ ExprAST *Parser::ParseIdentifierExpr() {
       if (CurToken != tok_number)
         return Error("expecting 'tok_number' in array declaration\n");
 
-      int array_size = lex.get_number();
+      auto array_size = static_cast<int>(lex.get_number());
       getNextToken(); // eat number
 
       if (CurToken != ']')

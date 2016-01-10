@@ -26,8 +26,8 @@ public:
   void execute();
 
 private:
-  template <typename T> T get_memory(int key);
-  template <typename T> void store_memory(int key, T value);
+  template <typename T> T get_memory(int64_t key);
+  template <typename T> void store_memory(int64_t key, T value);
 
   bool frames_is_empty();
   void push_frame(const Frame &bookmark);
@@ -40,7 +40,7 @@ private:
   Program program;
   Block *block;
   const Instruction *instr;
-  unsigned int ip;
+  uint64_t ip;
 #if !NOJIT
   bool debug;
   bool nojit;
@@ -58,21 +58,21 @@ private:
 #endif
 };
 
-template <typename T> inline T Machine::get_memory(int key) {
+template <typename T> inline T Machine::get_memory(int64_t key) {
   return (T)memory[key];
 }
 
-template <> inline double Machine::get_memory(int key) {
+template <> inline double Machine::get_memory(int64_t key) {
   double ret;
   memcpy(&ret, &memory[key], sizeof(double));
   return ret;
 }
 
-template <typename T> inline void Machine::store_memory(int key, T value) {
+template <typename T> inline void Machine::store_memory(int64_t key, T value) {
   memory[key] = (int64_t)value;
 }
 
-template <> inline void Machine::store_memory(int key, double value) {
+template <> inline void Machine::store_memory(int64_t key, double value) {
   memcpy(&memory[key], &value, sizeof(double));
 }
 
@@ -97,6 +97,8 @@ template <> inline void Machine::push(double element) {
 }
 
 template <typename T> inline T Machine::pop() { return (T)*stack--; }
+
+template <> inline bool Machine::pop() { return static_cast<bool>(*stack-- != 0); }
 
 template <> inline double Machine::pop() {
   double ret;

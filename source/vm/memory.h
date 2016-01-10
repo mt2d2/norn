@@ -1,6 +1,7 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
+#include <cstdint>
 #include <unordered_set>
 
 union Variant;
@@ -55,7 +56,7 @@ struct AllocatedMemory {
   AllocatedMemory(uint64_t size);
   ~AllocatedMemory();
 
-  void *operator new(std::size_t n) throw(std::bad_alloc);
+  void *operator new(std::size_t n) throw();
   void operator delete(void *p) throw();
 };
 
@@ -67,7 +68,7 @@ public:
   Memory(int64_t *stack_start, int64_t *memory_start);
   ~Memory();
 
-  Variant *new_lang_array(int size);
+  Variant *new_lang_array(int64_t size);
   AllocatedMemory *allocate(int64_t size);
 
   void set_stack(int64_t *stack);

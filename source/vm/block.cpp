@@ -26,7 +26,7 @@ const std::vector<Instruction> &Block::get_instructions() const {
   return this->instructions;
 }
 
-int Block::get_size() const { return this->instructions.size(); }
+size_t Block::get_size() const { return this->instructions.size(); }
 
 #if !NOJIT
 unsigned int Block::get_loop_hotness(const Instruction *i) {
@@ -41,7 +41,7 @@ void Block::add_instruction(const Instruction &instruction) {
 }
 
 void Block::calculate_memory_slots() {
-  int total = -1;
+  int64_t total = -1;
   for (const auto &i : instructions)
     if (i.op == STORE_INT || i.op == STORE_FLOAT || i.op == STORE_CHAR ||
         i.op == STORE_ARY)
@@ -57,7 +57,7 @@ void Block::calculate_memory_slots() {
 }
 
 void Block::absolute_jumps() {
-  std::map<long, long> jmp_map;
+  std::map<int64_t, int64_t> jmp_map;
   long instr_count = 0;
 
   auto i = instructions.begin();
@@ -82,7 +82,7 @@ void Block::promote_call_to_native(const Block *target) {
       i.op = CALL_NATIVE;
 }
 
-void Block::set_memory_slots(int memory_slots) {
+void Block::set_memory_slots(int64_t memory_slots) {
   this->memory_slots = memory_slots;
 }
 

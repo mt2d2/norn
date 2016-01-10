@@ -21,7 +21,7 @@ public:
   void set_variable_type(const std::string &key, Type value);
   Type get_block_type(const std::string &key);
   void set_block_type(const std::string &key, Type value);
-  int get_mem_id(const std::string &key);
+  int64_t get_mem_id(const std::string &key);
   bool variable_exists(const std::string &key);
   uint8_t get_and_increment_seed();
 #if !NOJIT
@@ -31,7 +31,7 @@ public:
 private:
   Program program;
   Block *working_block;
-  std::map<std::string, int> memory_ids;
+  std::map<std::string, int64_t> memory_ids;
   std::map<std::string, Type> block_types;
   std::map<std::string, Type> variable_types;
   uint8_t seed;
@@ -231,7 +231,7 @@ public:
     type = TypeFactory::get_instance().get(Type::Primitive::VOID);
   }
   virtual void emit_bytecode(BuildContext &out);
-  int get_block_id(BuildContext &out);
+  int64_t get_block_id(BuildContext &out);
   std::string callee_signature(BuildContext &out);
   Type resolve_return_type(BuildContext &out);
   virtual ~CallExprAST() {

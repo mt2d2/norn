@@ -9,7 +9,7 @@
 #include "common.h"
 
 Program::Program()
-    : block_map(std::map<std::string, int>()), blocks(std::vector<Block *>()),
+    : block_map(std::map<std::string, int64_t>()), blocks(std::vector<Block *>()),
       strings(std::vector<std::string>()), memory_slots(0) {}
 
 void Program::clean_up() {
@@ -28,23 +28,23 @@ void Program::add_block(Block *block) {
   }
 }
 
-int Program::get_block_id(const std::string &key) const {
+int64_t Program::get_block_id(const std::string &key) const {
   if (block_map.find(key) == block_map.end())
     raise_error("undefined function: " + key);
 
   return block_map.at(key);
 }
 
-int Program::add_string(std::string string) {
-  int ret = strings.size();
+int64_t Program::add_string(std::string string) {
+  size_t ret = strings.size();
   strings.push_back(string);
   return ret;
 }
 
-std::string Program::get_string(int key) const { return strings[key]; }
+std::string Program::get_string(int64_t key) const { return strings[key]; }
 
 void Program::calculate_memory_slots() {
-  int total = 0;
+  int64_t total = 0;
   for (auto *b : blocks) {
     b->calculate_memory_slots();
     total += b->get_memory_slots();
@@ -55,11 +55,11 @@ void Program::calculate_memory_slots() {
 
 const std::vector<Block *> &Program::get_blocks() const { return this->blocks; }
 
-void Program::set_memory_slots(int memory_slots) {
+void Program::set_memory_slots(int64_t memory_slots) {
   this->memory_slots = memory_slots;
 }
 
-int Program::get_memory_slots() const { return this->memory_slots; }
+int64_t Program::get_memory_slots() const { return this->memory_slots; }
 
 void Program::absolute_jumps() {
   for (auto *b : blocks)

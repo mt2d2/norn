@@ -2,7 +2,7 @@
 
 BuildContext::BuildContext()
     : program(Program()), working_block(nullptr),
-      memory_ids(std::map<std::string, int>()),
+      memory_ids(std::map<std::string, int64_t>()),
       block_types(std::map<std::string, Type>()),
       variable_types(std::map<std::string, Type>()), seed(0), loop_count(0) {}
 
@@ -22,7 +22,7 @@ void BuildContext::set_block(Block *block) {
   seed = 0;
 }
 
-int BuildContext::get_mem_id(const std::string &key) {
+int64_t BuildContext::get_mem_id(const std::string &key) {
   auto it = memory_ids.find(key);
   if (it == memory_ids.end()) {
     // the key wasn't found
@@ -93,7 +93,7 @@ std::string CallExprAST::callee_signature(BuildContext &out) {
   return block_name;
 }
 
-int CallExprAST::get_block_id(BuildContext &out) {
+int64_t CallExprAST::get_block_id(BuildContext &out) {
   return out.get_program().get_block_id(callee_signature(out));
 }
 

@@ -118,7 +118,7 @@ std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
   try {
     return stream << opcodeToString.at(op);
   } catch (const std::out_of_range &err) {
-    return stream << "??";
+    return stream << "?? " << err.what();
   }
 }
 

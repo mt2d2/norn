@@ -312,13 +312,10 @@ Type CallExprAST::resolve_return_type(BuildContext &out) {
 }
 
 void CallExprAST::emit_bytecode(BuildContext &out) {
-  int block_id = this->get_block_id(out);
-  // std::cout << "Calling: " <<  out.get_block_ptr(block_id)->get_name() << "
-  // block_id: " << block_id << std::endl;
-
   for (auto i = Args.rbegin(); i != Args.rend(); ++i)
     (*i)->emit_bytecode(out);
 
+  auto block_id = this->get_block_id(out);
   Block *callee = out.get_program().get_block_ptr(block_id);
   out.get_block()->add_instruction(
       Instruction(CALL, reinterpret_cast<Variant *>(callee)));

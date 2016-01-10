@@ -13,7 +13,7 @@ AllocatedMemory::AllocatedMemory(uint64_t size)
 
 AllocatedMemory::~AllocatedMemory() { free(this->data.getPointer()); }
 
-void *AllocatedMemory::operator new(std::size_t n) throw(std::bad_alloc) {
+void *AllocatedMemory::operator new(std::size_t n) throw() {
   return malloc(n);
 }
 
@@ -45,7 +45,7 @@ void Memory::set_stack(int64_t *stack) { this->stack = stack; }
 
 void Memory::set_memory(int64_t *memory) { this->memory = memory; }
 
-Variant *Memory::new_lang_array(int size) {
+Variant *Memory::new_lang_array(int64_t size) {
   size += 1;
 
   // Variant* ret = reinterpret_cast<Variant*>(this->allocate(size *
