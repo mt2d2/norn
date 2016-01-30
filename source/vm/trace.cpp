@@ -3,6 +3,7 @@
 #if !NOJIT
 
 #include <algorithm>
+#include <cassert>
 #include <iostream>
 #include <map>
 #include <set>
@@ -75,6 +76,10 @@ void Trace::convertBytecodeToIR() {
   frames.push(Frame{});
   Frame &frame = frames.top();
 
+  const auto assertStackSize = [&](const unsigned minSize = 1) {
+    assert(frame.stack.size() >= minSize);
+  };
+
   for (const auto *instr : bytecode) {
     switch (instr->op) {
     case LIT_INT: {
@@ -89,6 +94,7 @@ void Trace::convertBytecodeToIR() {
     } break;
 
     case STORE_INT: {
+      assertStackSize();
       auto *ir = frame.stack.top();
       frame.stack.pop();
       frame.memory[instr->arg.l] = ir;
@@ -105,6 +111,7 @@ void Trace::convertBytecodeToIR() {
     case LE_INT:
     case LEQ_INT:
     case GE_INT: {
+      assertStackSize(2);
       auto *ir1 = frame.stack.top();
       frame.stack.pop();
       auto *ir2 = frame.stack.top();
@@ -125,6 +132,7 @@ void Trace::convertBytecodeToIR() {
     } break;
 
     case FJMP: {
+      assertStackSize();
       auto *ir1 = frame.stack.top();
       frame.stack.pop();
 
@@ -132,6 +140,7 @@ void Trace::convertBytecodeToIR() {
           IR(IR::Opcode::Fjmp, ir1)); /* TODO, add jump location */
     } break;
     case TJMP: {
+      assertStackSize();
       auto *ir1 = frame.stack.top();
       frame.stack.pop();
 
