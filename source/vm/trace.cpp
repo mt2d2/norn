@@ -229,42 +229,6 @@ void Trace::propagateConstants() {
   }
 }
 
-void Trace::eliminateDeadCode() {
-  std::unordered_set<const IR *> seenRefs;
-  seenRefs.insert(&instructions.back());
-
-  const auto phiMergesRef = [](const IR *phi, const IR *ref) {
-    if (!phi->isPhi())
-      raise_error("must be phi!");
-    return (phi->hasRef1() && phi->getRef1() == ref) ||
-           (phi->hasRef2() && phi->getRef2() == ref);
-  };
-
-  const auto anyPhiHasRef = [this, &phiMergesRef](const IR *ref) {
-    return std::any_of(std::begin(phisFor), std::end(phisFor),
-                       [=](const std::pair<int64_t, LoadForPhi> &entry) {
-                         return phiMergesRef(entry.second.phi, ref);
-                       });
-  };
-
-  for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
-    auto &instr = *it;
-    if (seenRefs.count(&instr) != 1 && !instr.hasSideEffect() &&
-        !anyPhiHasRef(&instr)) {
-      instr.deadCode = true;
-    } else if (instr.op == IR::Opcode::Nop) {
-      instr.deadCode = true;
-    } else {
-      if (instr.hasRef1()) {
-        seenRefs.insert(instr.getRef1());
-      }
-      if (instr.hasRef2()) {
-        seenRefs.insert(instr.getRef2());
-      }
-    }
-  }
-}
-
 void Trace::hoistLoads() {
   const auto reassignRef = [](IR &instr, WhichRef whichRef, IR *n) {
     if (!instr.isPhi()) {
@@ -340,6 +304,42 @@ void Trace::sinkStores() {
 
   instructions.insert(std::end(instructions), std::begin(instructionsToAdd),
                       std::end(instructionsToAdd));
+}
+
+void Trace::eliminateDeadCode() {
+  std::unordered_set<const IR *> seenRefs;
+  seenRefs.insert(&instructions.back());
+
+  const auto phiMergesRef = [](const IR *phi, const IR *ref) {
+    if (!phi->isPhi())
+      raise_error("must be phi!");
+    return (phi->hasRef1() && phi->getRef1() == ref) ||
+           (phi->hasRef2() && phi->getRef2() == ref);
+  };
+
+  const auto anyPhiHasRef = [this, &phiMergesRef](const IR *ref) {
+    return std::any_of(std::begin(phisFor), std::end(phisFor),
+                       [=](const std::pair<int64_t, LoadForPhi> &entry) {
+                         return phiMergesRef(entry.second.phi, ref);
+                       });
+  };
+
+  for (auto it = instructions.rbegin(); it != instructions.rend(); ++it) {
+    auto &instr = *it;
+    if (seenRefs.count(&instr) != 1 && !instr.hasSideEffect() &&
+        !anyPhiHasRef(&instr)) {
+      instr.deadCode = true;
+    } else if (instr.op == IR::Opcode::Nop) {
+      instr.deadCode = true;
+    } else {
+      if (instr.hasRef1()) {
+        seenRefs.insert(instr.getRef1());
+      }
+      if (instr.hasRef2()) {
+        seenRefs.insert(instr.getRef2());
+      }
+    }
+  }
 }
 
 void Trace::compile(const bool debug) {
