@@ -76,6 +76,7 @@ void Trace::convertBytecodeToIR() {
   frames.push(Frame{});
   Frame &frame = frames.top();
 
+  const auto assertFrameSize = [&]() { assert(frames.size() > 0); };
   const auto assertStackSize = [&](const unsigned minSize = 1) {
     assert(frame.stack.size() >= minSize);
   };
@@ -155,6 +156,7 @@ void Trace::convertBytecodeToIR() {
       frame = frames.top();
     } break;
     case RTRN: {
+      assertFrameSize();
       frames.pop();
       frame = frames.top();
     } break;
