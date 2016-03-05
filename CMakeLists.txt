@@ -1,18 +1,36 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.2.3)
+
+include(ExternalProject)
 
 project(norn)
 
-option(JIT "enable method JIT" ON)
+option(JIT "enable trace JIT" ON)
 if(NOT JIT)
   add_definitions(-DNOJIT)
 endif(NOT JIT)
+
+if(JIT)
+  set(asmjit_PREFIX ${CMAKE_CURRENT_BINARY_DIR}/asmjit_external)
+  set(asmjit_INSTALL_DIR ${asmjit_PREFIX})
+  set(asmjit_BINARY_DIR ${asmjit_PREFIX})
+  set(asmjit_ARCHIVE ${asmjit_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}asmjit${CMAKE_STATIC_LIBRARY_SUFFIX})
+  set(asmjit_CMAKE_ARGS -DASMJIT_STATIC=1 -DCMAKE_INSTALL_PREFIX=${asmjit_INSTALL_DIR})
+  ExternalProject_Add(asmjit_external
+    PREFIX ${asmjit_PREFIX}
+    INSTALL_DIR ${asmjit_INSTALL_DIR}
+    BINARY_DIR ${asmjit_BINARY_DIR}
+    BUILD_BYPRODUCTS ${asmjit_ARCHIVE}
+    GIT_REPOSITORY https://github.com/kobalicek/asmjit.git
+    GIT_TAG master
+    CMAKE_ARGS ${asmjit_CMAKE_ARGS}
+    UPDATE_COMMAND "") # skip update on every build, nuke if desired
+endif(JIT)
 
 add_custom_command(
   OUTPUT lang_norn.h
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/lang.norn lang.norn
   COMMAND xxd -i lang.norn lang_norn.h
-  DEPENDS lang.norn
-)
+  DEPENDS lang.norn)
 
 set(lang_src
   lang_norn.h
@@ -50,6 +68,9 @@ if(Boost_FOUND)
 endif()
 
 if(JIT)
-  add_subdirectory(source/vm/AsmJit)
+  add_library(asmjit STATIC IMPORTED)
+  add_dependencies(norn asmjit_external)
+  set_property(TARGET asmjit PROPERTY IMPORTED_LOCATION ${asmjit_ARCHIVE})
   target_link_libraries(norn asmjit)
+  add_dependencies(norn asmjit_external)
 endif(JIT)
