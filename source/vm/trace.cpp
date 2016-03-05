@@ -11,6 +11,8 @@
 #include <string>
 #include <unordered_set>
 
+#include <asmjit/asmjit.h>
+
 #include "common.h"
 #include "block.h"
 #include "program.h"
