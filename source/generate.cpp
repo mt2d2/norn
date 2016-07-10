@@ -461,7 +461,7 @@ void ArrayDeclarationExprAST::emit_bytecode(BuildContext &out) {
 
   out.set_variable_type(this->name, this->type);
   size->emit_bytecode(out);
-  out.get_block()->add_instruction(Instruction(NEW_ARY, 0));
+  out.get_block()->add_instruction(Instruction(NEW_ARY));
   out.get_block()->add_instruction(
       Instruction(STORE_ARY, out.get_mem_id(this->name)));
 }
