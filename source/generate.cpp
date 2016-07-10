@@ -1,5 +1,7 @@
 #include "tree.h"
 
+#include <cassert>
+
 void NumberExprAST::emit_bytecode(BuildContext &out) {
   switch (type.get_primitive()) {
   case Type::Primitive::INT:
@@ -455,8 +457,11 @@ void ReturnExprAST::emit_bytecode(BuildContext &out) {
 }
 
 void ArrayDeclarationExprAST::emit_bytecode(BuildContext &out) {
+  assert(size);
+
   out.set_variable_type(this->name, this->type);
-  out.get_block()->add_instruction(Instruction(NEW_ARY, this->size));
+  size->emit_bytecode(out);
+  out.get_block()->add_instruction(Instruction(NEW_ARY, 0));
   out.get_block()->add_instruction(
       Instruction(STORE_ARY, out.get_mem_id(this->name)));
 }

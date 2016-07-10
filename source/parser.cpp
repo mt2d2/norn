@@ -57,12 +57,9 @@ ExprAST *Parser::ParseIdentifierExpr() {
     if (CurToken == '[') {
       getNextToken(); // eat [
 
-      // parsing array type
-      if (CurToken != tok_number)
-        return Error("expecting 'tok_number' in array declaration\n");
-
-      auto array_size = static_cast<int>(lex.get_number());
-      getNextToken(); // eat number
+      ExprAST *sizeExpr = ParseExpression();
+      if (!sizeExpr)
+        return Error("expecting expression for array size");
 
       if (CurToken != ']')
         return Error("expecting ']' after array declaration\n");
@@ -71,7 +68,7 @@ ExprAST *Parser::ParseIdentifierExpr() {
       var_type = lex.get_identifier();
       getNextToken(); // eat type
 
-      return new ArrayDeclarationExprAST(IdName, var_type, array_size);
+      return new ArrayDeclarationExprAST(IdName, var_type, sizeExpr);
     } else {
       // normal variable type
       var_type = lex.get_identifier();

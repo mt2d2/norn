@@ -44,7 +44,8 @@
   {                                                                            \
   case x:
 #define NEXT                                                                   \
-  } break;
+  }                                                                            \
+  break;
 #define END_DISPATCH                                                           \
   }                                                                            \
   }
@@ -294,7 +295,7 @@ void Machine::execute() {
   }
 
   OP(NEW_ARY) {
-    push<Variant *>(manager.new_lang_array(instr->arg.l));
+    push<Variant *>(manager.new_lang_array(pop<int64_t>()));
     NEXT
   }
 

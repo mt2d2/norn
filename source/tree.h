@@ -153,7 +153,7 @@ public:
 
 class ArrayDeclarationExprAST : public ExprAST {
 public:
-  ArrayDeclarationExprAST(std::string id, std::string type, int size)
+  ArrayDeclarationExprAST(std::string id, std::string type, ExprAST *size)
       : name(id), size(size) {
     if (type == "Int")
       this->type = TypeFactory::get_instance().get(Type::Primitive::INT_ARY);
@@ -164,11 +164,11 @@ public:
   }
 
   virtual void emit_bytecode(BuildContext &out);
-  virtual ~ArrayDeclarationExprAST() {}
+  virtual ~ArrayDeclarationExprAST() { delete size; }
 
 private:
   std::string name;
-  int size;
+  ExprAST *size;
 };
 
 class ArrayIndexAssignExprAST : public ExprAST {
