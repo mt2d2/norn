@@ -457,16 +457,18 @@ void ReturnExprAST::emit_bytecode(BuildContext &out) {
 }
 
 void ArrayDeclarationExprAST::emit_bytecode(BuildContext &out) {
-  assert(size);
-
   out.set_variable_type(this->name, this->type);
+
+  assert(size);
   size->emit_bytecode(out);
+
   out.get_block()->add_instruction(Instruction(NEW_ARY));
   out.get_block()->add_instruction(
       Instruction(STORE_ARY, out.get_mem_id(this->name)));
 }
 
 void ArrayIndexAssignExprAST::emit_bytecode(BuildContext &out) {
+  assert(value);
   value->emit_bytecode(out);
 
   if (value->type == TypeFactory::get_instance().get(Type::Primitive::VOID)) {
