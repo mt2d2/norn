@@ -134,6 +134,22 @@ void Trace::convertBytecodeToIR() {
       frame.stack.push(&instructions.back());
     } break;
 
+    case STORE_ARY_ELM_INT: {
+      assertStackSize(2);
+      auto *index = frame.stack.top();
+      frame.stack.pop();
+      auto *value = frame.stack.top();
+      frame.stack.pop();
+
+      instructions.emplace_back(IR::Opcode::Aref, frame.memory[instr->arg.l]);
+      frame.stack.push(&instructions.back());
+
+      auto *aref = frame.stack.top();
+      frame.stack.pop();
+      instructions.emplace_back(IR::Opcode::RefStoreInt, aref, index, value);
+      frame.stack.push(&instructions.back());
+    } break;
+
     case FJMP: {
       assertStackSize();
       auto *ir1 = frame.stack.top();
@@ -174,7 +190,7 @@ void Trace::convertBytecodeToIR() {
   }
 }
 
-enum class WhichRef { Ref1, Ref2 };
+enum class WhichRef { Ref1, Ref2, Ref3 };
 
 void Trace::propagateConstants() {
   const auto fold = [](IR &instr, const int64_t val) {
@@ -192,7 +208,6 @@ void Trace::propagateConstants() {
       instr.intArg /= val;
       break;
     default:
-      std::cout << instr << std::endl;
       raise_error("unknown integer fold!");
       break;
     }
@@ -202,10 +217,16 @@ void Trace::propagateConstants() {
   const auto useConstant = [&fold](IR &instr, const WhichRef whichRef,
                                    const int64_t val) {
     if (!instr.isStore()) {
-      if (whichRef == WhichRef::Ref1) {
+      switch (whichRef) {
+      case WhichRef::Ref1:
         instr.removeRef1();
-      } else {
+        break;
+      case WhichRef::Ref2:
         instr.removeRef2();
+        break;
+      case WhichRef::Ref3:
+        instr.removeRef3();
+        break;
       }
 
       if (!instr.hasConstantArg1) {
@@ -235,6 +256,12 @@ void Trace::propagateConstants() {
         if (instr.hasRef2() &&
             instr.getRef2()->variableName == stmt->variableName) {
           useConstant(instr, WhichRef::Ref2, stmt->intArg);
+          worklist.push_back(&instr);
+        }
+
+        if (instr.hasRef3() &&
+            instr.getRef3()->variableName == stmt->variableName) {
+          useConstant(instr, WhichRef::Ref3, stmt->intArg);
           worklist.push_back(&instr);
         }
       }
@@ -350,6 +377,9 @@ void Trace::eliminateDeadCode() {
       }
       if (instr.hasRef2()) {
         seenRefs.insert(instr.getRef2());
+      }
+      if (instr.hasRef3()) {
+        seenRefs.insert(instr.getRef3());
       }
     }
   }

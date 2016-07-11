@@ -11,16 +11,20 @@
 
 unsigned IR::variableNameGen = 0;
 
-IR::IR(const Opcode op) : IR::IR(op, nullptr, nullptr, false, 0) {}
+IR::IR(const Opcode op) : IR::IR(op, nullptr, nullptr, nullptr, false, 0) {}
 IR::IR(const Opcode op, const int64_t arg)
-    : IR::IR(op, nullptr, nullptr, true, arg) {}
-IR::IR(const Opcode op, IR *ref1) : IR::IR(op, ref1, nullptr, false, 0) {}
+    : IR::IR(op, nullptr, nullptr, nullptr, true, arg) {}
+IR::IR(const Opcode op, IR *ref1)
+    : IR::IR(op, ref1, nullptr, nullptr, false, 0) {}
 IR::IR(const Opcode op, IR *ref1, int64_t intArg)
-    : IR::IR(op, ref1, nullptr, true, intArg) {}
+    : IR::IR(op, ref1, nullptr, nullptr, true, intArg) {}
 IR::IR(const Opcode op, IR *ref1, IR *ref2)
-    : IR::IR(op, ref1, ref2, false, 0) {}
+    : IR::IR(op, ref1, ref2, nullptr, false, 0) {}
+IR::IR(const Opcode op, IR *ref1, IR *ref2, IR *ref3)
+    : IR::IR(op, ref1, ref2, ref3, false, 0) {}
 
-IR::IR(const Opcode op, IR *ref1, IR *ref2, bool constant, int64_t intArg)
+IR::IR(const Opcode op, IR *ref1, IR *ref2, IR *ref3, bool constant,
+       int64_t intArg)
     : op(op), intArg(intArg), hasConstantArg1(constant),
       variableName(variableNameGen++), deadCode(false),
       references(std::vector<IR *>()) {
@@ -28,6 +32,8 @@ IR::IR(const Opcode op, IR *ref1, IR *ref2, bool constant, int64_t intArg)
     references.push_back(ref1);
   if (ref2 != nullptr)
     references.push_back(ref2);
+  if (ref3 != nullptr)
+    references.push_back(ref3);
 }
 
 bool IR::hasRef1() const {
@@ -36,6 +42,9 @@ bool IR::hasRef1() const {
 bool IR::hasRef2() const {
   return references.size() >= 2 && references[1] != nullptr;
 }
+bool IR::hasRef3() const {
+  return references.size() >= 3 && references[2] != nullptr;
+}
 IR *IR::getRef1() const {
   assert(hasRef1());
   return references[0];
@@ -43,6 +52,10 @@ IR *IR::getRef1() const {
 IR *IR::getRef2() const {
   assert(hasRef2());
   return references[1];
+}
+IR *IR::getRef3() const {
+  assert(hasRef3());
+  return references[2];
 }
 void IR::setRef1(IR *ref) {
   assert(ref != nullptr);
@@ -69,6 +82,10 @@ void IR::removeRef2() {
   assert(hasRef2());
   references.erase(references.begin() + 1);
 }
+void IR::removeRef3() {
+  assert(hasRef3());
+  references.erase(references.begin() + 2);
+}
 
 bool IR::yieldsConstant() const { return op == Opcode::LitInt; }
 
@@ -78,10 +95,15 @@ bool IR::isJump() const {
 
 bool IR::isLoad() const { return op == Opcode::LoadInt; }
 
+bool IR::isRefLoad() const { return op == Opcode::RefLoadInt; }
+
 bool IR::isStore() const { return op == Opcode::StoreInt; }
 
+bool IR::isRefStore() const { return op == Opcode::RefStoreInt; }
+
 bool IR::hasSideEffect() const {
-  return op == Opcode::Loop || isStore() || isLoad() || isJump();
+  return op == Opcode::Loop || isLoad() || isRefLoad() || isStore() ||
+         isRefStore() || isJump();
 }
 
 bool IR::isPhi() const { return op == Opcode::Phi; }
@@ -108,6 +130,9 @@ std::ostream &operator<<(std::ostream &stream, const IR::Opcode op) {
       {IR::Opcode::MulInt, "MulInt"},
       {IR::Opcode::ModInt, "ModInt"},
       {IR::Opcode::DivInt, "DivInt"},
+      {IR::Opcode::Aref, "Aref"},
+      {IR::Opcode::RefLoadInt, "RefLoadInt"},
+      {IR::Opcode::RefStoreInt, "RefStoreInt"},
       {IR::Opcode::Fjmp, "Fjmp"},
       {IR::Opcode::Tjmp, "Tjmp"},
       {IR::Opcode::Ujmp, "Ujmp"},
