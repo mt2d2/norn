@@ -258,7 +258,6 @@ void Trace::propagateConstants() {
           useConstant(instr, WhichRef::Ref2, stmt->intArg);
           worklist.push_back(&instr);
         }
-
         if (instr.hasRef3() &&
             instr.getRef3()->variableName == stmt->variableName) {
           useConstant(instr, WhichRef::Ref3, stmt->intArg);
