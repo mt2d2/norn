@@ -305,7 +305,7 @@ void Trace::hoistLoads() {
     }
   }
 
-  instructions.emplace_front(IR(IR::Opcode::Loop));
+  instructions.emplace_front(IR::Opcode::Loop);
   auto &loopInstr = instructions.front();
   for (auto pair : phisFor) {
     auto *load = pair.second.load;
