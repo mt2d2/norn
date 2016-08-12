@@ -313,7 +313,7 @@ void Trace::hoistLoads() {
     replaceRefs(load, &instructions.front());
     load->clear();
   }
-  instructions.emplace_back(IR(IR::Opcode::Ujmp, &loopInstr));
+  instructions.emplace_back(IR::Opcode::Ujmp, &loopInstr);
 }
 
 void Trace::sinkStores() {
