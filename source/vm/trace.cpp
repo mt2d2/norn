@@ -333,8 +333,7 @@ void Trace::sinkStores() {
         auto *phi = phiRecord->second.phi;
         phi->pushBackRef(&prevInstr);
 
-        instructionsToAdd.emplace_back(
-            IR(IR::Opcode::StoreInt, phi, instr.intArg));
+        instructionsToAdd.emplace_back(IR::Opcode::StoreInt, phi, instr.intArg);
         sunkStoreSlots.insert(instr.intArg);
         instr.clear();
       }
